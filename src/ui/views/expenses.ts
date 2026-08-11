@@ -101,10 +101,8 @@ list="expense-category-options" placeholder="Groceries" />
        <div class="field">
         <span class="field-label">&nbsp;</span>
         <div class="row">
-         <button class="btn btn-primary" type="submit">${editingExpense ? 'Update expense' :
-'Add expense'}</button>
-         ${editingExpense ? '<button class="btn" type="button"
-id="cancel-expense-edit">Cancel</button>' : ''}
+         <button class="btn btn-primary" type="submit">${editingExpense ? 'Update expense' : 'Add expense'}</button>
+         ${editingExpense ? '<button class="btn" type="button" id="cancel-expense-edit">Cancel</button>' : ''}
         </div>
        </div>
      </div>
@@ -182,14 +180,12 @@ first</option>
 
    listContainer.innerHTML = list.length
      ? list.map((expense) => expenseRow(expense, currency)).join('')
-     : emptyState('No expenses found', 'Try changing your search or add your first expense
-above.');
+     : emptyState('No expenses found', 'Try changing your search or add your first expense above.');
  }
 
  updateList();
 
- el.querySelector<HTMLInputElement>('#expense-search')?.addEventListener('input', (event)
-=> {
+ el.querySelector<HTMLInputElement>('#expense-search')?.addEventListener('input', (event) => {
    uiState.expenseSearch = (event.target as HTMLInputElement).value;
    updateList();
  });
@@ -201,15 +197,13 @@ el.querySelector<HTMLSelectElement>('#expense-filter-category')?.addEventListene
    updateList();
  });
 
- el.querySelector<HTMLSelectElement>('#expense-sort')?.addEventListener('change', (event)
-=> {
+ el.querySelector<HTMLSelectElement>('#expense-sort')?.addEventListener('change', (event) => {
   uiState.expenseSort = (event.target as HTMLSelectElement).value;
 
    updateList();
  });
 
- el.querySelector<HTMLFormElement>('#expense-form')?.addEventListener('submit', (event)
-=> {
+ el.querySelector<HTMLFormElement>('#expense-form')?.addEventListener('submit', (event) => {
   event.preventDefault();
 
   const amountMinor = parseAmountToMinor(amountInput?.value ?? '');
@@ -234,8 +228,7 @@ description, recurring });
    refresh();
  });
 
- el.querySelector<HTMLButtonElement>('#cancel-expense-edit')?.addEventListener('click', ()
-=> {
+ el.querySelector<HTMLButtonElement>('#cancel-expense-edit')?.addEventListener('click', () => {
    uiState.editingExpenseId = null;
    refresh();
  });

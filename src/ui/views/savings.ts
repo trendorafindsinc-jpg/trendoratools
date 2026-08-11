@@ -149,10 +149,8 @@ contribution" />
            </label>
 
            <div class="row">
-             <button class="btn btn-primary" type="submit">${editingContribution ? 'Update
-contribution' : 'Add contribution'}</button>
-             ${editingContribution ? '<button class="btn" type="button"
-id="cancel-contribution-edit">Cancel</button>' : ''}
+             <button class="btn btn-primary" type="submit">${editingContribution ? 'Update contribution' : 'Add contribution'}</button>
+             ${editingContribution ? '<button class="btn" type="button" id="cancel-contribution-edit">Cancel</button>' : ''}
            </div>
          `
          : '<p class="muted">Select a goal to add or edit contributions.</p>'

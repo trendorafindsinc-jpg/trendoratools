@@ -52,8 +52,7 @@ data-id="${income.id}">Delete</button>
        `
      )
      .join('')
-  : emptyState('No income recorded', 'Add income for this month to improve your dashboard
-overview.');
+  : emptyState('No income recorded', 'Add income for this month to improve your dashboard overview.');
 
  const budgetCards = summaries.length
   ? summaries
@@ -208,10 +207,8 @@ placeholder="150000" value="${editingCategory ? (editingCategory.limitMinor / 10
         </div>
 
      <div class="row">
-       <button class="btn btn-primary" type="submit">${editingCategory ? 'Update category' :
-'Add category'}</button>
-       ${editingCategory ? '<button class="btn" type="button"
-id="cancel-category-edit">Cancel</button>' : ''}
+       <button class="btn btn-primary" type="submit">${editingCategory ? 'Update category' : 'Add category'}</button>
+       ${editingCategory ? '<button class="btn" type="button" id="cancel-category-edit">Cancel</button>' : ''}
      </div>
     </form>
 
@@ -226,8 +223,7 @@ id="cancel-category-edit">Cancel</button>' : ''}
       </section>
     `;
 
- el.querySelector<HTMLInputElement>('#budget-month')?.addEventListener('change', (event)
-=> {
+ el.querySelector<HTMLInputElement>('#budget-month')?.addEventListener('change', (event) => {
    const value = (event.target as HTMLInputElement).value;
    if (!value) return;
    uiState.budgetMonth = value;
@@ -272,8 +268,7 @@ id="cancel-category-edit">Cancel</button>' : ''}
       refresh();
     });
 
- el.querySelector<HTMLFormElement>('#category-form')?.addEventListener('submit', (event)
-=> {
+ el.querySelector<HTMLFormElement>('#category-form')?.addEventListener('submit', (event) => {
   event.preventDefault();
 
       const budgetId = el.querySelector<HTMLSelectElement>('#category-budget')?.value ?? '';
@@ -296,8 +291,7 @@ undefined })
       refresh();
     });
 
- el.querySelector<HTMLButtonElement>('#cancel-category-edit')?.addEventListener('click', ()
-=> {
+ el.querySelector<HTMLButtonElement>('#cancel-category-edit')?.addEventListener('click', () => {
    uiState.editingCategoryId = null;
    refresh();
  });

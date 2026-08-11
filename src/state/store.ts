@@ -242,8 +242,7 @@ ValidationResult {
  }
 
  deleteBudgetCategory(id: string): ValidationResult {
-   if (!this.snapshot.budgetCategories.some((category) => category.id === id)) return
-fail('Category not found.');
+   if (!this.snapshot.budgetCategories.some((category) => category.id === id)) return fail('Category not found.');
 
      this.commit((draft) => {
        draft.budgetCategories = draft.budgetCategories.filter((category) => category.id !== id);
@@ -311,8 +310,7 @@ undefined;
  }
 
  deleteExpense(id: string): ValidationResult {
-  if (!this.snapshot.expenses.some((expense) => expense.id === id)) return fail('Expense not
-found.');
+  if (!this.snapshot.expenses.some((expense) => expense.id === id)) return fail('Expense not found.');
 
      this.commit((draft) => {
        draft.expenses = draft.expenses.filter((expense) => expense.id !== id);
@@ -351,8 +349,7 @@ found.');
  }
 
  deleteSavingsGoal(id: string): ValidationResult {
-  if (!this.snapshot.savingsGoals.some((goal) => goal.id === id)) return fail('Savings goal not
-found.');
+  if (!this.snapshot.savingsGoals.some((goal) => goal.id === id)) return fail('Savings goal not found.');
 
   this.commit((draft) => {
     draft.savingsGoals = draft.savingsGoals.filter((goal) => goal.id !== id);

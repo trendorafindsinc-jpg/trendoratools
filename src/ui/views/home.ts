@@ -13,8 +13,7 @@ function ensureWelcomeMessage(): void {
   if (uiState.chat.length === 0) {
     uiState.chat.push({
       role: 'assistant',
-      text: 'Hello. I am the TrendoraTools assistant. I use built-in rules to route your request to
-Budget, Expenses, Savings, or your Dashboard. I am not an AI chatbot.'
+      text: 'Hello. I am the TrendoraTools assistant. I use built-in rules to route your request to Budget, Expenses, Savings, or your Dashboard. I am not an AI chatbot.'
     });
   }
 }
@@ -101,8 +100,7 @@ dashboard.">Dashboard</button>
 
     ${emptyState(
       'How this works',
-      'Conversation is the experience. Productivity tools are the product. The assistant does not
-claim to be AI. It simply helps you move into the right workflow.',
+      'Conversation is the experience. Productivity tools are the product. The assistant does not claim to be AI. It simply helps you move into the right workflow.',
       `<a class="btn" href="#/dashboard">Open Dashboard</a>
        <a class="btn" href="#/budget">Open Budget Planner</a>
        <a class="btn" href="#/expenses">Open Expense Tracker</a>

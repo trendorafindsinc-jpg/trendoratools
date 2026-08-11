@@ -38,8 +38,7 @@ currency))}</div>
 
    </div>
   `
-  : emptyState('No recent expenses', 'Record an expense to see it here.', '<a class="btn"
-href="#/expenses">Add expense</a>');
+  : emptyState('No recent expenses', 'Record an expense to see it here.', '<a class="btn" href="#/expenses">Add expense</a>');
 
  const categories = data.categoryBreakdown.length
    ?`
@@ -62,8 +61,7 @@ ${item.percent}%</span>
        .join('')}
      </div>
    `
-   : emptyState('No spending breakdown yet', 'Add expenses with categories to see spending
-patterns.');
+   : emptyState('No spending breakdown yet', 'Add expenses with categories to see spending patterns.');
 
  const alerts = data.alerts.length
   ?`

@@ -112,8 +112,7 @@ export function parseIntent(raw: string): ToolIntent {
     amountMinor,
     category,
     raw: text,
-    message: 'I can help with budgets, expenses, savings, or your dashboard. Try one of the
-quick actions below.'
+    message: 'I can help with budgets, expenses, savings, or your dashboard. Try one of the quick actions below.'
   };
 }
 
