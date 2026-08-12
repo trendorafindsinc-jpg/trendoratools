@@ -1,7 +1,7 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAppStore } from '../store';
 import { Card } from '../components/Card';
+import { AmbassadorShowcase } from '../components/AmbassadorShowcase';
 import {
   formatMoney,
   monthExpenses,
@@ -11,7 +11,7 @@ import {
   utilizationColor,
   goalProgress
 } from '../lib/utils';
-import { Receipt, Wallet, PiggyBank, TrendingUp } from 'lucide-react';
+import { Receipt, Wallet, PiggyBank, Sparkles, TrendingUp, ShieldCheck } from 'lucide-react';
 
 export default function Dashboard() {
   const { expenses, budgets, savingsGoals } = useAppStore();
@@ -25,56 +25,70 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-slate-400 mt-1 text-sm">Your financial position at a glance.</p>
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gradient-brand">
+            Command Center
+          </h1>
+          <p className="text-slate-400 mt-1 text-sm">
+            Financial position, utilization, and growth layer at a glance.
+          </p>
+        </div>
+        <div className="inline-flex items-center gap-2 text-xs px-3 py-1.5 rounded-full glass-interactive text-slate-300">
+          <ShieldCheck size={14} className="text-emerald-400" />
+          Local deterministic · minor units
+        </div>
       </div>
 
+      {/* KPI strip */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card>
-          <div className="text-sm text-slate-400 mb-1">This month spent</div>
-          <div className="text-2xl font-bold tracking-tight">{formatMoney(spent)}</div>
-        </Card>
-        <Card>
-          <div className="text-sm text-slate-400 mb-1">Total savings</div>
-          <div className="text-2xl font-bold tracking-tight text-emerald-700">
+        <div className="glass-primary p-5">
+          <div className="text-xs uppercase tracking-wider text-slate-500 mb-1">This month spent</div>
+          <div className="text-2xl font-bold tracking-tight tabular-nums">{formatMoney(spent)}</div>
+        </div>
+        <div className="glass-primary p-5">
+          <div className="text-xs uppercase tracking-wider text-slate-500 mb-1">Total savings</div>
+          <div className="text-2xl font-bold tracking-tight tabular-nums text-emerald-400">
             {formatMoney(totalSaved)}
           </div>
-        </Card>
-        <Card>
-          <div className="text-sm text-slate-400 mb-1">Net position</div>
+        </div>
+        <div className="glass-primary p-5">
+          <div className="text-xs uppercase tracking-wider text-slate-500 mb-1">Net position</div>
           <div
-            className={`text-2xl font-bold tracking-tight ${
-              net >= 0 ? 'text-emerald-700' : 'text-rose-700'
+            className={`text-2xl font-bold tracking-tight tabular-nums ${
+              net >= 0 ? 'text-emerald-400' : 'text-rose-400'
             }`}
           >
             {formatMoney(net)}
           </div>
-        </Card>
+        </div>
       </div>
 
+      {/* Quick actions */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
           { to: '/expenses', label: 'Add Expense', icon: Receipt },
           { to: '/budget', label: 'Budgets', icon: Wallet },
           { to: '/savings', label: 'Savings', icon: PiggyBank },
-          { to: '/', label: 'Ask Assistant', icon: TrendingUp }
+          { to: '/wisecraft', label: 'WISECRAFT', icon: Sparkles }
         ].map(({ to, label, icon: Icon }) => (
           <Link
             key={to}
             to={to}
-            className="card flex flex-col items-center gap-2 py-4 hover:border-indigo-400/40 transition text-center"
+            className="glass-interactive p-4 flex flex-col items-center gap-2 text-center"
           >
-            <Icon size={22} className="text-indigo-300" />
-            <span className="text-sm font-medium">{label}</span>
+            <Icon size={22} className="text-violet-300" />
+            <span className="text-sm font-medium text-slate-200">{label}</span>
           </Link>
         ))}
       </div>
 
+      <AmbassadorShowcase />
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card title="Budget utilization">
           {budgets.length === 0 ? (
-            <p className="text-sm text-slate-400">No budgets yet. Create one on the Budget page.</p>
+            <p className="text-sm text-slate-500">No budgets yet. Create one on the Budget page.</p>
           ) : (
             <div className="space-y-4">
               {budgets.map((b) => {
@@ -82,13 +96,13 @@ export default function Dashboard() {
                 const spentCat = categoryTotal(monthExps, b.category);
                 return (
                   <div key={b.id}>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="font-medium">{b.category}</span>
-                      <span className="text-slate-400">
+                    <div className="flex justify-between text-sm mb-1.5">
+                      <span className="font-medium text-slate-200">{b.category}</span>
+                      <span className="text-slate-500 tabular-nums">
                         {formatMoney(spentCat)} / {formatMoney(b.limit)} ({pct}%)
                       </span>
                     </div>
-                    <div className="h-2.5 rounded-full bg-white/10 overflow-hidden">
+                    <div className="h-2 rounded-full bg-white/5 overflow-hidden">
                       <div
                         className={`h-full rounded-full transition-all ${utilizationColor(pct)}`}
                         style={{ width: `${Math.min(100, pct)}%` }}
@@ -103,20 +117,20 @@ export default function Dashboard() {
 
         <Card title="Savings progress">
           {savingsGoals.length === 0 ? (
-            <p className="text-sm text-slate-400">No savings goals yet.</p>
+            <p className="text-sm text-slate-500">No savings goals yet.</p>
           ) : (
             <div className="space-y-4">
               {savingsGoals.slice(0, 4).map((g) => {
                 const pct = goalProgress(g);
                 return (
                   <div key={g.id}>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="font-medium truncate">{g.name}</span>
-                      <span className="text-slate-400">{pct}%</span>
+                    <div className="flex justify-between text-sm mb-1.5">
+                      <span className="font-medium text-slate-200 truncate pr-2">{g.name}</span>
+                      <span className="text-slate-500 tabular-nums">{pct}%</span>
                     </div>
-                    <div className="h-2.5 rounded-full bg-white/10 overflow-hidden">
+                    <div className="h-2 rounded-full bg-white/5 overflow-hidden">
                       <div
-                        className="h-full rounded-full bg-indigo-500 transition-all"
+                        className="h-full rounded-full bg-gradient-to-r from-violet-500 to-cyan-500 transition-all"
                         style={{ width: `${pct}%` }}
                       />
                     </div>
@@ -130,24 +144,34 @@ export default function Dashboard() {
 
       <Card title="Recent activity">
         {recent.length === 0 ? (
-          <p className="text-sm text-slate-400">No expenses recorded yet.</p>
+          <p className="text-sm text-slate-500">No expenses recorded yet.</p>
         ) : (
-          <ul className="divide-y divide-white/10">
+          <ul className="divide-y divide-white/5">
             {recent.map((e) => (
               <li key={e.id} className="py-3 flex justify-between gap-3 text-sm">
                 <div>
-                  <div className="font-medium">{e.category}</div>
-                  <div className="text-slate-400 text-xs">
+                  <div className="font-medium text-slate-200">{e.category}</div>
+                  <div className="text-slate-500 text-xs">
                     {e.date}
                     {e.note ? ` · ${e.note}` : ''}
                   </div>
                 </div>
-                <div className="font-semibold tabular-nums">{formatMoney(e.amount)}</div>
+                <div className="font-semibold tabular-nums text-slate-100">
+                  {formatMoney(e.amount)}
+                </div>
               </li>
             ))}
           </ul>
         )}
       </Card>
+
+      <div className="glass-primary p-4 flex items-center gap-3 text-sm text-slate-400">
+        <TrendingUp size={18} className="text-cyan-400 shrink-0" />
+        <span>
+          Insights stay deterministic. WISECRAFT is an optional growth layer — never a substitute
+          for exact local math.
+        </span>
+      </div>
     </div>
   );
 }

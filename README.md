@@ -1,12 +1,14 @@
-# TrendoraTools v0.3.0
+# TrendoraTools v0.4.0 — Command Center
 
-Productivity tools under the **LUCIA** brand by Trendora Inc.
+Premium financial productivity tools under the **LUCIA** brand by Trendora Inc.
 
-## What's new in 0.3
-- **Trendora Glass System** — spatial dark UI with glass surfaces and ambient motion
+## Flagship features
+- **Next-Gen Glass Design System** — deep atmospheric UI with light refraction
+- **Command Center** dashboard — KPIs, utilization, savings, recent activity
+- **Ambassador Showcase** — growth/community surface (content-swappable)
 - **WISECRAFT boundary** — optional remote intelligence, local-first deterministic core
-- Premium Welcome Experience (cinematic first load)
-- Budget, Expenses, Savings, Dashboard, Conversational Home
+- Premium Welcome Experience
+- Budget · Expenses · Savings · Conversational Home
 
 ## Stack
 React 18 · TypeScript · Vite · Tailwind CSS · Zustand · date-fns · lucide-react
@@ -27,6 +29,6 @@ npm run preview
 - Build command: `npm run build`
 - Publish directory: `dist`
 
-Optional: set `VITE_WISECRAFT_ENDPOINT` for a future secure backend.
+Optional: `VITE_WISECRAFT_ENDPOINT` for a future secure backend.
 
 Money is stored as integer minor units. No fake AI claims.

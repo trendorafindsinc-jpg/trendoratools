@@ -69,7 +69,7 @@ export default function Settings() {
 
       <Card title="About">
         <p className="text-sm text-slate-400">
-          TrendoraTools v0.3.0 under the LUCIA brand by Trendora Inc. Deterministic tools only —
+          TrendoraTools v0.4.0 under the LUCIA brand by Trendora Inc. Deterministic tools only —
           no AI claims. All financial values use integer minor units. Data is stored locally in
           your browser.
         </p>
