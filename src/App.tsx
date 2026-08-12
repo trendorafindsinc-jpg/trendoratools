@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Layout } from './components/Layout';
+import { WelcomeExperience } from './components/WelcomeExperience';
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import Expenses from './pages/Expenses';
@@ -8,6 +10,12 @@ import Savings from './pages/Savings';
 import Settings from './pages/Settings';
 
 export default function App() {
+  const [showWelcome, setShowWelcome] = useState(true);
+
+  if (showWelcome) {
+    return <WelcomeExperience onComplete={() => setShowWelcome(false)} />;
+  }
+
   return (
     <BrowserRouter>
       <Routes>
