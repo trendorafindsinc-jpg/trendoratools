@@ -1,51 +1,35 @@
-# TrendoraTools
+# TrendoraTools v0.2.0
 
-TrendoraTools is the first product under **LUCIA**, by **Trendora Inc.**
-
-It is a productivity platform focused on practical tools. The first release includes:
+Productivity tools under the **LUCIA** brand by Trendora Inc.
 
 - Budget Planner
 - Expense Tracker
 - Savings Tracker
-- Unified Dashboard
-- Conversational tool routing
-- Local data persistence
-- JSON export/import
+- Premium Dashboard
+- Deterministic conversational routing (not AI)
+- Local persistence + JSON export/import
 
-TrendoraTools is **not an AI chatbot**. Its conversational home experience is a deterministic intent-routing UX. Future intelligence can be integrated through the WISECRAFT boundary without rewriting the product.
+## Stack
 
-## Quickstart
+React 18 · TypeScript · Vite · Tailwind CSS · Zustand · date-fns · lucide-react
+
+## Quick start
 
 ```bash
 npm install
 npm run dev
 ```
 
-Open the local URL shown by Vite.
-
-## Production build
+## Production
 
 ```bash
 npm run build
 npm run preview
 ```
 
-## Tests
+## Deploy (Netlify / Vercel)
 
-```bash
-npm test
-```
+- Build command: `npm run build`
+- Publish directory: `dist`
 
-## Project principles
-
-- Productivity tools first
-- No fake AI claims
-- Clean separation between UI, domain logic, and data
-- Local persistence behind a repository abstraction
-- Financial values stored as integer minor units
-- Accessible, responsive, mobile-first UI
-- Future-ready for backend sync and WISECRAFT integration
-
-## Documentation
-
-See `docs/` for architecture, data model, design system, and security notes.
+Money is stored as integer minor units (kobo/cents) to avoid floating-point errors.
