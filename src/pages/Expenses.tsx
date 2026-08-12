@@ -41,7 +41,7 @@ export default function Expenses() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Expense Tracker</h1>
-        <p className="text-slate-600 mt-1 text-sm">Record and filter spending. Amounts stored as minor units.</p>
+        <p className="text-slate-400 mt-1 text-sm">Record and filter spending. Amounts stored as minor units.</p>
       </div>
 
       <Card title="Add expense">
@@ -104,14 +104,14 @@ export default function Expenses() {
         }
       >
         {filtered.length === 0 ? (
-          <p className="text-sm text-slate-500">No expenses match your filters.</p>
+          <p className="text-sm text-slate-400">No expenses match your filters.</p>
         ) : (
-          <ul className="divide-y divide-slate-100">
+          <ul className="divide-y divide-white/10">
             {filtered.map((e) => (
               <li key={e.id} className="py-3 flex items-center justify-between gap-3">
                 <div className="min-w-0">
                   <div className="font-medium text-sm">{e.category}</div>
-                  <div className="text-xs text-slate-500 truncate">
+                  <div className="text-xs text-slate-400 truncate">
                     {e.date}{e.note ? ` · ${e.note}` : ''}
                   </div>
                 </div>

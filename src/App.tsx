@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard';
 import Expenses from './pages/Expenses';
 import Budget from './pages/Budget';
 import Savings from './pages/Savings';
+import Wisecraft from './pages/Wisecraft';
 import Settings from './pages/Settings';
 
 export default function App() {
@@ -25,6 +26,7 @@ export default function App() {
           <Route path="/expenses" element={<Expenses />} />
           <Route path="/budget" element={<Budget />} />
           <Route path="/savings" element={<Savings />} />
+          <Route path="/wisecraft" element={<Wisecraft />} />
           <Route path="/settings" element={<Settings />} />
         </Route>
       </Routes>

@@ -43,7 +43,7 @@ export default function Home() {
     <div className="space-y-6 max-w-2xl mx-auto">
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Conversational Home</h1>
-        <p className="text-slate-600 mt-1 text-sm">
+        <p className="text-slate-400 mt-1 text-sm">
           Deterministic routing — not an AI. Ask about spending, budgets, or savings.
         </p>
       </div>
@@ -58,8 +58,8 @@ export default function Home() {
               <div
                 className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${
                   m.role === 'user'
-                    ? 'bg-brand-500 text-white rounded-br-md'
-                    : 'bg-slate-100 text-slate-800 rounded-bl-md'
+                    ? 'bg-indigo-500 text-white rounded-br-md'
+                    : 'bg-white/10 text-slate-800 rounded-bl-md'
                 }`}
               >
                 {m.text}
@@ -90,7 +90,7 @@ export default function Home() {
             onClick={() => {
               setInput(s);
             }}
-            className="text-xs px-3 py-1.5 rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200 transition"
+            className="text-xs px-3 py-1.5 rounded-full bg-white/10 text-slate-700 hover:bg-slate-200 transition"
           >
             {s}
           </button>

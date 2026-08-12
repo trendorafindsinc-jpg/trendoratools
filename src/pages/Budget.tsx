@@ -29,7 +29,7 @@ export default function Budget() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Budget Planner</h1>
-        <p className="text-slate-600 mt-1 text-sm">
+        <p className="text-slate-400 mt-1 text-sm">
           Set category limits. Bars turn amber near 80% and rose when over budget.
         </p>
       </div>
@@ -68,7 +68,7 @@ export default function Budget() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {budgets.length === 0 && (
-          <p className="text-sm text-slate-500 col-span-full">No budgets yet. Add one above.</p>
+          <p className="text-sm text-slate-400 col-span-full">No budgets yet. Add one above.</p>
         )}
         {budgets.map((b) => {
           const spent = categoryTotal(monthExps, b.category);
@@ -92,13 +92,13 @@ export default function Budget() {
                   <Trash2 size={16} />
                 </button>
               </div>
-              <div className="h-3 rounded-full bg-slate-100 overflow-hidden mb-2">
+              <div className="h-3 rounded-full bg-white/10 overflow-hidden mb-2">
                 <div
                   className={`h-full rounded-full transition-all ${utilizationColor(pct)}`}
                   style={{ width: `${Math.min(100, pct)}%` }}
                 />
               </div>
-              <div className="flex justify-between text-sm text-slate-600">
+              <div className="flex justify-between text-sm text-slate-400">
                 <span>{formatMoney(spent)} spent</span>
                 <span>{formatMoney(Math.max(0, left))} left of {formatMoney(b.limit)}</span>
               </div>

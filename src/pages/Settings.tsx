@@ -39,7 +39,7 @@ export default function Settings() {
     <div className="space-y-6 max-w-2xl">
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Settings</h1>
-        <p className="text-slate-600 mt-1 text-sm">Data backup and restore. Everything stays on your device.</p>
+        <p className="text-slate-400 mt-1 text-sm">Data backup and restore. Everything stays on your device.</p>
       </div>
 
       {msg && (
@@ -47,7 +47,7 @@ export default function Settings() {
       )}
 
       <Card title="Data management">
-        <p className="text-sm text-slate-600 mb-6">
+        <p className="text-sm text-slate-400 mb-6">
           Export your data to back it up, or import a previously exported JSON file.
         </p>
         <div className="flex flex-col sm:flex-row gap-3">
@@ -68,8 +68,8 @@ export default function Settings() {
       </Card>
 
       <Card title="About">
-        <p className="text-sm text-slate-600">
-          TrendoraTools v0.2.0 under the LUCIA brand by Trendora Inc. Deterministic tools only —
+        <p className="text-sm text-slate-400">
+          TrendoraTools v0.3.0 under the LUCIA brand by Trendora Inc. Deterministic tools only —
           no AI claims. All financial values use integer minor units. Data is stored locally in
           your browser.
         </p>

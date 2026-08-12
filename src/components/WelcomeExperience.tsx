@@ -116,7 +116,7 @@ export function WelcomeExperience({ onComplete }: WelcomeExperienceProps) {
                 Growth layer · WISECRAFT
               </span>
             </div>
-            <p className="text-[10px] text-slate-500 mt-3 tracking-[0.2em] uppercase">
+            <p className="text-[10px] text-slate-400 mt-3 tracking-[0.2em] uppercase">
               Deterministic tools · Not an AI chatbot
             </p>
           </div>

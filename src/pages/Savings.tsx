@@ -33,7 +33,7 @@ export default function Savings() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Savings Tracker</h1>
-        <p className="text-slate-600 mt-1 text-sm">
+        <p className="text-slate-400 mt-1 text-sm">
           Create goals and add or remove contributions.
         </p>
       </div>
@@ -60,7 +60,7 @@ export default function Savings() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {savingsGoals.length === 0 && (
-          <p className="text-sm text-slate-500 col-span-full">No goals yet.</p>
+          <p className="text-sm text-slate-400 col-span-full">No goals yet.</p>
         )}
         {savingsGoals.map((g) => {
           const pct = goalProgress(g);
@@ -78,17 +78,17 @@ export default function Savings() {
                   <Trash2 size={16} />
                 </button>
               </div>
-              <div className="h-3.5 rounded-full bg-slate-100 overflow-hidden mb-2">
+              <div className="h-3.5 rounded-full bg-white/10 overflow-hidden mb-2">
                 <div
-                  className="h-full rounded-full bg-brand-500 transition-all"
+                  className="h-full rounded-full bg-indigo-500 transition-all"
                   style={{ width: `${pct}%` }}
                 />
               </div>
-              <div className="flex justify-between text-sm text-slate-600 mb-3">
+              <div className="flex justify-between text-sm text-slate-400 mb-3">
                 <span>{formatMoney(g.currentAmount)} · {pct}%</span>
                 <span>{formatMoney(remaining)} left</span>
               </div>
-              <div className="text-xs text-slate-500 mb-3">Target: {g.targetDate}</div>
+              <div className="text-xs text-slate-400 mb-3">Target: {g.targetDate}</div>
               <div className="flex gap-2">
                 <button
                   type="button"
