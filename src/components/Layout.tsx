@@ -4,13 +4,13 @@ import {
   Wallet,
   PiggyBank,
   Receipt,
-  MessageSquare,
+  Home as HomeIcon,
   Settings,
   Sparkles
 } from 'lucide-react';
 
 const nav = [
-  { to: '/', label: 'Home', icon: MessageSquare },
+  { to: '/', label: 'Home', icon: HomeIcon },
   { to: '/dashboard', label: 'Command', icon: LayoutDashboard },
   { to: '/expenses', label: 'Expenses', icon: Receipt },
   { to: '/budget', label: 'Budget', icon: Wallet },
@@ -22,7 +22,6 @@ const nav = [
 export function Layout() {
   return (
     <div className="min-h-screen flex flex-col bg-[var(--bg-deep)] text-slate-100 relative overflow-x-hidden">
-      {/* Atmospheric orbs */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
         <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-violet-900/20 rounded-full blur-[150px] animate-pulse-slow" />
         <div
@@ -43,7 +42,7 @@ export function Layout() {
                 TrendoraTools
               </div>
               <div className="text-[10px] text-slate-500 leading-tight uppercase tracking-widest">
-                Command Center · v0.4
+                LUCIA · v0.5
               </div>
             </div>
           </div>

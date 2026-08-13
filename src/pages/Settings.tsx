@@ -1,7 +1,17 @@
-import React, { useRef, useState } from 'react';
+import { useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAppStore } from '../store';
 import { Card } from '../components/Card';
-import { Download, Upload } from 'lucide-react';
+import { Download, Upload, Scale, FileText, Shield, Cookie, Ban, Code2 } from 'lucide-react';
+
+const legalLinks = [
+  { to: '/legal/terms', label: 'Terms of Service', icon: FileText },
+  { to: '/legal/privacy', label: 'Privacy Policy', icon: Shield },
+  { to: '/legal/disclaimer', label: 'Financial Disclaimer', icon: Scale },
+  { to: '/legal/cookies', label: 'Cookie Policy', icon: Cookie },
+  { to: '/legal/acceptable-use', label: 'Acceptable Use', icon: Ban },
+  { to: '/legal/licenses', label: 'Open Source Licenses', icon: Code2 }
+];
 
 export default function Settings() {
   const { exportData, importData } = useAppStore();
@@ -36,25 +46,33 @@ export default function Settings() {
   };
 
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="space-y-6 max-w-2xl animate-fade-in">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Settings</h1>
-        <p className="text-slate-400 mt-1 text-sm">Data backup and restore. Everything stays on your device.</p>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gradient-brand">Settings</h1>
+        <p className="text-slate-400 mt-1 text-sm">
+          Data backup, product info, and legal documents.
+        </p>
       </div>
 
       {msg && (
-        <div className="p-3 bg-indigo-50 text-indigo-700 rounded-xl text-sm">{msg}</div>
+        <div className="p-3 bg-indigo-500/10 text-indigo-200 border border-indigo-500/20 rounded-xl text-sm">
+          {msg}
+        </div>
       )}
 
       <Card title="Data management">
         <p className="text-sm text-slate-400 mb-6">
-          Export your data to back it up, or import a previously exported JSON file.
+          Your data is stored locally. Export to back up, or import to restore.
         </p>
         <div className="flex flex-col sm:flex-row gap-3">
-          <button onClick={handleExport} className="btn-secondary flex-1">
+          <button type="button" onClick={handleExport} className="btn-secondary flex-1">
             <Download size={18} /> Export Data
           </button>
-          <button onClick={() => fileInputRef.current?.click()} className="btn-secondary flex-1">
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="btn-secondary flex-1"
+          >
             <Upload size={18} /> Import Data
           </button>
           <input
@@ -67,11 +85,27 @@ export default function Settings() {
         </div>
       </Card>
 
+      <Card title="Legal">
+        <ul className="divide-y divide-white/5">
+          {legalLinks.map(({ to, label, icon: Icon }) => (
+            <li key={to}>
+              <Link
+                to={to}
+                className="flex items-center gap-3 py-3 text-sm text-slate-300 hover:text-white transition"
+              >
+                <Icon size={16} className="text-slate-500" />
+                {label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </Card>
+
       <Card title="About">
-        <p className="text-sm text-slate-400">
-          TrendoraTools v0.4.0 under the LUCIA brand by Trendora Inc. Deterministic tools only —
-          no AI claims. All financial values use integer minor units. Data is stored locally in
-          your browser.
+        <p className="text-sm text-slate-400 leading-relaxed">
+          TrendoraTools v0.5.0 under the LUCIA brand by Trendora Inc. Deterministic tools only —
+          no AI claims for core math. Data stays on your device unless you configure an optional
+          WISECRAFT endpoint.
         </p>
       </Card>
     </div>

@@ -9,6 +9,7 @@ import Budget from './pages/Budget';
 import Savings from './pages/Savings';
 import Wisecraft from './pages/Wisecraft';
 import Settings from './pages/Settings';
+import Legal from './pages/Legal';
 
 export default function App() {
   const [showWelcome, setShowWelcome] = useState(true);
@@ -28,6 +29,7 @@ export default function App() {
           <Route path="/savings" element={<Savings />} />
           <Route path="/wisecraft" element={<Wisecraft />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/legal/:page" element={<Legal />} />
         </Route>
       </Routes>
     </BrowserRouter>

@@ -1,17 +1,18 @@
-# TrendoraTools v0.4.0 — Command Center
+# TrendoraTools v0.5.0 — Production Flagship
 
-Premium financial productivity tools under the **LUCIA** brand by Trendora Inc.
+Premium financial productivity under the **LUCIA** brand by Trendora Inc.
 
-## Flagship features
-- **Next-Gen Glass Design System** — deep atmospheric UI with light refraction
-- **Command Center** dashboard — KPIs, utilization, savings, recent activity
-- **Ambassador Showcase** — growth/community surface (content-swappable)
-- **WISECRAFT boundary** — optional remote intelligence, local-first deterministic core
-- Premium Welcome Experience
-- Budget · Expenses · Savings · Conversational Home
+## Highlights
+- Glass UI design system (iOS-inspired depth)
+- Cinematic welcome: Trendora Inc. → LUCIA → TrendoraTools
+- Flagship Home with Ambassador visual
+- Command Center dashboard
+- WISECRAFT conversational workspace (deterministic)
+- Legal suite (Terms, Privacy, Disclaimer, Cookies, Acceptable Use, Licenses)
+- Budget · Expenses · Savings · local persistence · minor-unit math
 
 ## Stack
-React 18 · TypeScript · Vite · Tailwind CSS · Zustand · date-fns · lucide-react
+React 18 · TypeScript · Vite · Tailwind · Zustand · date-fns · lucide-react
 
 ## Quick start
 ```bash
@@ -19,16 +20,8 @@ npm install
 npm run dev
 ```
 
-## Production
-```bash
-npm run build
-npm run preview
-```
+## Deploy
+- Build: `npm run build`
+- Publish: `dist`
 
-## Deploy (Netlify / Vercel)
-- Build command: `npm run build`
-- Publish directory: `dist`
-
-Optional: `VITE_WISECRAFT_ENDPOINT` for a future secure backend.
-
-Money is stored as integer minor units. No fake AI claims.
+Optional: `VITE_WISECRAFT_ENDPOINT`
