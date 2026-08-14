@@ -103,7 +103,7 @@ export default function Settings() {
 
       <Card title="About">
         <p className="text-sm text-slate-400 leading-relaxed">
-          TrendoraTools v0.5.0 under the LUCIA brand by Trendora Inc. Deterministic tools only —
+          TrendoraTools v1.0.0 under the LUCIA brand by Trendora Inc. Deterministic tools only —
           no AI claims for core math. Data stays on your device unless you configure an optional
           WISECRAFT endpoint.
         </p>

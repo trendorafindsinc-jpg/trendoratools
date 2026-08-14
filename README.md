@@ -1,27 +1,27 @@
-# TrendoraTools v0.5.0 — Production Flagship
+# TrendoraTools v1.0.0
 
-Premium financial productivity under the **LUCIA** brand by Trendora Inc.
+Premium financial command center under the **LUCIA** brand by Trendora Inc.
 
-## Highlights
-- Glass UI design system (iOS-inspired depth)
-- Cinematic welcome: Trendora Inc. → LUCIA → TrendoraTools
-- Flagship Home with Ambassador visual
+## Tools
+- Expenses, Income, Budget, Bills, Savings, Debts, Reports
 - Command Center dashboard
-- WISECRAFT conversational workspace (deterministic)
-- Legal suite (Terms, Privacy, Disclaimer, Cookies, Acceptable Use, Licenses)
-- Budget · Expenses · Savings · local persistence · minor-unit math
+- **WISECRAFT** — Grok-style deterministic workspace (`/help`, slash commands)
+- Home + Ambassador visual, Legal suite, Settings export/import
 
-## Stack
-React 18 · TypeScript · Vite · Tailwind · Zustand · date-fns · lucide-react
+## Money
+All amounts stored as integer minor units (kobo/cents).
 
-## Quick start
+## WISECRAFT
+Rule-based routing only — not an AI chatbot. Slash: `/spend` `/income` `/bills` `/debt` `/budget` `/save` `/networth` `/help`
+
+## Persistence
+Zustand + localStorage. Store version 2 migrates older installs (adds empty incomes/bills/debts/customCategories).
+
+## Develop
 ```bash
 npm install
 npm run dev
+npm run build
 ```
 
-## Deploy
-- Build: `npm run build`
-- Publish: `dist`
-
-Optional: `VITE_WISECRAFT_ENDPOINT`
+Deploy: build `npm run build`, publish `dist`.
