@@ -112,6 +112,10 @@
   .safe-top { padding-top: max(1.5rem, env(safe-area-inset-top)); }
   .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
   .safe-bottom-nav { padding-bottom: max(0.35rem, env(safe-area-inset-bottom, 0px)); }
+  /* Space so last list items clear fixed mobile nav + home indicator */
+  .scroll-pad-nav {
+    padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+  }
 }
 
 @keyframes float {

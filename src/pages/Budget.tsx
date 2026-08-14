@@ -26,7 +26,7 @@ export default function Budget() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 scroll-pad-nav lg:pb-0">
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Budget Planner</h1>
         <p className="text-slate-400 mt-1 text-sm">

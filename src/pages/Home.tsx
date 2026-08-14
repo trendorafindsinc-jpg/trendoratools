@@ -9,7 +9,7 @@ export default function Home() {
   const totalSaved = savingsGoals.reduce((sum, g) => sum + g.currentAmount, 0);
 
   return (
-    <div className="space-y-20 pb-8 animate-fade-in">
+    <div className="space-y-20 pb-8 animate-fade-in scroll-pad-nav lg:pb-0">
       {/* Hero */}
       <section className="grid lg:grid-cols-2 gap-10 lg:gap-12 items-center min-h-[70vh]">
         <div className="space-y-7">

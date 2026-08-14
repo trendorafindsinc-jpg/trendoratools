@@ -81,12 +81,12 @@ export function Layout() {
         </div>
       </header>
 
-      <main className="relative z-10 flex-1 max-w-7xl w-full mx-auto px-4 py-6 pb-28 lg:pb-8">
+      <main className="relative z-10 flex-1 max-w-7xl w-full mx-auto px-4 py-6 pb-36 lg:pb-8">
         <Outlet />
       </main>
 
       {/* Mobile nav */}
-      <nav className="xl:hidden fixed bottom-0 inset-x-0 z-20 glass-primary border-t border-white/[0.06] rounded-none safe-bottom-nav">
+      <nav className="xl:hidden fixed bottom-0 inset-x-0 z-30 border-t border-white/10 rounded-none safe-bottom-nav bg-[#0a0a0f]/95 backdrop-blur-xl">
         <div className="grid grid-cols-6 gap-0.5 px-1 pt-1 pb-1">
           {primary.map(({ to, label, icon: Icon }) => (
             <NavLink

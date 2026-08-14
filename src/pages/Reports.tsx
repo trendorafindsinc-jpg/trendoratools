@@ -13,7 +13,7 @@ export default function Reports() {
   const maxCat = summary.categoryBreakdown[0]?.amount || 1;
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in scroll-pad-nav lg:pb-0">
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gradient-brand">Reports</h1>
         <p className="text-slate-400 mt-1 text-sm">This month’s deterministic snapshot.</p>

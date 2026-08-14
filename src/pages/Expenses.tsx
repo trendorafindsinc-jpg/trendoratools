@@ -38,7 +38,7 @@ export default function Expenses() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 scroll-pad-nav lg:pb-0">
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Expense Tracker</h1>
         <p className="text-slate-400 mt-1 text-sm">Record and filter spending. Amounts stored as minor units.</p>
