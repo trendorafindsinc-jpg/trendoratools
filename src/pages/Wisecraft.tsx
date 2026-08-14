@@ -88,7 +88,7 @@ export default function Wisecraft() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)] max-w-3xl mx-auto animate-fade-in">
+    <div className="flex flex-col h-[calc(100dvh-8rem)] min-h-0 max-w-3xl mx-auto animate-fade-in">
       {/* Header */}
       <div className="flex items-start justify-between gap-3 mb-4 shrink-0">
         <div>

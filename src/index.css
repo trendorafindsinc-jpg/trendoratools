@@ -14,11 +14,29 @@
     --positive: #10b981;
     --warning: #f59e0b;
     --danger: #ef4444;
+    --app-height: 100%;
+  }
+
+  html {
+    height: 100%;
+    height: -webkit-fill-available;
+    background-color: var(--bg-deep);
   }
 
   body {
     @apply bg-[var(--bg-deep)] text-slate-100 antialiased;
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI", Roboto, sans-serif;
+    min-height: 100%;
+    min-height: 100dvh;
+    min-height: -webkit-fill-available;
+    overscroll-behavior-y: none;
+  }
+
+  #root {
+    min-height: 100%;
+    min-height: 100dvh;
+    min-height: -webkit-fill-available;
+    background-color: var(--bg-deep);
   }
 }
 
@@ -92,7 +110,8 @@
     @apply bg-clip-text text-transparent bg-gradient-to-br from-white via-slate-200 to-slate-400;
   }
   .safe-top { padding-top: max(1.5rem, env(safe-area-inset-top)); }
-  .safe-bottom { padding-bottom: max(1.5rem, env(safe-area-inset-bottom)); }
+  .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .safe-bottom-nav { padding-bottom: max(0.35rem, env(safe-area-inset-bottom, 0px)); }
 }
 
 @keyframes float {

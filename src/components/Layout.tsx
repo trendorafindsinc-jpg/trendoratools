@@ -39,7 +39,7 @@ export function Layout() {
   const [openMore, setOpenMore] = useState(false);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[var(--bg-deep)] text-slate-100 relative overflow-x-hidden">
+    <div className="min-h-dvh min-h-[-webkit-fill-available] flex flex-col bg-[var(--bg-deep)] text-slate-100 relative overflow-x-hidden">
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
         <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-violet-900/20 rounded-full blur-[150px] animate-pulse-slow" />
         <div
@@ -86,7 +86,7 @@ export function Layout() {
       </main>
 
       {/* Mobile nav */}
-      <nav className="xl:hidden fixed bottom-0 inset-x-0 z-20 glass-primary border-t border-white/[0.06] rounded-none safe-bottom">
+      <nav className="xl:hidden fixed bottom-0 inset-x-0 z-20 glass-primary border-t border-white/[0.06] rounded-none safe-bottom-nav">
         <div className="grid grid-cols-6 gap-0.5 px-1 pt-1 pb-1">
           {primary.map(({ to, label, icon: Icon }) => (
             <NavLink
