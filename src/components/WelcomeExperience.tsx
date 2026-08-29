@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-const WELCOME_KEY = 'trendoratools_welcome_v5';
+const WELCOME_KEY = 'trendora_tools_welcome_v6';
 
 export function WelcomeExperience({ onComplete }: { onComplete: () => void }) {
   const [stage, setStage] = useState(0);
@@ -37,7 +37,7 @@ export function WelcomeExperience({ onComplete }: { onComplete: () => void }) {
   return (
     <div
       role="dialog"
-      aria-label="Welcome to TrendoraTools"
+      aria-label="Welcome to Trendora Tools"
       aria-modal="true"
       className={`fixed inset-0 z-[100] bg-[#07070A] flex items-center justify-center transition-all duration-700 ${
         isExiting ? 'animate-scale-out' : ''
@@ -54,17 +54,17 @@ export function WelcomeExperience({ onComplete }: { onComplete: () => void }) {
       <div className="text-center space-y-4 px-6">
         {stage >= 1 && (
           <p className="text-slate-500 tracking-[0.3em] uppercase text-sm animate-fade-in">
-            Trendora Inc.
+            LUCIA
           </p>
         )}
         {stage >= 2 && (
           <p className="text-indigo-400 tracking-[0.2em] uppercase text-lg font-light animate-fade-in">
-            LUCIA
+            Trendora
           </p>
         )}
         {stage >= 3 && (
           <div className="animate-slide-up space-y-3">
-            <h1 className="text-4xl sm:text-5xl font-bold text-gradient-brand">TrendoraTools</h1>
+            <h1 className="text-4xl sm:text-5xl font-bold text-gradient-brand">Trendora Tools</h1>
             <p className="text-slate-400 text-base sm:text-lg">
               Your tools. Your progress. Your control.
             </p>
