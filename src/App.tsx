@@ -11,7 +11,7 @@ import Bills from './pages/Bills';
 import Savings from './pages/Savings';
 import Debts from './pages/Debts';
 import Reports from './pages/Reports';
-import Wisecraft from './pages/Wisecraft';
+import Insights from './pages/Insights';
 import Settings from './pages/Settings';
 import Legal from './pages/Legal';
 
@@ -35,7 +35,7 @@ export default function App() {
           <Route path="/savings" element={<Savings />} />
           <Route path="/debts" element={<Debts />} />
           <Route path="/reports" element={<Reports />} />
-          <Route path="/wisecraft" element={<Wisecraft />} />
+          <Route path="/insights" element={<Insights />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/legal/:page" element={<Legal />} />
         </Route>
