@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import type { User } from 'firebase/auth';
 import { Layout } from './components/Layout';
 import { WelcomeExperience } from './components/WelcomeExperience';
+import { LuciaAuth } from './components/LuciaAuth';
+import { subscribeToLuciaAuth } from './lib/lucia-auth';
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import Expenses from './pages/Expenses';
@@ -15,11 +18,35 @@ import Insights from './pages/Insights';
 import Settings from './pages/Settings';
 import Legal from './pages/Legal';
 
-export default function App() {
-  const [showWelcome, setShowWelcome] = useState(true);
+const WELCOME_KEY = 'trendora_tools_welcome_seen';
+const GUEST_KEY = 'trendora_tools_guest_mode';
 
-  if (showWelcome) {
-    return <WelcomeExperience onComplete={() => setShowWelcome(false)} />;
+export default function App() {
+  const [user, setUser] = useState<User | null>(null);
+  const [authReady, setAuthReady] = useState(false);
+  const [welcomeDone, setWelcomeDone] = useState(() => localStorage.getItem(WELCOME_KEY) === 'true');
+  const [guest, setGuest] = useState(() => localStorage.getItem(GUEST_KEY) === 'true');
+
+  useEffect(() => subscribeToLuciaAuth((nextUser) => {
+    setUser(nextUser);
+    if (nextUser) {
+      localStorage.removeItem(GUEST_KEY);
+      setGuest(false);
+    }
+    setAuthReady(true);
+  }), []);
+
+  if (!authReady) return <div className="min-h-dvh bg-[#07070A]" />;
+
+  if (!welcomeDone) {
+    return <WelcomeExperience
+      onGetStarted={() => { localStorage.setItem(WELCOME_KEY, 'true'); setWelcomeDone(true); }}
+      onGuest={() => { localStorage.setItem(WELCOME_KEY, 'true'); localStorage.setItem(GUEST_KEY, 'true'); setWelcomeDone(true); setGuest(true); }}
+    />;
+  }
+
+  if (!user && !guest) {
+    return <LuciaAuth onGuest={() => { localStorage.setItem(GUEST_KEY, 'true'); setGuest(true); }} />;
   }
 
   return (
