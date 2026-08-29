@@ -7,11 +7,10 @@ import {
   Receipt,
   Home as HomeIcon,
   Settings,
-  Sparkles,
+  BarChart3,
   Banknote,
   FileText,
   CreditCard,
-  BarChart3,
   MoreHorizontal,
   X
 } from 'lucide-react';
@@ -20,7 +19,7 @@ const primary = [
   { to: '/', label: 'Home', icon: HomeIcon },
   { to: '/dashboard', label: 'Command', icon: LayoutDashboard },
   { to: '/expenses', label: 'Expenses', icon: Receipt },
-  { to: '/wisecraft', label: 'WISECRAFT', icon: Sparkles },
+  { to: '/insights', label: 'Insights', icon: BarChart3 },
   { to: '/settings', label: 'Settings', icon: Settings }
 ];
 
@@ -55,8 +54,8 @@ export function Layout() {
               T
             </div>
             <div>
-              <div className="font-semibold leading-tight tracking-tight">TrendoraTools</div>
-              <div className="text-[10px] text-slate-500 uppercase tracking-widest">LUCIA · v1.0</div>
+              <div className="font-semibold leading-tight tracking-tight">Trendora Tools</div>
+              <div className="text-[10px] text-slate-500 uppercase tracking-widest">A Trendora product · LUCIA</div>
             </div>
           </div>
           <nav className="hidden xl:flex items-center gap-0.5 flex-wrap justify-end">
@@ -85,7 +84,6 @@ export function Layout() {
         <Outlet />
       </main>
 
-      {/* Mobile nav */}
       <nav className="xl:hidden fixed bottom-0 inset-x-0 z-30 border-t border-white/10 rounded-none safe-bottom-nav bg-[#0a0a0f]/95 backdrop-blur-xl">
         <div className="grid grid-cols-6 gap-0.5 px-1 pt-1 pb-1">
           {primary.map(({ to, label, icon: Icon }) => (
