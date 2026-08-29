@@ -22,7 +22,7 @@ export default function Settings() {
     const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(exportData());
     const a = document.createElement('a');
     a.setAttribute('href', dataStr);
-    a.setAttribute('download', 'trendoratools_backup.json');
+    a.setAttribute('download', 'trendora-tools-backup.json');
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -49,9 +49,7 @@ export default function Settings() {
     <div className="space-y-6 max-w-2xl animate-fade-in">
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gradient-brand">Settings</h1>
-        <p className="text-slate-400 mt-1 text-sm">
-          Data backup, product info, and legal documents.
-        </p>
+        <p className="text-slate-400 mt-1 text-sm">Data backup, product info, and legal documents.</p>
       </div>
 
       {msg && (
@@ -61,27 +59,11 @@ export default function Settings() {
       )}
 
       <Card title="Data management">
-        <p className="text-sm text-slate-400 mb-6">
-          Your data is stored locally. Export to back up, or import to restore.
-        </p>
+        <p className="text-sm text-slate-400 mb-6">Your data is stored locally. Export to back up, or import to restore.</p>
         <div className="flex flex-col sm:flex-row gap-3">
-          <button type="button" onClick={handleExport} className="btn-secondary flex-1">
-            <Download size={18} /> Export Data
-          </button>
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="btn-secondary flex-1"
-          >
-            <Upload size={18} /> Import Data
-          </button>
-          <input
-            type="file"
-            accept=".json"
-            ref={fileInputRef}
-            className="hidden"
-            onChange={handleImport}
-          />
+          <button type="button" onClick={handleExport} className="btn-secondary flex-1"><Download size={18} /> Export Data</button>
+          <button type="button" onClick={() => fileInputRef.current?.click()} className="btn-secondary flex-1"><Upload size={18} /> Import Data</button>
+          <input type="file" accept=".json" ref={fileInputRef} className="hidden" onChange={handleImport} />
         </div>
       </Card>
 
@@ -89,10 +71,7 @@ export default function Settings() {
         <ul className="divide-y divide-white/5">
           {legalLinks.map(({ to, label, icon: Icon }) => (
             <li key={to}>
-              <Link
-                to={to}
-                className="flex items-center gap-3 py-3 text-sm text-slate-300 hover:text-white transition"
-              >
+              <Link to={to} className="flex items-center gap-3 py-3 text-sm text-slate-300 hover:text-white transition">
                 <Icon size={16} className="text-slate-500" />
                 {label}
               </Link>
@@ -103,9 +82,7 @@ export default function Settings() {
 
       <Card title="About">
         <p className="text-sm text-slate-400 leading-relaxed">
-          TrendoraTools v1.0.0 under the LUCIA brand by Trendora Inc. Deterministic tools only —
-          no AI claims for core math. Data stays on your device unless you configure an optional
-          WISECRAFT endpoint.
+          Trendora Tools under Trendora, a LUCIA company. The product is local-first and focused on practical financial tracking, planning, and deterministic insights — with no AI chatbot or remote AI integration.
         </p>
       </Card>
     </div>
