@@ -1,24 +1,20 @@
-# TrendoraTools v1.0.1 (Offline PWA)
+# Trendora Tools v1.1 (Offline PWA)
 
-Premium financial command center under the **LUCIA** brand by Trendora Inc.
+Practical financial tools from **Trendora**, under **LUCIA**.
 
-## What's new in 1.0.1
-- **Full offline PWA support** — install to home screen on Android & iPhone
+## What's included
+- Full offline PWA support — install to home screen on Android & iPhone
 - Works completely offline after the first visit (service worker + app shell caching)
-- Proper icons, theme color, standalone display mode
-- Auto-updating service worker
-
-## Tools
-- Expenses, Income, Budget, Bills, Savings, Debts, Reports
+- Expenses, Income, Budget, Bills, Savings, Debts and Reports
 - Command Center dashboard
-- **WISECRAFT** — Grok-style deterministic workspace (`/help`, slash commands)
-- Home + Ambassador visual, Legal suite, Settings export/import
+- **Financial Insights** — deterministic summaries of recorded financial data
+- Home, Ambassador visual, Legal suite, Settings export/import
+
+## Product boundary
+Trendora Tools is a productivity and financial-tracking product, not an AI platform or chatbot. AI integrations are not part of Trendora Tools. If AI capabilities are introduced elsewhere in the LUCIA product family, they belong to the appropriate AI product rather than being embedded here.
 
 ## Money
-All amounts stored as integer minor units (kobo/cents).
-
-## WISECRAFT
-Rule-based routing only — not an AI chatbot. Slash: `/spend` `/income` `/bills` `/debt` `/budget` `/save` `/networth` `/help`
+All amounts are stored as integer minor units (kobo/cents).
 
 ## Persistence
 Zustand + localStorage. Store version 2 migrates older installs (adds empty incomes/bills/debts/customCategories).
@@ -30,14 +26,14 @@ npm run dev
 npm run build
 ```
 
-Deploy: build `npm run build`, publish the `dist` folder (Netlify, etc.).
+Deploy: build with `npm run build`, then publish the `dist` folder.
 
 ## Install as app (Android / iPhone)
 
 ### Android (Chrome)
 1. Open the live site
 2. Tap the menu (⋮) → **Install app** or **Add to Home screen**
-3. The app icon appears and opens in standalone mode
+3. The app opens in standalone mode
 4. After first open it works fully offline
 
 ### iPhone (Safari)
