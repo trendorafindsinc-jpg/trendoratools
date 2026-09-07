@@ -4,7 +4,7 @@ import type { User } from 'firebase/auth';
 import { Layout } from './components/Layout';
 import { WelcomeExperience } from './components/WelcomeExperience';
 import { LuciaAuth } from './components/LuciaAuth';
-import { subscribeToLuciaAuth } from './lib/lucia-auth';
+import { completeGoogleRedirectIfAny, subscribeToLuciaAuth } from './lib/lucia-auth';
 import { startLuciaCloudSync, stopLuciaCloudSync, subscribeToLuciaCloudSync } from './lib/lucia-cloud-sync';
 import Home from './pages/Home';
 import Planner from './pages/Planner';
@@ -30,6 +30,9 @@ export default function App() {
   const [guest, setGuest] = useState(() => localStorage.getItem(GUEST_KEY) === 'true');
 
   useEffect(() => {
+    // Finish Google redirect flow before relying solely on auth listener
+    void completeGoogleRedirectIfAny().catch(() => undefined);
+
     const unsubscribeCloud = subscribeToLuciaCloudSync();
     const unsubscribeAuth = subscribeToLuciaAuth((nextUser) => {
       setUser(nextUser);
