@@ -2,8 +2,9 @@ import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAppStore } from '../store';
 import { Card } from '../components/Card';
-import { Download, Upload, Scale, FileText, Shield, Cookie, Ban, Code2, Cloud } from 'lucide-react';
+import { Download, Upload, Scale, FileText, Shield, Cookie, Ban, Code2, Cloud, LogOut, LogIn } from 'lucide-react';
 import { auth } from '../lib/firebase';
+import { signOutLucia } from '../lib/lucia-auth';
 import { backupTrendoraToLuciaCloud, restoreTrendoraFromLuciaCloud } from '../lib/lucia-cloud';
 
 const legalLinks = [
@@ -15,11 +16,16 @@ const legalLinks = [
   { to: '/legal/licenses', label: 'Open Source Licenses', icon: Code2 }
 ];
 
+const GUEST_KEY = 'trendora_tools_guest_mode';
+
 export default function Settings() {
   const { exportData, importData } = useAppStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [msg, setMsg] = useState('');
   const [cloudBusy, setCloudBusy] = useState(false);
+  const [authBusy, setAuthBusy] = useState(false);
+  const isSignedIn = Boolean(auth?.currentUser);
+  const isGuest = !isSignedIn && localStorage.getItem(GUEST_KEY) === 'true';
 
   const handleExport = () => {
     const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(exportData());
@@ -33,10 +39,81 @@ export default function Settings() {
   const cloudBackup = async () => { setCloudBusy(true); setMsg(''); try { await backupTrendoraToLuciaCloud(exportData()); setMsg('Your Trendora Tools data is backed up in Lucia Cloud.'); } catch (err) { setMsg(err instanceof Error ? err.message : 'Cloud backup failed.'); } finally { setCloudBusy(false); } };
   const cloudRestore = async () => { setCloudBusy(true); setMsg(''); try { const data = await restoreTrendoraFromLuciaCloud(); importData(data); setMsg('Lucia Cloud backup restored. Refreshing…'); setTimeout(() => window.location.reload(), 1000); } catch (err) { setMsg(err instanceof Error ? err.message : 'Cloud restore failed.'); } finally { setCloudBusy(false); } };
 
+  const handleSignOut = async () => {
+    setAuthBusy(true);
+    setMsg('');
+    try {
+      await signOutLucia();
+      localStorage.removeItem(GUEST_KEY);
+      setMsg('Signed out. Redirecting…');
+      setTimeout(() => window.location.reload(), 600);
+    } catch (err) {
+      setMsg(err instanceof Error ? err.message : 'Sign out failed.');
+    } finally {
+      setAuthBusy(false);
+    }
+  };
+
+  const handleSignIn = () => {
+    // Exit guest mode so App shows the LUCIA auth screen
+    localStorage.removeItem(GUEST_KEY);
+    setMsg('Opening sign in…');
+    setTimeout(() => window.location.reload(), 300);
+  };
+
   return (
     <div className="space-y-6 max-w-2xl animate-fade-in">
-      <div><h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gradient-brand">Settings</h1><p className="text-slate-400 mt-1 text-sm">Data backup, Lucia Cloud, product info, and legal documents.</p></div>
+      <div><h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gradient-brand">Settings</h1><p className="text-slate-400 mt-1 text-sm">Account, data backup, Lucia Cloud, product info, and legal documents.</p></div>
       {msg && <div className="p-3 bg-indigo-500/10 text-indigo-200 border border-indigo-500/20 rounded-xl text-sm">{msg}</div>}
+
+      <Card title="Account">
+        {isSignedIn ? (
+          <div className="space-y-4">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-violet-500/15 flex items-center justify-center text-violet-300">
+                <LogOut size={19} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-slate-100">Signed in</h3>
+                <p className="text-sm text-slate-400 mt-1 truncate">{auth?.currentUser?.email || 'LUCIA ID'}</p>
+                <p className="text-xs text-slate-500 mt-1">Sign out to use a different account or continue as guest later.</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              disabled={authBusy}
+              onClick={handleSignOut}
+              className="btn-secondary w-full sm:w-auto flex items-center justify-center gap-2"
+            >
+              <LogOut size={18} />
+              {authBusy ? 'Signing out…' : 'Sign out'}
+            </button>
+          </div>
+        ) : isGuest ? (
+          <div className="space-y-4">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-cyan-500/15 flex items-center justify-center text-cyan-300">
+                <LogIn size={19} />
+              </div>
+              <div>
+                <h3 className="font-semibold text-slate-100">Guest mode</h3>
+                <p className="text-sm text-slate-400 mt-1">You are using Trendora Tools without a LUCIA ID. Sign in to enable Lucia Cloud backup and sync across devices.</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleSignIn}
+              className="btn-primary w-full sm:w-auto flex items-center justify-center gap-2"
+            >
+              <LogIn size={18} />
+              Sign in with LUCIA ID
+            </button>
+          </div>
+        ) : (
+          <p className="text-sm text-slate-400">No active session.</p>
+        )}
+      </Card>
+
       <Card title="Lucia Cloud">
         <div className="flex items-start gap-3 mb-5"><div className="w-10 h-10 rounded-xl bg-violet-500/15 flex items-center justify-center text-violet-300"><Cloud size={19}/></div><div><h3 className="font-semibold text-slate-100">Optional cloud backup</h3><p className="text-sm text-slate-400 mt-1">Back up your Trendora Tools records to your LUCIA account and restore them on another device. Local storage remains available.</p></div></div>
         {auth?.currentUser ? <div className="flex flex-col sm:flex-row gap-3"><button disabled={cloudBusy} onClick={cloudBackup} className="btn-primary flex-1">{cloudBusy ? 'Working…' : 'Back up to Lucia Cloud'}</button><button disabled={cloudBusy} onClick={cloudRestore} className="btn-secondary flex-1">Restore from Cloud</button></div> : <p className="text-xs text-slate-500">Sign in with your LUCIA ID to enable Lucia Cloud backup.</p>}
