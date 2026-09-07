@@ -5,6 +5,7 @@ import { Layout } from './components/Layout';
 import { WelcomeExperience } from './components/WelcomeExperience';
 import { LuciaAuth } from './components/LuciaAuth';
 import { subscribeToLuciaAuth } from './lib/lucia-auth';
+import { startLuciaCloudSync, stopLuciaCloudSync, subscribeToLuciaCloudSync } from './lib/lucia-cloud-sync';
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import Expenses from './pages/Expenses';
@@ -24,19 +25,36 @@ const GUEST_KEY = 'trendora_tools_guest_mode';
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [authReady, setAuthReady] = useState(false);
+  const [cloudReady, setCloudReady] = useState(false);
   const [welcomeDone, setWelcomeDone] = useState(() => localStorage.getItem(WELCOME_KEY) === 'true');
   const [guest, setGuest] = useState(() => localStorage.getItem(GUEST_KEY) === 'true');
 
-  useEffect(() => subscribeToLuciaAuth((nextUser) => {
-    setUser(nextUser);
-    if (nextUser) {
-      localStorage.removeItem(GUEST_KEY);
-      setGuest(false);
-    }
-    setAuthReady(true);
-  }), []);
+  useEffect(() => {
+    const unsubscribeCloud = subscribeToLuciaCloudSync();
+    const unsubscribeAuth = subscribeToLuciaAuth((nextUser) => {
+      setUser(nextUser);
+      if (nextUser) {
+        localStorage.removeItem(GUEST_KEY);
+        setGuest(false);
+        setCloudReady(false);
+        void startLuciaCloudSync(nextUser.uid)
+          .catch(() => undefined)
+          .finally(() => setCloudReady(true));
+      } else {
+        stopLuciaCloudSync();
+        setCloudReady(true);
+      }
+      setAuthReady(true);
+    });
 
-  if (!authReady) return <div className="min-h-dvh bg-[#07070A]" />;
+    return () => {
+      unsubscribeAuth();
+      unsubscribeCloud();
+      stopLuciaCloudSync();
+    };
+  }, []);
+
+  if (!authReady || (user && !cloudReady)) return <div className="min-h-dvh bg-[#07070A]" />;
 
   if (!welcomeDone) {
     return <WelcomeExperience
