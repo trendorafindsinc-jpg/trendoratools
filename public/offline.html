@@ -4,7 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#07070A" />
-    <title>TrendoraTools — Offline</title>
+    <title>Trendora Tools — Offline</title>
+    <link rel="icon" type="image/png" href="./icons/favicon-32.png" />
     <style>
       * { box-sizing: border-box; margin: 0; padding: 0; }
       body {
@@ -29,19 +30,14 @@
         width: 64px;
         height: 64px;
         border-radius: 16px;
-        background: #245a46;
-        color: white;
-        font-size: 32px;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        justify-content: center;
         margin: 0 auto 20px;
+        display: block;
+        box-shadow: 0 8px 24px rgba(124, 58, 237, 0.35);
       }
       h1 { font-size: 1.25rem; margin-bottom: 8px; }
       p { color: #94a3b8; font-size: 0.95rem; line-height: 1.5; margin-bottom: 20px; }
       button {
-        background: #245a46;
+        background: linear-gradient(135deg, #7c3aed, #0891b2);
         color: white;
         border: none;
         border-radius: 12px;
@@ -54,9 +50,9 @@
   </head>
   <body>
     <div class="card">
-      <div class="logo">T</div>
+      <img class="logo" src="./brand/trendora-mark.svg" width="64" height="64" alt="Trendora Tools" />
       <h1>You're offline</h1>
-      <p>TrendoraTools works offline after the first visit. Reconnect or tap below to retry.</p>
+      <p>Trendora Tools works offline after the first visit. Reconnect or tap below to retry.</p>
       <button onclick="location.reload()">Try again</button>
     </div>
   </body>

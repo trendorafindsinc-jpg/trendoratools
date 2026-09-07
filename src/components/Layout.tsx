@@ -50,9 +50,13 @@ export function Layout() {
       <header className="sticky top-0 z-20 glass-primary border-b border-white/[0.06] rounded-none">
         <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-500 to-cyan-500 text-white flex items-center justify-center font-bold text-sm shadow-lg shadow-violet-900/40">
-              T
-            </div>
+            <img
+              src="./brand/trendora-mark.svg"
+              alt="Trendora Tools"
+              className="w-8 h-8 rounded-xl shadow-lg shadow-violet-900/40"
+              width={32}
+              height={32}
+            />
             <div>
               <div className="font-semibold leading-tight tracking-tight">Trendora Tools</div>
               <div className="text-[10px] text-slate-500 uppercase tracking-widest">A Trendora product · LUCIA</div>
