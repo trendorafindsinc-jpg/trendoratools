@@ -16,12 +16,13 @@ import {
   LogIn,
   Sun,
   Moon,
+  Monitor,
   Palette
 } from 'lucide-react';
 import { auth } from '../lib/firebase';
 import { signOutLucia } from '../lib/lucia-auth';
 import { backupTrendoraToLuciaCloud, restoreTrendoraFromLuciaCloud } from '../lib/lucia-cloud';
-import { applyTheme, getStoredTheme, type ThemeMode } from '../lib/theme';
+import { applyTheme, getStoredPreference, type ThemePreference } from '../lib/theme';
 
 const legalLinks = [
   { to: '/legal/terms', label: 'Terms of Service', icon: FileText },
@@ -40,14 +41,15 @@ export default function Settings() {
   const [msg, setMsg] = useState('');
   const [cloudBusy, setCloudBusy] = useState(false);
   const [authBusy, setAuthBusy] = useState(false);
-  const [theme, setTheme] = useState<ThemeMode>(() => getStoredTheme());
+  const [theme, setTheme] = useState<ThemePreference>(() => getStoredPreference());
   const isSignedIn = Boolean(auth?.currentUser);
   const isGuest = !isSignedIn && localStorage.getItem(GUEST_KEY) === 'true';
 
-  const setMode = (mode: ThemeMode) => {
+  const setMode = (mode: ThemePreference) => {
     applyTheme(mode);
     setTheme(mode);
-    setMsg(mode === 'light' ? 'Light mode enabled.' : 'Dark mode enabled.');
+    const label = mode === 'light' ? 'Light' : mode === 'system' ? 'System' : 'Dark';
+    setMsg(`${label} theme enabled.`);
   };
 
   const handleExport = () => {
@@ -126,6 +128,13 @@ export default function Settings() {
     setTimeout(() => window.location.reload(), 300);
   };
 
+  const themeBtn = (mode: ThemePreference, active: boolean) =>
+    `flex items-center justify-center gap-2 px-3 py-3 rounded-xl border text-sm font-medium transition ${
+      active
+        ? 'border-violet-500/50 bg-violet-500/15 text-violet-600 dark:text-violet-200'
+        : 'border-[var(--glass-border)] text-[var(--text-secondary)] hover:bg-[var(--nav-hover)]'
+    }`;
+
   return (
     <div className="space-y-8 max-w-2xl animate-fade-in scroll-pad-nav lg:pb-0">
       <div>
@@ -136,10 +145,11 @@ export default function Settings() {
       </div>
 
       {msg && (
-        <div className="p-3 bg-indigo-500/10 text-indigo-200 border border-indigo-500/20 rounded-xl text-sm">{msg}</div>
+        <div className="p-3 bg-indigo-500/10 text-indigo-700 theme-dark:text-indigo-200 border border-indigo-500/20 rounded-xl text-sm">
+          {msg}
+        </div>
       )}
 
-      {/* 1. Appearance */}
       <section className="space-y-3">
         <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-faint)] px-1">Appearance</h2>
         <Card title="Theme">
@@ -150,38 +160,24 @@ export default function Settings() {
             <div>
               <h3 className="font-semibold text-[var(--text-primary)]">Display mode</h3>
               <p className="text-sm text-[var(--text-muted)] mt-1">
-                Choose light or dark. Preference is stored only on this device.
+                Dark, light, or follow your device. Preference stays on this device only.
               </p>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              type="button"
-              onClick={() => setMode('dark')}
-              className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl border text-sm font-medium transition ${
-                theme === 'dark'
-                  ? 'border-violet-500/50 bg-violet-500/15 text-violet-200'
-                  : 'border-[var(--glass-border)] text-[var(--text-secondary)] hover:bg-[var(--nav-hover)]'
-              }`}
-            >
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
+            <button type="button" onClick={() => setMode('dark')} className={themeBtn('dark', theme === 'dark')}>
               <Moon size={18} /> Dark
             </button>
-            <button
-              type="button"
-              onClick={() => setMode('light')}
-              className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl border text-sm font-medium transition ${
-                theme === 'light'
-                  ? 'border-violet-500/50 bg-violet-500/15 text-violet-700'
-                  : 'border-[var(--glass-border)] text-[var(--text-secondary)] hover:bg-[var(--nav-hover)]'
-              }`}
-            >
+            <button type="button" onClick={() => setMode('light')} className={themeBtn('light', theme === 'light')}>
               <Sun size={18} /> Light
+            </button>
+            <button type="button" onClick={() => setMode('system')} className={themeBtn('system', theme === 'system')}>
+              <Monitor size={18} /> System
             </button>
           </div>
         </Card>
       </section>
 
-      {/* 2. Account */}
       <section className="space-y-3">
         <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-faint)] px-1">Account</h2>
         <Card title="LUCIA ID">
@@ -235,7 +231,6 @@ export default function Settings() {
         </Card>
       </section>
 
-      {/* 3. Data & backup */}
       <section className="space-y-3">
         <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-faint)] px-1">Data &amp; backup</h2>
         <Card title="Lucia Cloud">
@@ -279,7 +274,6 @@ export default function Settings() {
         </Card>
       </section>
 
-      {/* 4. Legal */}
       <section className="space-y-3">
         <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-faint)] px-1">Legal</h2>
         <Card title="Policies & terms">
@@ -299,7 +293,6 @@ export default function Settings() {
         </Card>
       </section>
 
-      {/* 5. About */}
       <section className="space-y-3">
         <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-faint)] px-1">About</h2>
         <Card title="Trendora Tools">
