@@ -45,6 +45,11 @@ function recordsRef(uid: string, name: CloudCollection) {
   return collection(productRef(uid), name);
 }
 
+function stripSyncMetadata(value: DocumentData | SyncableRecord) {
+  const { _lucia: _ignored, ...data } = value;
+  return data as SyncableRecord;
+}
+
 function readLocalState(): CloudState {
   const state = useAppStore.getState();
   return {
@@ -60,8 +65,8 @@ function readLocalState(): CloudState {
 }
 
 function mergeById(local: SyncableRecord[], cloud: SyncableRecord[]) {
-  const merged = new Map(local.map((item) => [item.id, item]));
-  for (const item of cloud) merged.set(item.id, item);
+  const merged = new Map(local.map((item) => [item.id, stripSyncMetadata(item)]));
+  for (const item of cloud) merged.set(item.id, stripSyncMetadata(item));
   return Array.from(merged.values());
 }
 
@@ -71,7 +76,7 @@ async function loadCloudState(uid: string): Promise<Partial<CloudState>> {
   await Promise.all(
     COLLECTIONS.map(async (name) => {
       const snapshot = await getDocs(recordsRef(uid, name));
-      result[name] = snapshot.docs.map((item) => item.data() as SyncableRecord);
+      result[name] = snapshot.docs.map((item) => stripSyncMetadata(item.data()));
     }),
   );
 
@@ -98,13 +103,8 @@ function applyCloudState(cloud: Partial<CloudState>) {
   });
 }
 
-function stripSyncMetadata(value: DocumentData | SyncableRecord) {
-  const { _lucia: _ignored, ...data } = value;
-  return data;
-}
-
 function equalRecord(remote: DocumentData, local: SyncableRecord) {
-  return JSON.stringify(stripSyncMetadata(remote)) === JSON.stringify(local);
+  return JSON.stringify(stripSyncMetadata(remote)) === JSON.stringify(stripSyncMetadata(local));
 }
 
 async function commitOperations(operations: Array<(batch: ReturnType<typeof writeBatch>) => void>) {
@@ -126,7 +126,7 @@ async function syncCollection(uid: string, name: CloudCollection, records: Synca
     if (!remoteItem || !equalRecord(remoteItem.data(), item)) {
       operations.push((batch) =>
         batch.set(doc(ref, item.id), {
-          ...item,
+          ...stripSyncMetadata(item),
           _lucia: { product: PRODUCT_ID, updatedAt: serverTimestamp() },
         } as DocumentData, { merge: true }),
       );
