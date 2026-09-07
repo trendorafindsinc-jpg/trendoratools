@@ -38,10 +38,18 @@ export async function ensureLuciaIdentity(user: User, profile?: { firstName?: st
   const ref = doc(db, 'users', user.uid);
   const existing = await getDoc(ref);
   const existingData = existing.data();
-  const luciaId = existingData?.identity?.luciaId || makeLuciaId(user.uid);
+  const luciaId = existingData?.id || existingData?.identity?.luciaId || makeLuciaId(user.uid);
   const displayName = user.displayName || [profile?.firstName, profile?.lastName].filter(Boolean).join(' ') || 'LUCIA User';
 
   await setDoc(ref, {
+    id: luciaId,
+    firebaseUid: user.uid,
+    displayName,
+    email: user.email || '',
+    photoURL: user.photoURL || existingData?.photoURL || '',
+    emailVerified: user.emailVerified,
+    accountStatus: existingData?.accountStatus || 'active',
+    updatedAt: serverTimestamp(),
     identity: {
       luciaId,
       email: user.email || '',
@@ -58,7 +66,10 @@ export async function ensureLuciaIdentity(user: User, profile?: { firstName?: st
     },
     preferences: existingData?.preferences || { language: 'en', theme: 'system', notifications: true },
     privacy: existingData?.privacy || { profileVisibility: 'private', analytics: false, personalization: false },
-    products: existingData?.products || { trendora: { enabled: true } }
+    products: {
+      ...(existingData?.products || {}),
+      trendora: { ...(existingData?.products?.trendora || {}), enabled: true }
+    }
   }, { merge: true });
 
   return { luciaId };
