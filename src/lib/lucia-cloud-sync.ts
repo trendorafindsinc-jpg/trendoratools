@@ -1,6 +1,5 @@
 import {
   collection,
-  deleteDoc,
   doc,
   getDocs,
   serverTimestamp,
@@ -12,18 +11,8 @@ import { db } from './firebase';
 import { useAppStore } from '../store';
 
 const PRODUCT_ID = 'trendora-tools';
-const COLLECTIONS = [
-  'expenses',
-  'incomes',
-  'budgets',
-  'savingsGoals',
-  'bills',
-  'debts',
-  'chat',
-] as const;
-
+const COLLECTIONS = ['expenses', 'incomes', 'budgets', 'savingsGoals', 'bills', 'debts', 'chat'] as const;
 type CloudCollection = (typeof COLLECTIONS)[number];
-
 type SyncableRecord = { id: string; [key: string]: unknown };
 
 type CloudState = {
@@ -88,7 +77,9 @@ async function loadCloudState(uid: string): Promise<Partial<CloudState>> {
 
   const meta = await getDocs(collection(productRef(uid), '_meta'));
   const categories = meta.docs.find((item) => item.id === 'profile')?.data()?.customCategories;
-  if (Array.isArray(categories)) result.customCategories = categories.filter((item): item is string => typeof item === 'string');
+  if (Array.isArray(categories)) {
+    result.customCategories = categories.filter((item): item is string => typeof item === 'string');
+  }
 
   return result;
 }
@@ -107,30 +98,46 @@ function applyCloudState(cloud: Partial<CloudState>) {
   });
 }
 
+function stripSyncMetadata(value: DocumentData | SyncableRecord) {
+  const { _lucia: _ignored, ...data } = value;
+  return data;
+}
+
+function equalRecord(remote: DocumentData, local: SyncableRecord) {
+  return JSON.stringify(stripSyncMetadata(remote)) === JSON.stringify(local);
+}
+
+async function commitOperations(operations: Array<(batch: ReturnType<typeof writeBatch>) => void>) {
+  for (let index = 0; index < operations.length; index += 450) {
+    const batch = writeBatch(requireDb());
+    for (const operation of operations.slice(index, index + 450)) operation(batch);
+    await batch.commit();
+  }
+}
+
 async function syncCollection(uid: string, name: CloudCollection, records: SyncableRecord[]) {
   const ref = recordsRef(uid, name);
   const remote = await getDocs(ref);
   const localIds = new Set(records.map((item) => item.id));
-  const batch = writeBatch(requireDb());
-  let operations = 0;
+  const operations: Array<(batch: ReturnType<typeof writeBatch>) => void> = [];
 
   for (const item of records) {
     const remoteItem = remote.docs.find((candidate) => candidate.id === item.id);
-    const next = { ...item, _lucia: { product: PRODUCT_ID, updatedAt: serverTimestamp() } } as DocumentData;
-    if (!remoteItem || JSON.stringify(remoteItem.data()) !== JSON.stringify(item)) {
-      batch.set(doc(ref, item.id), next, { merge: true });
-      operations += 1;
+    if (!remoteItem || !equalRecord(remoteItem.data(), item)) {
+      operations.push((batch) =>
+        batch.set(doc(ref, item.id), {
+          ...item,
+          _lucia: { product: PRODUCT_ID, updatedAt: serverTimestamp() },
+        } as DocumentData, { merge: true }),
+      );
     }
   }
 
   for (const remoteItem of remote.docs) {
-    if (!localIds.has(remoteItem.id)) {
-      batch.delete(remoteItem.ref);
-      operations += 1;
-    }
+    if (!localIds.has(remoteItem.id)) operations.push((batch) => batch.delete(remoteItem.ref));
   }
 
-  if (operations > 0) await batch.commit();
+  if (operations.length) await commitOperations(operations);
 }
 
 async function syncNow() {
@@ -141,9 +148,7 @@ async function syncNow() {
     const snapshot = JSON.stringify(state);
     if (snapshot === lastSnapshot) return;
 
-    await Promise.all(
-      COLLECTIONS.map((name) => syncCollection(activeUid!, name, state[name])),
-    );
+    await Promise.all(COLLECTIONS.map((name) => syncCollection(activeUid!, name, state[name])));
 
     await setDoc(
       doc(collection(productRef(activeUid), '_meta'), 'profile'),
@@ -155,7 +160,7 @@ async function syncNow() {
       { merge: true },
     );
 
-    lastSnapshot = snapshot;
+    lastSnapshot = JSON.stringify(readLocalState());
   } finally {
     syncing = false;
   }
@@ -164,9 +169,7 @@ async function syncNow() {
 export function scheduleLuciaCloudSync() {
   if (!activeUid || !ready) return;
   if (syncTimer) clearTimeout(syncTimer);
-  syncTimer = setTimeout(() => {
-    void syncNow();
-  }, 1200);
+  syncTimer = setTimeout(() => void syncNow(), 1200);
 }
 
 export async function startLuciaCloudSync(uid: string) {
@@ -174,7 +177,6 @@ export async function startLuciaCloudSync(uid: string) {
   activeUid = uid;
   ready = false;
   lastSnapshot = '';
-
   const cloud = await loadCloudState(uid);
   applyCloudState(cloud);
   ready = true;
@@ -191,7 +193,5 @@ export function stopLuciaCloudSync() {
 }
 
 export function subscribeToLuciaCloudSync() {
-  return useAppStore.subscribe(() => {
-    scheduleLuciaCloudSync();
-  });
+  return useAppStore.subscribe(() => scheduleLuciaCloudSync());
 }
