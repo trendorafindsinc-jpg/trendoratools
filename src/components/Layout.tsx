@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import {
-  LayoutDashboard,
+  CalendarCheck2,
   Wallet,
   PiggyBank,
   Receipt,
@@ -17,7 +17,7 @@ import {
 
 const primary = [
   { to: '/', label: 'Home', icon: HomeIcon },
-  { to: '/dashboard', label: 'Command', icon: LayoutDashboard },
+  { to: '/planner', label: 'Planner', icon: CalendarCheck2 },
   { to: '/expenses', label: 'Expenses', icon: Receipt },
   { to: '/insights', label: 'Insights', icon: BarChart3 },
   { to: '/settings', label: 'Settings', icon: Settings }
@@ -38,16 +38,16 @@ export function Layout() {
   const [openMore, setOpenMore] = useState(false);
 
   return (
-    <div className="min-h-dvh min-h-[-webkit-fill-available] flex flex-col bg-[var(--bg-deep)] text-slate-100 relative overflow-x-hidden">
+    <div className="min-h-dvh min-h-[-webkit-fill-available] flex flex-col bg-[var(--bg-deep)] text-[var(--text-primary)] relative overflow-x-hidden">
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-violet-900/20 rounded-full blur-[150px] animate-pulse-slow" />
+        <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-violet-900/20 rounded-full blur-[150px] animate-pulse-slow theme-orb" />
         <div
-          className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-cyan-900/10 rounded-full blur-[150px] animate-pulse-slow"
+          className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-cyan-900/10 rounded-full blur-[150px] animate-pulse-slow theme-orb"
           style={{ animationDelay: '4s' }}
         />
       </div>
 
-      <header className="sticky top-0 z-20 glass-primary border-b border-white/[0.06] rounded-none">
+      <header className="sticky top-0 z-20 glass-primary border-b border-[var(--header-border)] rounded-none">
         <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <img
@@ -59,7 +59,7 @@ export function Layout() {
             />
             <div>
               <div className="font-semibold leading-tight tracking-tight">Trendora Tools</div>
-              <div className="text-[10px] text-slate-500 uppercase tracking-widest">A Trendora product · LUCIA</div>
+              <div className="text-[10px] text-[var(--text-faint)] uppercase tracking-widest">A Trendora product · LUCIA</div>
             </div>
           </div>
           <nav className="hidden xl:flex items-center gap-0.5 flex-wrap justify-end">
@@ -71,8 +71,8 @@ export function Layout() {
                 className={({ isActive }) =>
                   `px-2.5 py-1.5 rounded-full text-xs font-medium flex items-center gap-1 transition ${
                     isActive
-                      ? 'bg-white/10 text-white border border-white/15'
-                      : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'
+                      ? 'bg-[var(--nav-active-bg)] text-[var(--text-primary)] border border-[var(--nav-active-border)]'
+                      : 'text-[var(--text-muted)] hover:bg-[var(--nav-hover)] hover:text-[var(--text-secondary)]'
                   }`
                 }
               >
@@ -88,7 +88,7 @@ export function Layout() {
         <Outlet />
       </main>
 
-      <nav className="xl:hidden fixed bottom-0 inset-x-0 z-30 border-t border-white/10 rounded-none safe-bottom-nav bg-[#0a0a0f]/95 backdrop-blur-xl">
+      <nav className="xl:hidden fixed bottom-0 inset-x-0 z-30 border-t border-[var(--nav-border)] rounded-none safe-bottom-nav bg-[var(--nav-bar-bg)] backdrop-blur-xl">
         <div className="grid grid-cols-6 gap-0.5 px-1 pt-1 pb-1">
           {primary.map(({ to, label, icon: Icon }) => (
             <NavLink
@@ -97,7 +97,7 @@ export function Layout() {
               end={to === '/'}
               className={({ isActive }) =>
                 `flex flex-col items-center gap-0.5 py-1.5 rounded-lg text-[9px] font-medium ${
-                  isActive ? 'text-violet-300' : 'text-slate-500'
+                  isActive ? 'text-violet-400' : 'text-[var(--text-faint)]'
                 }`
               }
             >
@@ -108,7 +108,7 @@ export function Layout() {
           <button
             type="button"
             onClick={() => setOpenMore(true)}
-            className="flex flex-col items-center gap-0.5 py-1.5 rounded-lg text-[9px] font-medium text-slate-500"
+            className="flex flex-col items-center gap-0.5 py-1.5 rounded-lg text-[9px] font-medium text-[var(--text-faint)]"
           >
             <MoreHorizontal size={18} />
             More
@@ -124,7 +124,7 @@ export function Layout() {
           >
             <div className="flex justify-between items-center mb-2">
               <span className="font-semibold text-sm">More tools</span>
-              <button type="button" onClick={() => setOpenMore(false)} className="p-2 text-slate-400">
+              <button type="button" onClick={() => setOpenMore(false)} className="p-2 text-[var(--text-muted)]">
                 <X size={18} />
               </button>
             </div>
@@ -133,9 +133,9 @@ export function Layout() {
                 key={to}
                 to={to}
                 onClick={() => setOpenMore(false)}
-                className="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/5 text-sm text-slate-200"
+                className="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-[var(--nav-hover)] text-sm text-[var(--text-secondary)]"
               >
-                <Icon size={18} className="text-violet-300" />
+                <Icon size={18} className="text-violet-400" />
                 {label}
               </NavLink>
             ))}
