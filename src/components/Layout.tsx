@@ -40,9 +40,9 @@ export function Layout() {
   return (
     <div className="min-h-dvh min-h-[-webkit-fill-available] flex flex-col bg-[var(--bg-deep)] text-[var(--text-primary)] relative overflow-x-hidden">
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-violet-900/20 rounded-full blur-[150px] animate-pulse-slow theme-orb" />
+        <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-violet-500/15 theme-dark:bg-violet-900/20 rounded-full blur-[150px] animate-pulse-slow theme-orb" />
         <div
-          className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-cyan-900/10 rounded-full blur-[150px] animate-pulse-slow theme-orb"
+          className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-cyan-400/10 theme-dark:bg-cyan-900/10 rounded-full blur-[150px] animate-pulse-slow theme-orb"
           style={{ animationDelay: '4s' }}
         />
       </div>
@@ -53,12 +53,12 @@ export function Layout() {
             <img
               src="./brand/trendora-mark.svg"
               alt="Trendora Tools"
-              className="w-8 h-8 rounded-xl shadow-lg shadow-violet-900/40"
+              className="w-8 h-8 rounded-xl shadow-lg shadow-violet-500/20"
               width={32}
               height={32}
             />
             <div>
-              <div className="font-semibold leading-tight tracking-tight">Trendora Tools</div>
+              <div className="font-semibold leading-tight tracking-tight text-[var(--text-primary)]">Trendora Tools</div>
               <div className="text-[10px] text-[var(--text-faint)] uppercase tracking-widest">A Trendora product · LUCIA</div>
             </div>
           </div>
@@ -97,7 +97,7 @@ export function Layout() {
               end={to === '/'}
               className={({ isActive }) =>
                 `flex flex-col items-center gap-0.5 py-1.5 rounded-lg text-[9px] font-medium ${
-                  isActive ? 'text-violet-400' : 'text-[var(--text-faint)]'
+                  isActive ? 'text-violet-600' : 'text-[var(--text-faint)]'
                 }`
               }
             >
@@ -117,13 +117,13 @@ export function Layout() {
       </nav>
 
       {openMore && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-end xl:hidden" onClick={() => setOpenMore(false)}>
+        <div className="fixed inset-0 z-50 bg-black/40 flex items-end xl:hidden" onClick={() => setOpenMore(false)}>
           <div
             className="w-full glass-primary rounded-t-3xl p-4 pb-8 space-y-1"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-2">
-              <span className="font-semibold text-sm">More tools</span>
+              <span className="font-semibold text-sm text-[var(--text-primary)]">More tools</span>
               <button type="button" onClick={() => setOpenMore(false)} className="p-2 text-[var(--text-muted)]">
                 <X size={18} />
               </button>
@@ -135,7 +135,7 @@ export function Layout() {
                 onClick={() => setOpenMore(false)}
                 className="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-[var(--nav-hover)] text-sm text-[var(--text-secondary)]"
               >
-                <Icon size={18} className="text-violet-400" />
+                <Icon size={18} className="text-violet-500" />
                 {label}
               </NavLink>
             ))}
