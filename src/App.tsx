@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import type { User } from 'firebase/auth';
 import { Layout } from './components/Layout';
 import { WelcomeExperience } from './components/WelcomeExperience';
@@ -7,7 +7,7 @@ import { LuciaAuth } from './components/LuciaAuth';
 import { subscribeToLuciaAuth } from './lib/lucia-auth';
 import { startLuciaCloudSync, stopLuciaCloudSync, subscribeToLuciaCloudSync } from './lib/lucia-cloud-sync';
 import Home from './pages/Home';
-import Dashboard from './pages/Dashboard';
+import Planner from './pages/Planner';
 import Expenses from './pages/Expenses';
 import Income from './pages/Income';
 import Budget from './pages/Budget';
@@ -54,17 +54,36 @@ export default function App() {
     };
   }, []);
 
-  if (!authReady || (user && !cloudReady)) return <div className="min-h-dvh bg-[#07070A]" />;
+  if (!authReady || (user && !cloudReady)) {
+    return <div className="min-h-dvh bg-[var(--bg-deep)]" />;
+  }
 
   if (!welcomeDone) {
-    return <WelcomeExperience
-      onGetStarted={() => { localStorage.setItem(WELCOME_KEY, 'true'); setWelcomeDone(true); }}
-      onGuest={() => { localStorage.setItem(WELCOME_KEY, 'true'); localStorage.setItem(GUEST_KEY, 'true'); setWelcomeDone(true); setGuest(true); }}
-    />;
+    return (
+      <WelcomeExperience
+        onGetStarted={() => {
+          localStorage.setItem(WELCOME_KEY, 'true');
+          setWelcomeDone(true);
+        }}
+        onGuest={() => {
+          localStorage.setItem(WELCOME_KEY, 'true');
+          localStorage.setItem(GUEST_KEY, 'true');
+          setWelcomeDone(true);
+          setGuest(true);
+        }}
+      />
+    );
   }
 
   if (!user && !guest) {
-    return <LuciaAuth onGuest={() => { localStorage.setItem(GUEST_KEY, 'true'); setGuest(true); }} />;
+    return (
+      <LuciaAuth
+        onGuest={() => {
+          localStorage.setItem(GUEST_KEY, 'true');
+          setGuest(true);
+        }}
+      />
+    );
   }
 
   return (
@@ -72,7 +91,8 @@ export default function App() {
       <Routes>
         <Route element={<Layout />}>
           <Route path="/" element={<Home />} />
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/planner" element={<Planner />} />
+          <Route path="/dashboard" element={<Navigate to="/planner" replace />} />
           <Route path="/expenses" element={<Expenses />} />
           <Route path="/income" element={<Income />} />
           <Route path="/budget" element={<Budget />} />

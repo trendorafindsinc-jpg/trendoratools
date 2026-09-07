@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, BarChart3, CalendarClock, PiggyBank, Receipt, ShieldCheck, Wallet } from 'lucide-react';
+import { ArrowRight, BarChart3, CalendarClock, PiggyBank, Receipt, ShieldCheck, CalendarCheck2 } from 'lucide-react';
 import { useAppStore } from '../store';
 import {
   formatMoney,
@@ -42,25 +42,26 @@ export default function Insights() {
   return (
     <div className="max-w-5xl mx-auto space-y-8 animate-fade-in pb-8">
       <header className="space-y-2">
-        <div className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-violet-300">
+        <div className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-violet-400">
           <BarChart3 size={14} /> Trendora Tools
         </div>
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-gradient-brand">Financial Insights</h1>
-        <p className="text-slate-400 max-w-2xl">
-          A clear view of the numbers already recorded in Trendora Tools. No chatbot, no remote AI, and no guessed figures.
+        <p className="text-[var(--text-muted)] max-w-2xl">
+          A clear view of the numbers already recorded in Trendora Tools — historical position and this month’s totals.
+          For what to do next, open Planner.
         </p>
       </header>
 
       <section className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {cards.map(({ label, value, detail, icon: Icon }) => (
           <div key={label} className="glass-card p-4 space-y-3">
-            <div className="w-9 h-9 rounded-xl bg-violet-500/15 border border-violet-500/20 flex items-center justify-center text-violet-300">
+            <div className="w-9 h-9 rounded-xl bg-violet-500/15 border border-violet-500/20 flex items-center justify-center text-violet-400">
               <Icon size={18} />
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-slate-500">{label}</div>
-              <div className="text-lg font-semibold text-slate-100 tabular-nums">{value}</div>
-              <div className="text-xs text-slate-500 mt-1">{detail}</div>
+              <div className="text-[10px] uppercase tracking-wider text-[var(--text-faint)]">{label}</div>
+              <div className="text-lg font-semibold text-[var(--text-primary)] tabular-nums">{value}</div>
+              <div className="text-xs text-[var(--text-faint)] mt-1">{detail}</div>
             </div>
           </div>
         ))}
@@ -69,16 +70,16 @@ export default function Insights() {
       <section className="grid lg:grid-cols-2 gap-4">
         <div className="glass-primary p-6 space-y-5">
           <div>
-            <h2 className="text-lg font-semibold text-white">This month</h2>
-            <p className="text-sm text-slate-500">Based on your recorded income and expenses.</p>
+            <h2 className="text-lg font-semibold text-[var(--text-primary)]">This month</h2>
+            <p className="text-sm text-[var(--text-faint)]">Based on your recorded income and expenses.</p>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <div className="glass-card p-4"><div className="text-xs text-slate-500">Income</div><div className="text-xl font-semibold text-slate-100">{formatMoney(earned)}</div></div>
-            <div className="glass-card p-4"><div className="text-xs text-slate-500">Expenses</div><div className="text-xl font-semibold text-slate-100">{formatMoney(spent)}</div></div>
+            <div className="glass-card p-4"><div className="text-xs text-[var(--text-faint)]">Income</div><div className="text-xl font-semibold text-[var(--text-primary)]">{formatMoney(earned)}</div></div>
+            <div className="glass-card p-4"><div className="text-xs text-[var(--text-faint)]">Expenses</div><div className="text-xl font-semibold text-[var(--text-primary)]">{formatMoney(spent)}</div></div>
           </div>
           <div className="glass-card p-4">
-            <div className="text-xs text-slate-500">Largest spending category</div>
-            <div className="text-lg font-semibold text-slate-100">
+            <div className="text-xs text-[var(--text-faint)]">Largest spending category</div>
+            <div className="text-lg font-semibold text-[var(--text-primary)]">
               {largestCategory ? `${largestCategory.name} · ${formatMoney(largestCategory.amount)}` : 'No expenses recorded yet'}
             </div>
           </div>
@@ -86,21 +87,21 @@ export default function Insights() {
 
         <div className="glass-primary p-6 space-y-5">
           <div>
-            <h2 className="text-lg font-semibold text-white">Budget position</h2>
-            <p className="text-sm text-slate-500">Live utilization from your current budget limits.</p>
+            <h2 className="text-lg font-semibold text-[var(--text-primary)]">Budget position</h2>
+            <p className="text-sm text-[var(--text-faint)]">Live utilization from your current budget limits.</p>
           </div>
           {budgetTotal > 0 ? (
             <>
               <div className="flex items-end justify-between gap-3">
-                <div><div className="text-xs text-slate-500">Used</div><div className="text-2xl font-semibold text-slate-100">{formatMoney(budgetUsed)}</div></div>
-                <div className="text-right"><div className="text-xs text-slate-500">Limit</div><div className="text-lg font-medium text-slate-300">{formatMoney(budgetTotal)}</div></div>
+                <div><div className="text-xs text-[var(--text-faint)]">Used</div><div className="text-2xl font-semibold text-[var(--text-primary)]">{formatMoney(budgetUsed)}</div></div>
+                <div className="text-right"><div className="text-xs text-[var(--text-faint)]">Limit</div><div className="text-lg font-medium text-[var(--text-secondary)]">{formatMoney(budgetTotal)}</div></div>
               </div>
-              <div className="h-2 rounded-full bg-white/5 overflow-hidden">
+              <div className="h-2 rounded-full bg-[var(--track)] overflow-hidden">
                 <div className="h-full rounded-full bg-violet-500" style={{ width: `${Math.min(100, (budgetUsed / budgetTotal) * 100)}%` }} />
               </div>
             </>
           ) : (
-            <div className="glass-card p-4 text-sm text-slate-400">No budgets set yet. Create your first budget to start tracking utilization.</div>
+            <div className="glass-card p-4 text-sm text-[var(--text-muted)]">No budgets set yet. Create your first budget to start tracking utilization.</div>
           )}
           <Link to="/budget" className="glass-button inline-flex">Manage budgets <ArrowRight size={16} /></Link>
         </div>
@@ -108,19 +109,19 @@ export default function Insights() {
 
       <section className="grid sm:grid-cols-3 gap-3">
         <Link to="/expenses" className="glass-interactive p-5 space-y-2">
-          <Receipt size={20} className="text-violet-300" />
-          <div className="font-semibold text-slate-100">Review expenses</div>
-          <div className="text-sm text-slate-500">Keep your ledger accurate and current.</div>
+          <Receipt size={20} className="text-violet-400" />
+          <div className="font-semibold text-[var(--text-primary)]">Review expenses</div>
+          <div className="text-sm text-[var(--text-faint)]">Keep your ledger accurate and current.</div>
         </Link>
         <Link to="/savings" className="glass-interactive p-5 space-y-2">
-          <PiggyBank size={20} className="text-violet-300" />
-          <div className="font-semibold text-slate-100">Grow savings</div>
-          <div className="text-sm text-slate-500">Track progress toward your goals.</div>
+          <PiggyBank size={20} className="text-violet-400" />
+          <div className="font-semibold text-[var(--text-primary)]">Grow savings</div>
+          <div className="text-sm text-[var(--text-faint)]">Track progress toward your goals.</div>
         </Link>
-        <Link to="/dashboard" className="glass-interactive p-5 space-y-2">
-          <Wallet size={20} className="text-violet-300" />
-          <div className="font-semibold text-slate-100">Open Command</div>
-          <div className="text-sm text-slate-500">See your wider financial position.</div>
+        <Link to="/planner" className="glass-interactive p-5 space-y-2">
+          <CalendarCheck2 size={20} className="text-violet-400" />
+          <div className="font-semibold text-[var(--text-primary)]">Open Planner</div>
+          <div className="text-sm text-[var(--text-faint)]">See what needs attention next.</div>
         </Link>
       </section>
     </div>
