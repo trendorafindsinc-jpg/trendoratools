@@ -23,6 +23,8 @@
     --nav-hover: rgba(255, 255, 255, 0.05);
     --input-bg: rgba(255, 255, 255, 0.04);
     --card-bg: rgba(255, 255, 255, 0.04);
+    --option-bg: #0f1117;
+    --option-fg: #f1f5f9;
     --accent-violet: #8b5cf6;
     --accent-cyan: #06b6d4;
     --positive: #10b981;
@@ -51,6 +53,8 @@
     --nav-hover: rgba(15, 23, 42, 0.04);
     --input-bg: rgba(255, 255, 255, 0.9);
     --card-bg: rgba(255, 255, 255, 0.85);
+    --option-bg: #ffffff;
+    --option-fg: #0f172a;
     --ring-offset: #f4f5f8;
   }
 
@@ -80,6 +84,41 @@
 
   .theme-light .theme-orb {
     opacity: 0.35;
+  }
+
+  /* Remap common dark-only Tailwind utilities so tool pages work in light mode */
+  .theme-light .text-slate-100,
+  .theme-light .text-slate-200 {
+    color: var(--text-primary) !important;
+  }
+  .theme-light .text-slate-300 {
+    color: var(--text-secondary) !important;
+  }
+  .theme-light .text-slate-400 {
+    color: var(--text-muted) !important;
+  }
+  .theme-light .text-slate-500,
+  .theme-light .text-slate-600 {
+    color: var(--text-faint) !important;
+  }
+  .theme-light .divide-white\/5 > :not([hidden]) ~ :not([hidden]),
+  .theme-light .divide-white\/10 > :not([hidden]) ~ :not([hidden]) {
+    border-color: var(--divider);
+  }
+  .theme-light .bg-white\/5,
+  .theme-light .bg-white\/\[0\.04\] {
+    background-color: var(--track) !important;
+  }
+  .theme-light .border-white\/5,
+  .theme-light .border-white\/10,
+  .theme-light .border-white\/\[0\.06\] {
+    border-color: var(--glass-border) !important;
+  }
+  .theme-light .hover\:text-white:hover {
+    color: var(--text-primary) !important;
+  }
+  .theme-light .hover\:bg-white\/5:hover {
+    background-color: var(--nav-hover) !important;
   }
 }
 
@@ -161,6 +200,10 @@
   }
   .field-input::placeholder {
     color: var(--text-faint);
+  }
+  .field-input option {
+    background-color: var(--option-bg);
+    color: var(--option-fg);
   }
 
   .text-gradient-brand {
