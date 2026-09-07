@@ -11,10 +11,14 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
-export const isFirebaseConfigured = Object.values(firebaseConfig).every(Boolean);
+export const isFirebaseConfigured = Object.values(firebaseConfig).every(
+  (v) => typeof v === 'string' && v.trim().length > 0
+);
 
 const app = isFirebaseConfigured
-  ? (getApps().length ? getApp() : initializeApp(firebaseConfig))
+  ? getApps().length
+    ? getApp()
+    : initializeApp(firebaseConfig)
   : null;
 
 export const auth = app ? getAuth(app) : null;
@@ -23,4 +27,7 @@ export const googleProvider = new GoogleAuthProvider();
 
 if (isFirebaseConfigured) {
   googleProvider.setCustomParameters({ prompt: 'select_account' });
+  // Request basic profile scopes (default); explicit for clarity
+  googleProvider.addScope('profile');
+  googleProvider.addScope('email');
 }

@@ -25,6 +25,13 @@
     --card-bg: rgba(255, 255, 255, 0.04);
     --option-bg: #0f1117;
     --option-fg: #f1f5f9;
+    --welcome-scrim: linear-gradient(
+      180deg,
+      rgba(5, 5, 9, 0.2),
+      rgba(5, 5, 9, 0.55) 45%,
+      rgba(5, 5, 9, 0.97)
+    ),
+      radial-gradient(circle at 75% 25%, rgba(139, 92, 246, 0.22), transparent 35%);
     --accent-violet: #8b5cf6;
     --accent-cyan: #06b6d4;
     --positive: #10b981;
@@ -55,6 +62,13 @@
     --card-bg: rgba(255, 255, 255, 0.85);
     --option-bg: #ffffff;
     --option-fg: #0f172a;
+    --welcome-scrim: linear-gradient(
+      180deg,
+      rgba(244, 245, 248, 0.55),
+      rgba(244, 245, 248, 0.82) 45%,
+      rgba(244, 245, 248, 0.97)
+    ),
+      radial-gradient(circle at 75% 25%, rgba(124, 58, 237, 0.18), transparent 40%);
     --ring-offset: #f4f5f8;
   }
 
@@ -86,7 +100,14 @@
     opacity: 0.35;
   }
 
-  /* Remap common dark-only Tailwind utilities so tool pages work in light mode */
+  .welcome-scrim {
+    background: var(--welcome-scrim);
+  }
+
+  .theme-light .welcome-video {
+    opacity: 0.55;
+  }
+
   .theme-light .text-slate-100,
   .theme-light .text-slate-200 {
     color: var(--text-primary) !important;
