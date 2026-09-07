@@ -1,21 +1,36 @@
 import { useEffect, useState } from 'react';
 import { ArrowRight, Play } from 'lucide-react';
 
+/** Default welcome video — loads immediately; override with VITE_TRENDORA_WELCOME_VIDEO_URL if needed. */
+const DEFAULT_WELCOME_VIDEO = 'https://www.pexels.com/download/video/6773475/';
+
 export function WelcomeExperience({ onGetStarted, onGuest }: { onGetStarted: () => void; onGuest: () => void }) {
   const [ready, setReady] = useState(false);
-  const videoSrc = import.meta.env.VITE_TRENDORA_WELCOME_VIDEO_URL as string | undefined;
+  const videoSrc =
+    (import.meta.env.VITE_TRENDORA_WELCOME_VIDEO_URL as string | undefined)?.trim() ||
+    DEFAULT_WELCOME_VIDEO;
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setReady(true), 250);
+    // Show UI quickly; video starts as soon as the element is in the DOM
+    const timer = window.setTimeout(() => setReady(true), 80);
     return () => window.clearTimeout(timer);
   }, []);
 
   return (
     <main className="relative min-h-dvh overflow-hidden bg-[#050509] text-white flex items-end sm:items-center">
-      {videoSrc && <video className="absolute inset-0 w-full h-full object-cover" src={videoSrc} autoPlay muted loop playsInline preload="metadata" aria-hidden="true" />}
+      <video
+        className="absolute inset-0 w-full h-full object-cover"
+        src={videoSrc}
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="auto"
+        aria-hidden="true"
+      />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_25%,rgba(139,92,246,.22),transparent_35%),linear-gradient(180deg,rgba(5,5,9,.18),rgba(5,5,9,.55)_45%,rgba(5,5,9,.97))]" />
       <div className="absolute inset-0 opacity-30 bg-[linear-gradient(rgba(255,255,255,.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.035)_1px,transparent_1px)] bg-[size:56px_56px]" />
-      <div className={`relative z-10 w-full max-w-6xl mx-auto px-6 sm:px-10 py-10 sm:py-16 transition-all duration-1000 ${ready ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}>
+      <div className={`relative z-10 w-full max-w-6xl mx-auto px-6 sm:px-10 py-10 sm:py-16 transition-all duration-700 ${ready ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}>
         <div className="max-w-2xl">
           <div className="flex items-center gap-3 mb-8">
             <img src="./brand/trendora-mark.svg" alt="Trendora" className="w-12 h-12 drop-shadow-[0_0_28px_rgba(139,92,246,.35)]" />
