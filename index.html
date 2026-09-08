@@ -3,15 +3,50 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="description" content="Trendora Tools — practical budgeting, expense, savings and financial planning tools from Trendora, under LUCIA." />
-    <title>Trendora Tools</title>
+
+    <title>Trendora Tools — Budget, Expenses, Bills &amp; Savings | LUCIA</title>
+    <meta
+      name="description"
+      content="Trendora Tools by Trendora under LUCIA: track expenses, income, budgets, bills, debts and savings. Private local-first finance tools with optional Lucia Cloud backup."
+    />
+    <meta
+      name="keywords"
+      content="Trendora Tools, budgeting app, expense tracker, savings goals, bill tracker, debt payoff, LUCIA, personal finance, offline PWA"
+    />
+    <meta name="author" content="Trendora / LUCIA" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta name="googlebot" content="index, follow" />
+    <link rel="canonical" href="https://trendoratools.vercel.app/" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Trendora Tools" />
+    <meta property="og:title" content="Trendora Tools — Budget, Expenses, Bills &amp; Savings" />
+    <meta
+      property="og:description"
+      content="Practical financial tracking from Trendora under LUCIA. Local-first with optional cloud backup."
+    />
+    <meta property="og:url" content="https://trendoratools.vercel.app/" />
+    <meta property="og:image" content="https://trendoratools.vercel.app/icons/icon-512.png" />
+    <meta property="og:image:width" content="512" />
+    <meta property="og:image:height" content="512" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Trendora Tools — Budget, Expenses &amp; Savings" />
+    <meta
+      name="twitter:description"
+      content="Local-first finance tools from Trendora under LUCIA. Track spending, plan bills, and back up with Lucia Cloud."
+    />
+    <meta name="twitter:image" content="https://trendoratools.vercel.app/icons/icon-512.png" />
 
     <!-- PWA / Installable app -->
     <meta name="theme-color" content="#07070A" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="application-name" content="Trendora Tools" />
 
-    <!-- iOS (iPhone) home-screen support -->
+    <!-- iOS -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Trendora Tools" />
@@ -24,7 +59,34 @@
 
     <meta name="format-detection" content="telephone=no" />
 
-    <!-- Apply saved theme BEFORE CSS/React so light mode is never stuck black on first paint -->
+    <!-- Structured data -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Trendora Tools",
+        "applicationCategory": "FinanceApplication",
+        "operatingSystem": "Web, Android, iOS",
+        "description": "Practical budgeting, expense, bill, debt and savings tools from Trendora under LUCIA. Local-first with optional Lucia Cloud backup.",
+        "url": "https://trendoratools.vercel.app/",
+        "image": "https://trendoratools.vercel.app/icons/icon-512.png",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": "Trendora",
+          "parentOrganization": {
+            "@type": "Organization",
+            "name": "LUCIA"
+          }
+        }
+      }
+    </script>
+
+    <!-- Apply saved theme BEFORE CSS/React -->
     <script>
       (function () {
         try {
