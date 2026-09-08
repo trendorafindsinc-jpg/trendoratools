@@ -1,11 +1,21 @@
 import { FormEvent, useState } from 'react';
 import {
-  ArrowLeft, AlertCircle, CheckCircle2, Eye, EyeOff, LockKeyhole, Mail, UserRound
+  ArrowLeft,
+  AlertCircle,
+  CheckCircle2,
+  Eye,
+  EyeOff,
+  LockKeyhole,
+  Mail,
+  UserRound
 } from 'lucide-react';
 import {
-  createLuciaAccount, isFirebaseConfigured, resetLuciaPassword, signInLucia, signInWithGoogle
+  createLuciaAccount,
+  isFirebaseConfigured,
+  resetLuciaPassword,
+  signInLucia,
+  signInWithGoogle
 } from '../lib/lucia-auth';
-import { analytics } from '../lib/analytics';
 
 export function LuciaAuth({ onGuest }: { onGuest: () => void }) {
   const [mode, setMode] = useState<'signin' | 'signup' | 'reset'>('signin');
@@ -27,7 +37,6 @@ export function LuciaAuth({ onGuest }: { onGuest: () => void }) {
       if (mode === 'signup') {
         if (!firstName.trim() || !lastName.trim()) throw new Error('Please enter your first and last name.');
         await createLuciaAccount(firstName, lastName, email, password);
-        void analytics.event('lucia_id_create_account', { result: 'success' });
         setMessage('Your LUCIA ID is ready. A verification email has been sent.');
       } else if (mode === 'signin') {
         await signInLucia(email, password);
@@ -37,7 +46,6 @@ export function LuciaAuth({ onGuest }: { onGuest: () => void }) {
       }
     } catch (error) {
       setIsError(true);
-      if (mode === 'signup') void analytics.event('lucia_id_create_account', { result: 'failure' });
       setMessage(error instanceof Error ? error.message : 'Something went wrong. Please try again.');
     } finally {
       setBusy(false);
@@ -66,7 +74,10 @@ export function LuciaAuth({ onGuest }: { onGuest: () => void }) {
 
   return (
     <main className="min-h-dvh bg-[var(--bg-deep)] text-[var(--text-primary)] flex items-center justify-center p-5 relative overflow-hidden">
-      <div className="absolute inset-0 pointer-events-none"><div className="absolute w-[32rem] h-[32rem] -top-48 -right-48 rounded-full bg-violet-600/15 blur-[120px] theme-orb" /><div className="absolute w-[28rem] h-[28rem] -bottom-48 -left-48 rounded-full bg-cyan-500/10 blur-[120px] theme-orb" /></div>
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute w-[32rem] h-[32rem] -top-48 -right-48 rounded-full bg-violet-600/15 blur-[120px] theme-orb" />
+        <div className="absolute w-[28rem] h-[28rem] -bottom-48 -left-48 rounded-full bg-cyan-500/10 blur-[120px] theme-orb" />
+      </div>
       <div className="relative w-full max-w-md">
         <button type="button" onClick={onGuest} className="mb-5 text-sm text-[var(--text-faint)] hover:text-[var(--text-primary)] flex items-center gap-2 transition"><ArrowLeft size={16} /> Continue as guest</button>
         <section className="glass-panel p-7 sm:p-9">
