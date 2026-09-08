@@ -33,6 +33,7 @@ export default function App() {
   const previousUser = useRef<User | null>(null);
 
   useEffect(() => {
+    // Finish Google redirect flow before relying solely on auth listener
     void completeGoogleRedirectIfAny().catch(() => undefined);
 
     const unsubscribeCloud = subscribeToLuciaCloudSync();
@@ -69,14 +70,36 @@ export default function App() {
     };
   }, []);
 
-  if (!authReady || (user && !cloudReady)) return <div className="min-h-dvh bg-[var(--bg-deep)]" />;
+  if (!authReady || (user && !cloudReady)) {
+    return <div className="min-h-dvh bg-[var(--bg-deep)]" />;
+  }
 
   if (!welcomeDone) {
-    return <WelcomeExperience onGetStarted={() => { localStorage.setItem(WELCOME_KEY, 'true'); setWelcomeDone(true); }} onGuest={() => { localStorage.setItem(WELCOME_KEY, 'true'); localStorage.setItem(GUEST_KEY, 'true'); setWelcomeDone(true); setGuest(true); }} />;
+    return (
+      <WelcomeExperience
+        onGetStarted={() => {
+          localStorage.setItem(WELCOME_KEY, 'true');
+          setWelcomeDone(true);
+        }}
+        onGuest={() => {
+          localStorage.setItem(WELCOME_KEY, 'true');
+          localStorage.setItem(GUEST_KEY, 'true');
+          setWelcomeDone(true);
+          setGuest(true);
+        }}
+      />
+    );
   }
 
   if (!user && !guest) {
-    return <LuciaAuth onGuest={() => { localStorage.setItem(GUEST_KEY, 'true'); setGuest(true); }} />;
+    return (
+      <LuciaAuth
+        onGuest={() => {
+          localStorage.setItem(GUEST_KEY, 'true');
+          setGuest(true);
+        }}
+      />
+    );
   }
 
   return (
