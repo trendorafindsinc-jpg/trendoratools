@@ -9,6 +9,7 @@ import {
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { useAppStore } from '../store';
+import { analytics } from './analytics';
 
 const PRODUCT_ID = 'trendora-tools';
 const COLLECTIONS = ['expenses', 'incomes', 'budgets', 'savingsGoals', 'bills', 'debts', 'chat'] as const;
@@ -161,6 +162,10 @@ async function syncNow() {
     );
 
     lastSnapshot = JSON.stringify(readLocalState());
+    void analytics.event('cloud_backup', { result: 'success' });
+  } catch (error) {
+    void analytics.event('cloud_backup', { result: 'failure' });
+    throw error;
   } finally {
     syncing = false;
   }
@@ -177,10 +182,16 @@ export async function startLuciaCloudSync(uid: string) {
   activeUid = uid;
   ready = false;
   lastSnapshot = '';
-  const cloud = await loadCloudState(uid);
-  applyCloudState(cloud);
-  ready = true;
-  await syncNow();
+  try {
+    const cloud = await loadCloudState(uid);
+    applyCloudState(cloud);
+    void analytics.event('cloud_restore', { result: 'success' });
+    ready = true;
+    await syncNow();
+  } catch (error) {
+    void analytics.event('cloud_restore', { result: 'failure' });
+    throw error;
+  }
 }
 
 export function stopLuciaCloudSync() {
