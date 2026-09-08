@@ -39,69 +39,98 @@ export default function Settings() {
   const { exportData, importData } = useAppStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [msg, setMsg] = useState('');
+  const [msgError, setMsgError] = useState(false);
   const [cloudBusy, setCloudBusy] = useState(false);
   const [authBusy, setAuthBusy] = useState(false);
   const [theme, setTheme] = useState<ThemePreference>(() => getStoredPreference());
   const isSignedIn = Boolean(auth?.currentUser);
   const isGuest = !isSignedIn && localStorage.getItem(GUEST_KEY) === 'true';
 
+  const flash = (text: string, isError = false) => {
+    setMsg(text);
+    setMsgError(isError);
+  };
+
   const setMode = (mode: ThemePreference) => {
     applyTheme(mode);
     setTheme(mode);
     const label = mode === 'light' ? 'Light' : mode === 'system' ? 'System' : 'Dark';
-    setMsg(`${label} theme enabled.`);
+    flash(`${label} theme enabled.`);
   };
 
   const handleExport = () => {
-    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(exportData());
-    const a = document.createElement('a');
-    a.setAttribute('href', dataStr);
-    a.setAttribute('download', 'trendora-tools-backup.json');
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setMsg('Data exported successfully.');
+    try {
+      const payload = exportData();
+      const stamp = new Date().toISOString().slice(0, 10);
+      const blob = new Blob([payload], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `trendora-tools-backup-${stamp}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      flash('Local backup file downloaded.');
+    } catch (err) {
+      flash(err instanceof Error ? err.message : 'Export failed.', true);
+    }
   };
 
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    e.target.value = '';
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (event) => {
       try {
         importData(event.target?.result as string);
-        setMsg('Imported successfully. Refreshing…');
-        setTimeout(() => window.location.reload(), 1000);
+        flash('Imported successfully. Refreshing…');
+        setTimeout(() => window.location.reload(), 800);
       } catch (err: unknown) {
-        setMsg(err instanceof Error ? err.message : 'Import failed');
+        flash(err instanceof Error ? err.message : 'Import failed', true);
       }
     };
+    reader.onerror = () => flash('Could not read that file.', true);
     reader.readAsText(file);
   };
 
   const cloudBackup = async () => {
+    if (!auth?.currentUser) {
+      flash('Sign in with your LUCIA ID to use Lucia Cloud backup.', true);
+      return;
+    }
     setCloudBusy(true);
-    setMsg('');
+    flash('');
     try {
       await backupTrendoraToLuciaCloud(exportData());
-      setMsg('Your Trendora Tools data is backed up in Lucia Cloud.');
+      flash('Backup saved to Lucia Cloud. You can restore it on any device after signing in.');
     } catch (err) {
-      setMsg(err instanceof Error ? err.message : 'Cloud backup failed.');
+      flash(err instanceof Error ? err.message : 'Cloud backup failed.', true);
     } finally {
       setCloudBusy(false);
     }
   };
 
   const cloudRestore = async () => {
+    if (!auth?.currentUser) {
+      flash('Sign in with your LUCIA ID to restore from Lucia Cloud.', true);
+      return;
+    }
+    const ok = window.confirm(
+      'Restore will replace the data currently on this device with your Lucia Cloud backup. Continue?'
+    );
+    if (!ok) return;
+
     setCloudBusy(true);
-    setMsg('');
+    flash('');
     try {
       const data = await restoreTrendoraFromLuciaCloud();
       importData(data);
-      setMsg('Lucia Cloud backup restored. Refreshing…');
-      setTimeout(() => window.location.reload(), 1000);
+      flash('Lucia Cloud backup restored. Refreshing…');
+      setTimeout(() => window.location.reload(), 800);
     } catch (err) {
-      setMsg(err instanceof Error ? err.message : 'Cloud restore failed.');
+      flash(err instanceof Error ? err.message : 'Cloud restore failed.', true);
     } finally {
       setCloudBusy(false);
     }
@@ -109,14 +138,14 @@ export default function Settings() {
 
   const handleSignOut = async () => {
     setAuthBusy(true);
-    setMsg('');
+    flash('');
     try {
       await signOutLucia();
       localStorage.removeItem(GUEST_KEY);
-      setMsg('Signed out. Redirecting…');
+      flash('Signed out. Redirecting…');
       setTimeout(() => window.location.reload(), 600);
     } catch (err) {
-      setMsg(err instanceof Error ? err.message : 'Sign out failed.');
+      flash(err instanceof Error ? err.message : 'Sign out failed.', true);
     } finally {
       setAuthBusy(false);
     }
@@ -124,14 +153,14 @@ export default function Settings() {
 
   const handleSignIn = () => {
     localStorage.removeItem(GUEST_KEY);
-    setMsg('Opening sign in…');
+    flash('Opening sign in…');
     setTimeout(() => window.location.reload(), 300);
   };
 
   const themeBtn = (mode: ThemePreference, active: boolean) =>
     `flex items-center justify-center gap-2 px-3 py-3 rounded-xl border text-sm font-medium transition ${
       active
-        ? 'border-violet-500/50 bg-violet-500/15 text-violet-600 dark:text-violet-200'
+        ? 'border-violet-500/50 bg-violet-500/15 text-violet-600'
         : 'border-[var(--glass-border)] text-[var(--text-secondary)] hover:bg-[var(--nav-hover)]'
     }`;
 
@@ -145,7 +174,13 @@ export default function Settings() {
       </div>
 
       {msg && (
-        <div className="p-3 bg-indigo-500/10 text-indigo-700 theme-dark:text-indigo-200 border border-indigo-500/20 rounded-xl text-sm">
+        <div
+          className={`p-3 rounded-xl text-sm border ${
+            msgError
+              ? 'bg-rose-500/10 text-rose-700 border-rose-500/25'
+              : 'bg-indigo-500/10 text-indigo-800 border-indigo-500/20'
+          }`}
+        >
           {msg}
         </div>
       )}
@@ -241,7 +276,8 @@ export default function Settings() {
             <div>
               <h3 className="font-semibold text-[var(--text-primary)]">Optional cloud backup</h3>
               <p className="text-sm text-[var(--text-muted)] mt-1">
-                Back up records to your LUCIA account and restore on another device. Local storage remains the default.
+                Save a full snapshot to your LUCIA account, then restore on another phone or browser. Live sync also runs
+                while you are signed in.
               </p>
             </div>
           </div>
@@ -260,7 +296,8 @@ export default function Settings() {
         </Card>
         <Card title="Local export & import">
           <p className="text-sm text-[var(--text-muted)] mb-6">
-            Your data is stored in this browser by default. Export a JSON backup or import one you previously saved.
+            Your data is stored in this browser by default. Export a JSON file for offline safety, or import a backup you
+            saved earlier.
           </p>
           <div className="flex flex-col sm:flex-row gap-3">
             <button type="button" onClick={handleExport} className="btn-secondary flex-1">
@@ -269,7 +306,7 @@ export default function Settings() {
             <button type="button" onClick={() => fileInputRef.current?.click()} className="btn-secondary flex-1">
               <Upload size={18} /> Import Data
             </button>
-            <input type="file" accept=".json" ref={fileInputRef} className="hidden" onChange={handleImport} />
+            <input type="file" accept="application/json,.json" ref={fileInputRef} className="hidden" onChange={handleImport} />
           </div>
         </Card>
       </section>
