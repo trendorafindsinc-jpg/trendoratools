@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import type { User } from 'firebase/auth';
 import { Layout } from './components/Layout';
@@ -6,6 +6,7 @@ import { WelcomeExperience } from './components/WelcomeExperience';
 import { LuciaAuth } from './components/LuciaAuth';
 import { completeGoogleRedirectIfAny, subscribeToLuciaAuth } from './lib/lucia-auth';
 import { startLuciaCloudSync, stopLuciaCloudSync, subscribeToLuciaCloudSync } from './lib/lucia-cloud-sync';
+import { analytics } from './lib/analytics';
 import Home from './pages/Home';
 import Planner from './pages/Planner';
 import Expenses from './pages/Expenses';
@@ -28,13 +29,20 @@ export default function App() {
   const [cloudReady, setCloudReady] = useState(false);
   const [welcomeDone, setWelcomeDone] = useState(() => localStorage.getItem(WELCOME_KEY) === 'true');
   const [guest, setGuest] = useState(() => localStorage.getItem(GUEST_KEY) === 'true');
+  const previousUser = useRef<User | null>(null);
 
   useEffect(() => {
-    // Finish Google redirect flow before relying solely on auth listener
     void completeGoogleRedirectIfAny().catch(() => undefined);
 
     const unsubscribeCloud = subscribeToLuciaCloudSync();
     const unsubscribeAuth = subscribeToLuciaAuth((nextUser) => {
+      if (nextUser && !previousUser.current) {
+        void analytics.event('lucia_id_sign_in', { result: 'success' });
+      } else if (!nextUser && previousUser.current) {
+        void analytics.event('lucia_id_sign_out', { result: 'success' });
+      }
+      previousUser.current = nextUser;
+
       setUser(nextUser);
       if (nextUser) {
         localStorage.removeItem(GUEST_KEY);
