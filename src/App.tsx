@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import type { User } from 'firebase/auth';
 import { Layout } from './components/Layout';
+import { AnalyticsTracker } from './components/AnalyticsTracker';
 import { WelcomeExperience } from './components/WelcomeExperience';
 import { LuciaAuth } from './components/LuciaAuth';
 import { completeGoogleRedirectIfAny, subscribeToLuciaAuth } from './lib/lucia-auth';
@@ -38,6 +39,9 @@ export default function App() {
     const unsubscribeAuth = subscribeToLuciaAuth((nextUser) => {
       if (nextUser && !previousUser.current) {
         void analytics.event('lucia_id_sign_in', { result: 'success' });
+        if (nextUser.metadata.creationTime && nextUser.metadata.creationTime === nextUser.metadata.lastSignInTime) {
+          void analytics.event('lucia_id_create_account', { result: 'success' });
+        }
       } else if (!nextUser && previousUser.current) {
         void analytics.event('lucia_id_sign_out', { result: 'success' });
       }
@@ -65,40 +69,19 @@ export default function App() {
     };
   }, []);
 
-  if (!authReady || (user && !cloudReady)) {
-    return <div className="min-h-dvh bg-[var(--bg-deep)]" />;
-  }
+  if (!authReady || (user && !cloudReady)) return <div className="min-h-dvh bg-[var(--bg-deep)]" />;
 
   if (!welcomeDone) {
-    return (
-      <WelcomeExperience
-        onGetStarted={() => {
-          localStorage.setItem(WELCOME_KEY, 'true');
-          setWelcomeDone(true);
-        }}
-        onGuest={() => {
-          localStorage.setItem(WELCOME_KEY, 'true');
-          localStorage.setItem(GUEST_KEY, 'true');
-          setWelcomeDone(true);
-          setGuest(true);
-        }}
-      />
-    );
+    return <WelcomeExperience onGetStarted={() => { localStorage.setItem(WELCOME_KEY, 'true'); setWelcomeDone(true); }} onGuest={() => { localStorage.setItem(WELCOME_KEY, 'true'); localStorage.setItem(GUEST_KEY, 'true'); setWelcomeDone(true); setGuest(true); }} />;
   }
 
   if (!user && !guest) {
-    return (
-      <LuciaAuth
-        onGuest={() => {
-          localStorage.setItem(GUEST_KEY, 'true');
-          setGuest(true);
-        }}
-      />
-    );
+    return <LuciaAuth onGuest={() => { localStorage.setItem(GUEST_KEY, 'true'); setGuest(true); }} />;
   }
 
   return (
     <BrowserRouter>
+      <AnalyticsTracker />
       <Routes>
         <Route element={<Layout />}>
           <Route path="/" element={<Home />} />
