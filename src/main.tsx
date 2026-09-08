@@ -4,8 +4,10 @@ import App from './App';
 import './index.css';
 import { initTheme } from './lib/theme';
 import { analytics } from './lib/analytics';
+import { installAnalyticsStoreTracking } from './lib/analytics-store';
 
 initTheme();
+installAnalyticsStoreTracking();
 
 function AnalyticsBootstrap() {
   useEffect(() => analytics.boot(), []);
