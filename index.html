@@ -22,10 +22,36 @@
     <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
     <link rel="icon" type="image/svg+xml" href="./brand/trendora-mark.svg" />
 
-    <!-- Prevent text size adjust on orientation change -->
     <meta name="format-detection" content="telephone=no" />
+
+    <!-- Apply saved theme BEFORE CSS/React so light mode is never stuck black on first paint -->
+    <script>
+      (function () {
+        try {
+          var key = 'trendora_tools_theme';
+          var pref = localStorage.getItem(key) || 'dark';
+          var mode = pref;
+          if (pref === 'system') {
+            mode = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+          }
+          if (mode !== 'light' && mode !== 'dark') mode = 'dark';
+          var root = document.documentElement;
+          root.classList.remove('theme-dark', 'theme-light');
+          root.classList.add(mode === 'light' ? 'theme-light' : 'theme-dark');
+          root.setAttribute('data-theme', mode);
+          root.style.colorScheme = mode;
+          if (mode === 'light') {
+            root.style.setProperty('--bg-deep', '#f4f5f8');
+            root.style.setProperty('--text-primary', '#0f172a');
+            root.style.backgroundColor = '#f4f5f8';
+            var meta = document.querySelector('meta[name="theme-color"]');
+            if (meta) meta.setAttribute('content', '#f4f5f8');
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
-  <body class="bg-slate-50 text-slate-900 antialiased">
+  <body class="antialiased">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
