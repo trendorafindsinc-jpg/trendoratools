@@ -4,6 +4,7 @@ const config: CapacitorConfig = {
   appId: 'com.lucia.trendoratools',
   appName: 'Trendora Tools',
   webDir: 'dist',
+  bundledWebRuntime: false,
   server: {
     androidScheme: 'https',
   },
@@ -15,7 +16,12 @@ const config: CapacitorConfig = {
     SplashScreen: {
       backgroundColor: '#07070A',
       launchAutoHide: true,
+      launchShowDuration: 400,
       showSpinner: false,
+    },
+    StatusBar: {
+      style: 'DARK',
+      backgroundColor: '#07070A',
     },
   },
 };
