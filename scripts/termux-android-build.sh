@@ -2,7 +2,6 @@
 # Trendora Tools — Android APK build on Termux (Samsung S10+, etc.)
 # Prerequisites (run once):
 #   pkg update && pkg install nodejs-lts openjdk-17 git wget unzip
-#   # Android SDK command-line tools (large). Prefer a pre-installed SDK if available.
 #   export ANDROID_HOME=$HOME/android-sdk
 #   export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools
 #
@@ -11,8 +10,12 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+# Reduce OOM risk on phones
+export NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=2048}"
+export GRADLE_OPTS="${GRADLE_OPTS:--Xmx1024m -Dorg.gradle.daemon=false}"
+
 echo "==> Installing JS deps"
-npm install
+npm install --no-fund --no-audit
 
 echo "==> Installing brand icons"
 node scripts/install-icons.mjs
@@ -28,7 +31,6 @@ fi
 echo "==> Syncing web assets + icons into Android project"
 npx cap sync android
 
-# Copy launcher icons into mipmap densities
 if [ -f public/icons/icon-192.png ] && [ -d android/app/src/main/res ]; then
   echo "==> Ensuring launcher icons exist in res/"
   for density in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
@@ -48,7 +50,7 @@ fi
 echo "==> Gradle assembleDebug (this can take a while on S10+)"
 cd android
 chmod +x gradlew 2>/dev/null || true
-./gradlew assembleDebug --no-daemon
+./gradlew assembleDebug --no-daemon --stacktrace
 
 APK=$(find app/build/outputs/apk/debug -name "*.apk" 2>/dev/null | head -1)
 echo ""
@@ -56,7 +58,7 @@ echo "Build finished."
 if [ -n "${APK:-}" ]; then
   echo "APK: $(pwd)/$APK"
   echo "Install: adb install -r $APK"
-  echo "Or copy the APK to your phone and open it."
+  echo "Or open the APK from a file manager on this phone."
 else
   echo "APK path not found — check android/app/build/outputs/apk/"
 fi

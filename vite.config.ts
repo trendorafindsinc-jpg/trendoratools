@@ -7,6 +7,8 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      // Avoid workbox+terser crashes on low-memory Termux / mobile builds.
+      minify: false,
       includeAssets: [
         'icons/favicon-32.png',
         'icons/apple-touch-icon.png',
@@ -14,7 +16,7 @@ export default defineConfig({
         'icons/icon-192-maskable.png',
         'icons/icon-512.png',
         'icons/icon-512-maskable.png',
-        'brand/trendora-mark.svg'
+        'brand/trendora-mark.svg',
       ],
       manifest: {
         name: 'Trendora Tools',
@@ -32,39 +34,44 @@ export default defineConfig({
           { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
           { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
           { src: 'icons/icon-192-maskable.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
-          { src: 'icons/icon-512-maskable.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
-        ]
+          { src: 'icons/icon-512-maskable.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+        ],
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,woff,ttf}'],
         navigateFallback: 'index.html',
+        // Skip heavy SW minify path that fails on constrained devices.
+        mode: 'development',
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
             handler: 'CacheFirst',
             options: {
               cacheName: 'google-fonts-cache',
-              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 }
-            }
+              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 },
+            },
           },
           {
             urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
             handler: 'CacheFirst',
             options: {
               cacheName: 'gstatic-fonts-cache',
-              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 }
-            }
-          }
-        ]
+              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 },
+            },
+          },
+        ],
       },
       devOptions: {
-        enabled: false
-      }
-    })
+        enabled: false,
+      },
+    }),
   ],
   base: './',
   build: {
     outDir: 'dist',
-    target: 'es2020'
-  }
+    target: 'es2020',
+    // esbuild minify is lighter than terser on Termux.
+    minify: 'esbuild',
+    chunkSizeWarningLimit: 1200,
+  },
 });
