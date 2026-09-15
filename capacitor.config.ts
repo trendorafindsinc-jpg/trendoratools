@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.lucia.trendoratools',
-  appName: 'Trendora Tools',
+  appName: 'Trendoratools',
   webDir: 'dist',
   bundledWebRuntime: false,
   server: {
