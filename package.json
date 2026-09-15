@@ -14,8 +14,8 @@
     "android:add": "npx cap add android",
     "android:open": "npx cap open android",
     "android:sync": "npx cap sync android",
-    "android:build": "bash scripts/termux-android-build.sh",
-    "android:apk": "npm run build && npx cap sync android && cd android && ./gradlew assembleDebug --no-daemon"
+    "android:build": "bash scripts/termux-android-build-arm64.sh",
+    "android:apk": "bash scripts/termux-android-build-arm64.sh"
   },
   "dependencies": {
     "@capacitor/android": "^6.2.0",
