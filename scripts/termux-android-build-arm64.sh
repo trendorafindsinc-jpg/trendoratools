@@ -1,6 +1,6 @@
 #!/data/data/com.termux/files/usr/bin/bash
 # Trendora Tools — Android APK build on Termux / ARM64 phones.
-# Uses Vercel production env values for the Vite build and forces native ARM64 aapt2.
+# Pulls Vercel production env values for the Vite build and forces native ARM64 aapt2.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -37,19 +37,33 @@ npm install --no-fund --no-audit
 echo "==> Installing Trendora brand assets"
 node scripts/install-icons.mjs
 
-if command -v vercel >/dev/null 2>&1 && [ -f .vercel/project.json ]; then
-  echo "==> Building web app with Vercel production environment variables"
-  vercel env run -e production -- npm run build
-elif [ -f .env.local ] || [ -f .env ]; then
-  echo "==> Vercel CLI/project link not found; using existing local env file"
-  npm run build
-else
-  echo "ERROR: Firebase/Vercel environment variables are not available locally."
-  echo "Link this repo to the Trendora Tools Vercel project, then rerun:"
-  echo "  vercel link"
-  echo "The build will then use: vercel env run -e production -- npm run build"
+if [ ! -f .vercel/project.json ]; then
+  echo "ERROR: This repository is not linked to its Vercel project."
+  echo "Run: npx vercel link"
   exit 1
 fi
+
+echo "==> Pulling Vercel production environment variables"
+npx vercel env pull .env.local --environment production --yes
+
+echo "==> Verifying required Firebase build variables"
+REQUIRED_FIREBASE_VARS=(
+  VITE_FIREBASE_API_KEY
+  VITE_FIREBASE_AUTH_DOMAIN
+  VITE_FIREBASE_PROJECT_ID
+  VITE_FIREBASE_STORAGE_BUCKET
+  VITE_FIREBASE_MESSAGING_SENDER_ID
+  VITE_FIREBASE_APP_ID
+)
+for VAR_NAME in "${REQUIRED_FIREBASE_VARS[@]}"; do
+  if ! grep -q "^${VAR_NAME}=" .env.local 2>/dev/null; then
+    echo "ERROR: Missing Vercel production variable: ${VAR_NAME}"
+    exit 1
+  fi
+done
+
+echo "==> Building web app with Vercel production environment variables"
+npm run build
 
 if [ ! -d android ]; then
   echo "==> Adding Capacitor Android platform"
@@ -81,6 +95,9 @@ if [ -z "$APK" ]; then
   exit 1
 fi
 
+cp "$APK" "$OLDPWD/Trendoratools.apk"
+
 echo ""
 echo "SUCCESS"
 echo "APK: $(pwd)/$APK"
+echo "Copy: $OLDPWD/Trendoratools.apk"
