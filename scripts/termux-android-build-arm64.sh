@@ -55,45 +55,49 @@ if [ ! -f .vercel/project.json ] && [ ! -f .vercel/repo.json ]; then
   exit 1
 fi
 
-echo "==> Building web app with Vercel production environment variables"
-# Sensitive Vercel variables are write-only and must not be pulled into .env.local.
-# `vercel env run` injects them directly into the build process instead.
-npx vercel env run -e production -- bash -c '
-  set -euo pipefail
+# Vercel CLI 56 `env run` merges local dotenv files and the current shell env
+# ON TOP of Production values, and does not strip `[SENSITIVE]` placeholders.
+# A leftover `.env.local` from `vercel env pull` therefore overrides Firebase
+# with empty or placeholder values, and Vite embeds isFirebaseConfigured=false.
+ENV_BACKUP_DIR="$(mktemp -d)"
+LOCAL_ENV_FILES=(.env .env.local .env.production .env.production.local .env.development .env.development.local)
 
-  REQUIRED_FIREBASE_VARS=(
-    VITE_FIREBASE_API_KEY
-    VITE_FIREBASE_AUTH_DOMAIN
-    VITE_FIREBASE_PROJECT_ID
-    VITE_FIREBASE_STORAGE_BUCKET
-    VITE_FIREBASE_MESSAGING_SENDER_ID
-    VITE_FIREBASE_APP_ID
-  )
-
-  for VAR_NAME in "${REQUIRED_FIREBASE_VARS[@]}"; do
-    if [ -z "${!VAR_NAME:-}" ]; then
-      echo "ERROR: Missing Vercel production variable: ${VAR_NAME}"
-      exit 1
+restore_local_env() {
+  for f in "${LOCAL_ENV_FILES[@]}"; do
+    if [ -f "$ENV_BACKUP_DIR/$f" ]; then
+      mv -f "$ENV_BACKUP_DIR/$f" "$f"
     fi
   done
+  rm -rf "$ENV_BACKUP_DIR"
+}
+trap restore_local_env EXIT
 
-  EXPECTED_GA4_ID="G-3NYQNHCLK0"
-  if [ "${VITE_GA_MEASUREMENT_ID:-}" != "$EXPECTED_GA4_ID" ]; then
-    echo "ERROR: VITE_GA_MEASUREMENT_ID is not the Trendora Tools GA4 stream."
-    echo "Expected: $EXPECTED_GA4_ID"
-    exit 1
+echo "==> Isolating local dotenv files so they cannot override Vercel Production"
+for f in "${LOCAL_ENV_FILES[@]}"; do
+  if [ -f "$f" ]; then
+    echo "    moving $f aside for the production Android web build"
+    mv "$f" "$ENV_BACKUP_DIR/$f"
   fi
+done
 
-  echo "==> Firebase production configuration: all required values present"
-  echo "==> GA4 production measurement ID: $EXPECTED_GA4_ID"
-  npm run build
-'
+for VAR_NAME in \
+  VITE_FIREBASE_API_KEY \
+  VITE_FIREBASE_AUTH_DOMAIN \
+  VITE_FIREBASE_PROJECT_ID \
+  VITE_FIREBASE_STORAGE_BUCKET \
+  VITE_FIREBASE_MESSAGING_SENDER_ID \
+  VITE_FIREBASE_APP_ID \
+  VITE_GA_MEASUREMENT_ID
+do
+  unset "$VAR_NAME" || true
+done
 
-# Never package a placeholder Firebase configuration.
-if grep -R '\[SENSITIVE\]' dist 2>/dev/null | head -1 | grep -q .; then
-  echo "ERROR: [SENSITIVE] placeholder detected in the Vite output."
-  exit 1
-fi
+echo "==> Building web app with Vercel production environment variables"
+# Sensitive Vercel variables are write-only and must not be pulled into .env.local.
+# `vercel env run` injects them directly into the Node build. Do not use bash -c
+# here: execa runs the command without a shell, and leftover dotenv files must
+# not be consulted by Vite.
+npx vercel env run -e production -- node scripts/android-web-build.mjs
 
 if [ ! -d android ]; then
   echo "==> Adding Capacitor Android platform"
@@ -102,6 +106,9 @@ fi
 
 printf "sdk.dir=%s\n" "$ANDROID_HOME" > android/local.properties
 npx cap sync android
+
+echo "==> Verifying Firebase configuration survived Capacitor sync"
+node scripts/assert-embedded-firebase.mjs android/app/src/main/assets/public
 
 echo "==> Installing Trendora launcher icon into Android resources"
 for d in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
