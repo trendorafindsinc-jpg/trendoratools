@@ -7,6 +7,17 @@ cd "$(dirname "$0")/.."
 export NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=2048}"
 export GRADLE_OPTS="${GRADLE_OPTS:--Xmx1024m -Dorg.gradle.daemon=false}"
 
+if [ -z "${ANDROID_HOME:-}" ] && [ -d "$HOME/android-sdk" ]; then
+  export ANDROID_HOME="$HOME/android-sdk"
+fi
+if [ -z "${ANDROID_SDK_ROOT:-}" ] && [ -n "${ANDROID_HOME:-}" ]; then
+  export ANDROID_SDK_ROOT="$ANDROID_HOME"
+fi
+if [ -z "${ANDROID_HOME:-}" ] || [ ! -d "$ANDROID_HOME" ]; then
+  echo "ERROR: Android SDK not found. Set ANDROID_HOME or install the SDK at \$HOME/android-sdk."
+  exit 1
+fi
+
 if [ -z "${AAPT2_BINARY:-}" ]; then
   if command -v aapt2 >/dev/null 2>&1; then
     AAPT2_BINARY="$(command -v aapt2)"
@@ -28,6 +39,7 @@ if ! "$AAPT2_BINARY" version >/dev/null 2>&1; then
   exit 1
 fi
 
+echo "==> Android SDK: $ANDROID_HOME"
 echo "==> Native aapt2: $AAPT2_BINARY"
 "$AAPT2_BINARY" version || true
 
@@ -88,11 +100,7 @@ if [ ! -d android ]; then
   npx cap add android
 fi
 
-echo "==> Android SDK: ${ANDROID_HOME:-not set}"
-if [ -n "${ANDROID_HOME:-}" ]; then
-  printf "sdk.dir=%s\n" "$ANDROID_HOME" > android/local.properties
-fi
-
+printf "sdk.dir=%s\n" "$ANDROID_HOME" > android/local.properties
 npx cap sync android
 
 echo "==> Installing Trendora launcher icon into Android resources"
