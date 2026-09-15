@@ -1,6 +1,6 @@
 #!/data/data/com.termux/files/usr/bin/bash
 # Trendora Tools — Android APK build on Termux / ARM64 phones.
-# Forces Android Gradle Plugin to use the native ARM64 aapt2 supplied by Termux.
+# Uses Vercel production env values for the Vite build and forces native ARM64 aapt2.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -22,26 +22,34 @@ if [ -z "${AAPT2_BINARY:-}" ] || [ ! -x "$AAPT2_BINARY" ]; then
   exit 1
 fi
 
-# Fail early instead of allowing Gradle to fall back to its x86_64 Linux aapt2.
 if ! "$AAPT2_BINARY" version >/dev/null 2>&1; then
   echo "ERROR: aapt2 exists but cannot execute on this Termux environment: $AAPT2_BINARY"
-  echo "Check: file \"$AAPT2_BINARY\""
   echo "Check: \"$AAPT2_BINARY\" version"
   exit 1
 fi
 
 echo "==> Native aapt2: $AAPT2_BINARY"
-echo "==> aapt2 version:"
 "$AAPT2_BINARY" version || true
 
 echo "==> Installing JS dependencies"
 npm install --no-fund --no-audit
 
-echo "==> Installing brand icons"
+echo "==> Installing Trendora brand assets"
 node scripts/install-icons.mjs
 
-echo "==> Building web app"
-npm run build
+if command -v vercel >/dev/null 2>&1 && [ -f .vercel/project.json ]; then
+  echo "==> Building web app with Vercel production environment variables"
+  vercel env run -e production -- npm run build
+elif [ -f .env.local ] || [ -f .env ]; then
+  echo "==> Vercel CLI/project link not found; using existing local env file"
+  npm run build
+else
+  echo "ERROR: Firebase/Vercel environment variables are not available locally."
+  echo "Link this repo to the Trendora Tools Vercel project, then rerun:"
+  echo "  vercel link"
+  echo "The build will then use: vercel env run -e production -- npm run build"
+  exit 1
+fi
 
 if [ ! -d android ]; then
   echo "==> Adding Capacitor Android platform"
@@ -50,8 +58,9 @@ fi
 
 npx cap sync android
 
-# Persist the override in the generated Android project as a second line of defense.
-# This is deliberately written after `cap add` because the android/ directory may not exist yet.
+echo "==> Generating native Android launcher assets from the repository Trendora icon"
+npx capacitor-assets generate --android
+
 GRADLE_PROPS="android/gradle.properties"
 touch "$GRADLE_PROPS"
 sed -i '/^android\.aapt2FromMavenOverride=/d' "$GRADLE_PROPS"
