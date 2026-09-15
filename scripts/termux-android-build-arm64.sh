@@ -1,6 +1,6 @@
 #!/data/data/com.termux/files/usr/bin/bash
 # Trendora Tools — Android APK build on Termux / ARM64 phones.
-# Pulls Vercel production env values for the Vite build and forces native ARM64 aapt2.
+# Uses Vercel production env directly for the Vite build and forces native ARM64 aapt2.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -37,43 +37,71 @@ npm install --no-fund --no-audit
 echo "==> Installing Trendora brand assets"
 node scripts/install-icons.mjs
 
-if [ ! -f .vercel/project.json ]; then
+if [ ! -f .vercel/project.json ] && [ ! -f .vercel/repo.json ]; then
   echo "ERROR: This repository is not linked to its Vercel project."
   echo "Run: npx vercel link"
   exit 1
 fi
 
-echo "==> Pulling Vercel production environment variables"
-npx vercel env pull .env.local --environment production --yes
+echo "==> Building web app with Vercel production environment variables"
+# Sensitive Vercel variables are write-only and must not be pulled into .env.local.
+# `vercel env run` injects them directly into the build process instead.
+npx vercel env run -e production -- bash -c '
+  set -euo pipefail
 
-echo "==> Verifying required Firebase build variables"
-REQUIRED_FIREBASE_VARS=(
-  VITE_FIREBASE_API_KEY
-  VITE_FIREBASE_AUTH_DOMAIN
-  VITE_FIREBASE_PROJECT_ID
-  VITE_FIREBASE_STORAGE_BUCKET
-  VITE_FIREBASE_MESSAGING_SENDER_ID
-  VITE_FIREBASE_APP_ID
-)
-for VAR_NAME in "${REQUIRED_FIREBASE_VARS[@]}"; do
-  if ! grep -q "^${VAR_NAME}=" .env.local 2>/dev/null; then
-    echo "ERROR: Missing Vercel production variable: ${VAR_NAME}"
+  REQUIRED_FIREBASE_VARS=(
+    VITE_FIREBASE_API_KEY
+    VITE_FIREBASE_AUTH_DOMAIN
+    VITE_FIREBASE_PROJECT_ID
+    VITE_FIREBASE_STORAGE_BUCKET
+    VITE_FIREBASE_MESSAGING_SENDER_ID
+    VITE_FIREBASE_APP_ID
+  )
+
+  for VAR_NAME in "${REQUIRED_FIREBASE_VARS[@]}"; do
+    if [ -z "${!VAR_NAME:-}" ]; then
+      echo "ERROR: Missing Vercel production variable: ${VAR_NAME}"
+      exit 1
+    fi
+  done
+
+  EXPECTED_GA4_ID="G-3NYQNHCLK0"
+  if [ "${VITE_GA_MEASUREMENT_ID:-}" != "$EXPECTED_GA4_ID" ]; then
+    echo "ERROR: VITE_GA_MEASUREMENT_ID is not the Trendora Tools GA4 stream."
+    echo "Expected: $EXPECTED_GA4_ID"
     exit 1
   fi
-done
 
-echo "==> Building web app with Vercel production environment variables"
-npm run build
+  echo "==> Firebase production configuration: all required values present"
+  echo "==> GA4 production measurement ID: $EXPECTED_GA4_ID"
+  npm run build
+'
+
+# Never package a placeholder Firebase configuration.
+if grep -R '\[SENSITIVE\]' dist 2>/dev/null | head -1 | grep -q .; then
+  echo "ERROR: [SENSITIVE] placeholder detected in the Vite output."
+  exit 1
+fi
 
 if [ ! -d android ]; then
   echo "==> Adding Capacitor Android platform"
   npx cap add android
 fi
 
+echo "==> Android SDK: ${ANDROID_HOME:-not set}"
+if [ -n "${ANDROID_HOME:-}" ]; then
+  printf "sdk.dir=%s\n" "$ANDROID_HOME" > android/local.properties
+fi
+
 npx cap sync android
 
-echo "==> Generating native Android launcher assets from the repository Trendora icon"
-npx --yes @capacitor/assets@3.0.5 generate --android
+echo "==> Installing Trendora launcher icon into Android resources"
+for d in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
+  cp public/icons/icon-512.png "android/app/src/main/res/mipmap-$d/ic_launcher.png"
+  cp public/icons/icon-512.png "android/app/src/main/res/mipmap-$d/ic_launcher_round.png"
+done
+rm -f android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
+rm -f android/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml
 
 GRADLE_PROPS="android/gradle.properties"
 touch "$GRADLE_PROPS"
