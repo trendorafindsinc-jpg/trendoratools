@@ -59,7 +59,7 @@ fi
 npx cap sync android
 
 echo "==> Generating native Android launcher assets from the repository Trendora icon"
-npx capacitor-assets generate --android
+npx --yes @capacitor/assets@3.0.5 generate --android
 
 GRADLE_PROPS="android/gradle.properties"
 touch "$GRADLE_PROPS"
