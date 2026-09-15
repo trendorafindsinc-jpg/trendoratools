@@ -1,6 +1,6 @@
 #!/data/data/com.termux/files/usr/bin/bash
 # Trendora Tools — Android APK build on Termux / ARM64 phones.
-# This wrapper forces Gradle to use a native ARM64 aapt2 supplied by Termux.
+# Forces Android Gradle Plugin to use the native ARM64 aapt2 supplied by Termux.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -22,9 +22,18 @@ if [ -z "${AAPT2_BINARY:-}" ] || [ ! -x "$AAPT2_BINARY" ]; then
   exit 1
 fi
 
-export GRADLE_OPTS="$GRADLE_OPTS -Dorg.gradle.project.android.aapt2FromMavenOverride=$AAPT2_BINARY"
+# Fail early instead of allowing Gradle to fall back to its x86_64 Linux aapt2.
+if ! "$AAPT2_BINARY" version >/dev/null 2>&1; then
+  echo "ERROR: aapt2 exists but cannot execute on this Termux environment: $AAPT2_BINARY"
+  echo "Check: file \"$AAPT2_BINARY\""
+  echo "Check: \"$AAPT2_BINARY\" version"
+  exit 1
+fi
 
-echo "==> ARM64 aapt2: $AAPT2_BINARY"
+echo "==> Native aapt2: $AAPT2_BINARY"
+echo "==> aapt2 version:"
+"$AAPT2_BINARY" version || true
+
 echo "==> Installing JS dependencies"
 npm install --no-fund --no-audit
 
@@ -40,9 +49,22 @@ if [ ! -d android ]; then
 fi
 
 npx cap sync android
+
+# Persist the override in the generated Android project as a second line of defense.
+# This is deliberately written after `cap add` because the android/ directory may not exist yet.
+GRADLE_PROPS="android/gradle.properties"
+touch "$GRADLE_PROPS"
+sed -i '/^android\.aapt2FromMavenOverride=/d' "$GRADLE_PROPS"
+printf '\nandroid.aapt2FromMavenOverride=%s\n' "$AAPT2_BINARY" >> "$GRADLE_PROPS"
+
 cd android
 chmod +x gradlew 2>/dev/null || true
-./gradlew assembleDebug --no-daemon --stacktrace
+
+echo "==> Gradle assembleDebug using native ARM64 aapt2"
+./gradlew assembleDebug \
+  -Pandroid.aapt2FromMavenOverride="$AAPT2_BINARY" \
+  --no-daemon \
+  --stacktrace
 
 APK=$(find app/build/outputs/apk/debug -name '*.apk' 2>/dev/null | head -1)
 if [ -z "$APK" ]; then
