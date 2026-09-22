@@ -1,4 +1,5 @@
-name: Android APK
+name: Trendora Tools — Web + Android
+
 
 on:
   workflow_dispatch:
@@ -41,7 +42,7 @@ jobs:
       - name: Install dependencies
         run: npm install --no-fund --no-audit
 
-      - name: Build web (Capacitor webDir=dist)
+      - name: Build web
         run: npm run build
 
       - name: Ensure Capacitor Android platform
@@ -51,15 +52,34 @@ jobs:
           fi
           npx cap sync android
 
-      - name: Gradle assembleDebug
+      - name: Build debug APK
         working-directory: android
         run: |
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon --stacktrace
 
-      - name: Upload debug APK
+      - name: Build debug AAB
+        working-directory: android
+        run: ./gradlew bundleDebug --no-daemon --stacktrace
+
+      - name: Upload Android artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: trendora-tools-debug-apk
-          path: android/app/build/outputs/apk/debug/*.apk
+          name: trendora-tools-android
+          path: |
+            android/app/build/outputs/apk/debug/*.apk
+            android/app/build/outputs/bundle/debug/*.aab
           if-no-files-found: error
+
+      # Required GitHub Secrets:
+      # VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID
+      - name: Deploy web to Vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          npx vercel@latest deploy dist --prod --yes \
+            --token "$VERCEL_TOKEN" \
+            --scope "$VERCEL_ORG_ID" \
+            --project "$VERCEL_PROJECT_ID"
