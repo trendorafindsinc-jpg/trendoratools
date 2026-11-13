@@ -29,9 +29,9 @@
 
 **Engineering verification**
 - Branch: `feat/ariovelle-phase-1-design-system`.
-- Verified code commit: `5a3642a65df5e4793829bd124c245b4ccfefcac8`.
-- CI: [run 43475266314](https://github.com/trendorafindsinc-jpg/trendoratools/actions/runs/43475266314) — install, production build and tests all passed.
-- Preview: [Ariovelle preview](https://trendoratools-4dhso7c81-trendoraplc-5738.vercel.app/) — Vercel deployment `dpl_9VxWftZftHUNwtoh4wM2YPUJd1fZ`, READY; not production.
+- Verified code commit: `a141d3bdb74a5ad0907d44772ff0f7afa33f5f6b`.
+- CI: [run 43475545287](https://github.com/trendorafindsinc-jpg/trendoratools/actions/runs/43475545287) — exact dependency install, production build and all seven tests passed.
+- Preview: [Ariovelle preview](https://trendoratools-9aku2lkhy-trendoraplc-5738.vercel.app/) — Vercel deployment `dpl_6iSTjjtjgUP5oyp7x3pjnqNLGvbp`, READY; not production.
 - Preview build output: route chunks are split; main JavaScript bundle is 938.92 kB (250.27 kB gzip). This is an improvement from the earlier 1,022.41 kB (270.51 kB gzip) main bundle, but the main chunk remains large and should be optimized in a later performance pass.
 
 **Responsive capture evidence**
