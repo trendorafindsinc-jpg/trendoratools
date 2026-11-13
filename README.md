@@ -2,11 +2,12 @@
 
 > **Current status:** The repository still contains the legacy TrendoraTools application. The Ariovelle product is approved and documented; the implementation has not yet been rebuilt. Do not interpret the legacy instructions below as the target product architecture.
 
-**Codex / coding-agent entry point:** Read [AGENTS.md](AGENTS.md) first. It is the repository-level instruction contract.
+**Codex / coding-agent entry point:** Read [AGENTS.md](AGENTS.md) first.
 
 ## Ariovelle project documents
 
 - [Product, screens, responsive UI and free/premium entitlements](docs/ARIOVELLE_PRODUCT_SPEC.md)
+- [Backend architecture, database model, API, security and migration specification](docs/ARIOVELLE_BACKEND_ARCHITECTURE_AND_MIGRATION.md)
 - [Phased implementation plan and release gates](docs/ARIOVELLE_IMPLEMENTATION_PLAN.md)
 - [Observed legacy repository baseline and migration cautions](docs/REPOSITORY_AUDIT.md)
 
@@ -15,7 +16,7 @@
 **Commercial model:** Freemium; basic personal finance, basic business tools and basic market access remain free; advanced capabilities are paid.  
 **Themes:** Premium dark and light.
 
-**Safety:** Keep the existing production app and data intact during rebuild. Work on a feature branch. Do not remove Firebase or migrate user data until all dependencies and preservation paths are understood. Lucia ID's official technical specification is required before implementing authentication; do not guess its protocol.
+**Safety:** Keep the existing production app and data intact during rebuild. Work on a feature branch. Do not remove Firebase or migrate user data until all dependencies and preservation paths are understood. Lucia ID's official technical specification is required before implementing authentication; do not guess its protocol. The backend architecture/migration specification is authoritative for Phase 2.
 
 ---
 
