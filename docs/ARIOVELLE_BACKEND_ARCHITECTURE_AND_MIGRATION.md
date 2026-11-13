@@ -805,8 +805,59 @@ Security boundaries:
 - The authorization function accepts a server-verified internal user ID. It must never receive a user ID asserted by a browser request.
 - Workspace ID and user ID are bound as SQL parameters; no client-supplied SQL is constructed.
 - These primitives are not yet wired to an HTTP route or live identity provider.
-- The adapter accepts a node-postgres-compatible pool but the driver/pool factory and runtime connection are not installed/configured. No database credential is present in the repo or Vercel.
-- Database RLS and least-privilege runtime-role grants remain a required gate before connecting any application runtime or exposing tenant-scoped endpoints.
+- The concrete `pg` driver and lazy pool factory now exist in `api/_lib/postgres-pool.ts`; no route imports the factory and no application runtime connection is configured.
+- Database RLS and least-privilege runtime-role grants have been applied and verified on the disposable development database. Production remains unconnected.
 - No financial tables or financial API writes were added.
 
-The existing development database remains schema-only and contains no seeded user or financial records. Next: verify the adapter/authorization tests in CI, then design and test transaction-local identity/workspace context, RLS policies and runtime-role grants against this disposable database before adding any financial routes.
+The disposable development database contains only the foundation schema, RLS helpers/policies and the dedicated runtime role; all temporary tenant-isolation fixtures were removed. Next: keep this boundary intact, then review identity-provider documentation before any verified-auth adapter or product data route is implemented.
+
+
+---
+
+## 18. P2.5 Transaction-local identity, RLS and runtime database hardening
+
+Implemented in source:
+- `api/_lib/request-context.ts`: `withVerifiedRequestContext` accepts only a branded server-verified internal user ID and a workspace UUID, opens one database transaction, sets `app.user_id` and `app.workspace_id` with parameterized `set_config(..., true)`, asks PostgreSQL to verify active membership, then invokes work using that same transaction executor.
+- Context values are transaction-local. PostgreSQL clears them at COMMIT/ROLLBACK; pooled connections are not allowed to retain one user's identity for the next request.
+- Invalid UUIDs and inactive/non-member workspaces are rejected before request work executes.
+- `api/_lib/request-context.test.ts` tests local context setup, parameter binding, membership rejection and invalid IDs.
+- `api/_lib/rls.integration.test.ts` is an opt-in real-PostgreSQL suite using separate owner and runtime URLs. It seeds isolated test tenants, connects as the runtime role, verifies cross-tenant reads/writes are denied, verifies own-profile updates work, and verifies request context clears on rollback. It is skipped in CI unless both dedicated test URLs are explicitly configured.
+- `api/_lib/postgres-pool.ts` provides the concrete node-postgres `Pool` factory and wraps it with the driver-neutral adapter. It uses TLS certificate verification, one connection per warm serverless instance, bounded idle/connection timeouts and lazy connection creation. It reads no environment variables and is not imported by routes.
+- `pg` and `@types/pg` are declared dependencies.
+
+Database migrations:
+- `db/migrations/0002_request_context_and_rls.sql` creates private helper functions and enables RLS on all nine foundation tables.
+- `db/migrations/0003_runtime_role_grants.sql` documents the provider-created runtime role and the narrow grants/default-privilege restrictions.
+- The RLS migration and equivalent runtime grants were applied to the disposable Neon development database.
+
+RLS policy coverage:
+- `users`, `external_identities`, `user_profiles` and `user_preferences` are restricted to the current internal user.
+- `workspaces` are restricted to the transaction's current workspace and active membership; only workspace owners can update workspace settings.
+- `workspace_memberships` expose only the current user's memberships or the selected workspace's memberships. Owner/admin member-management policies cannot let an admin mutate owner/admin rows or assign privileged roles.
+- `audit_events` are readable only by the actor or an active member of the selected workspace; inserts must match the current actor/workspace. No runtime UPDATE/DELETE grant exists.
+- `migration_batches` and `migration_records` have RLS enabled with no runtime policies and no runtime table grants (default deny).
+
+Runtime role on Neon:
+- Project `ariovelle-dev`, branch `main`, database `ariovelle_dev`, role `ariovelle_runtime`.
+- Created as a database-scoped `read_only` role (not provider admin). Explicitly granted only profile/preferences writes, workspace UPDATE, membership DML, and audit INSERT. Migration metadata privileges were revoked.
+- Verified `rolsuper=false`, `rolcreaterole=false`, `rolcreatedb=false`, `rolbypassrls=false`.
+- Role-level limits: statement timeout 10s, lock timeout 2s, idle-in-transaction timeout 15s.
+- Future public tables receive no default SELECT grant to this role; future private-schema functions receive no default PUBLIC EXECUTE grant. New tables must have RLS and reviewed explicit grants before runtime use.
+- A disposable future-table probe confirmed the runtime role receives permission denied by default.
+
+Actual development-database tenant-isolation test:
+- Seeded two temporary users, two personal workspaces, two owner memberships and two profiles.
+- Connected directly as `ariovelle_runtime` (not merely simulated in application code).
+- With no request context, the runtime role saw zero users/workspaces.
+- With tenant A context, it saw only A, could update A's profile, could not read or update B's profile, and a cross-tenant insert was rejected with SQLSTATE `42501`.
+- The membership helper returned true for A and false for B.
+- Switching to tenant B context exposed only B.
+- A subsequent runtime query showed both transaction-local settings cleared (empty GUC values) after transaction completion.
+- All temporary test rows were deleted. A future-table probe was also dropped.
+- The owner-to-runtime role membership used only during an initial role-switch test was revoked; the owner remains separate from the runtime role.
+
+Important limitations:
+- RLS context is trusted only because the database credential remains server-side. A holder of the runtime credential can set custom PostgreSQL GUCs; therefore the credential must never be exposed to browsers, mobile clients, logs or user-controlled SQL. The future API must derive the internal user ID exclusively from a verified Lucia ID token/session and set context in the same transaction as every tenant query.
+- The runtime role exists in the development database, but its password/connection string is not stored in the repository or Vercel. The pool factory is not wired to the application. No database secret was configured.
+- The RLS suite has been exercised directly against the development database through the Neon runtime role. CI's opt-in integration suite remains skipped until dedicated owner/runtime test secrets are deliberately configured.
+- No financial tables, financial write routes, Lucia ID auth adapter, production DB, deployment or Firebase retirement were implemented.
