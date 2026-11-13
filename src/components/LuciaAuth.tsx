@@ -56,7 +56,7 @@ export function LuciaAuth({ onGuest }: { onGuest: () => void }) {
     if (!isFirebaseConfigured) {
       setIsError(true);
       setMessage(
-        'LUCIA ID is not configured on this deployment. Add VITE_FIREBASE_* environment variables and enable the Google provider in Firebase Console.'
+        'The current sign-in provider is not configured on this deployment. Please continue as a guest for now.'
       );
       return;
     }
@@ -80,8 +80,8 @@ export function LuciaAuth({ onGuest }: { onGuest: () => void }) {
   return (
     <main className="min-h-dvh bg-[var(--bg-deep)] text-[var(--text-primary)] flex items-center justify-center p-5 relative overflow-hidden">
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute w-[32rem] h-[32rem] -top-48 -right-48 rounded-full bg-violet-600/15 blur-[120px] theme-orb" />
-        <div className="absolute w-[28rem] h-[28rem] -bottom-48 -left-48 rounded-full bg-cyan-500/10 blur-[120px] theme-orb" />
+        <div className="absolute w-[32rem] h-[32rem] -top-48 -right-48 rounded-full bg-[var(--nav-active-bg)] blur-[120px] theme-orb" />
+        <div className="absolute w-[28rem] h-[28rem] -bottom-48 -left-48 rounded-full bg-[var(--nav-active-bg)] blur-[120px] theme-orb" />
       </div>
 
       <div className="relative w-full max-w-md">
@@ -95,7 +95,7 @@ export function LuciaAuth({ onGuest }: { onGuest: () => void }) {
 
         <section className="glass-panel p-7 sm:p-9">
           <div className="flex items-center gap-3 mb-7">
-            <img src="./brand/trendora-mark.svg" alt="Trendora" className="w-11 h-11" />
+            <img src="./brand/ariovelle-mark.svg" alt="Ariovelle" className="w-11 h-11" />
             <div>
               <div className="text-xs tracking-[0.22em] uppercase text-[var(--text-faint)]">LUCIA</div>
               <div className="font-semibold text-[var(--text-primary)]">Your LUCIA ID</div>
@@ -125,7 +125,7 @@ export function LuciaAuth({ onGuest }: { onGuest: () => void }) {
               <p className="text-sm text-[var(--text-muted)] mt-2 mb-6">
                 {mode === 'signup'
                   ? 'One identity across the LUCIA family.'
-                  : 'Sign in to continue to Trendora Tools.'}
+                  : 'Sign in to continue to Ariovelle.'}
               </p>
             </>
           )}
@@ -199,14 +199,14 @@ export function LuciaAuth({ onGuest }: { onGuest: () => void }) {
             )}
             {message && (
               <div
-                className={`text-sm glass-card p-3 flex gap-2 ${
+                role={isError ? 'alert' : 'status'} aria-live={isError ? 'assertive' : 'polite'}\n                className={`text-sm glass-card p-3 flex gap-2 ${
                   isError ? 'text-rose-600 theme-dark:text-rose-300' : 'text-[var(--text-secondary)]'
                 }`}
               >
                 {isError ? (
                   <AlertCircle size={17} className="text-rose-500 shrink-0" />
                 ) : (
-                  <CheckCircle2 size={17} className="text-violet-400 shrink-0" />
+                  <CheckCircle2 size={17} className="text-[var(--accent-gold)] shrink-0" />
                 )}
                 {message}
               </div>
@@ -247,7 +247,7 @@ export function LuciaAuth({ onGuest }: { onGuest: () => void }) {
 
           <div className="mt-6 text-center text-sm text-[var(--text-faint)]">
             {mode === 'reset' ? (
-              <button type="button" onClick={() => setMode('signin')} className="text-violet-500 hover:text-violet-400">
+              <button type="button" onClick={() => setMode('signin')} className="text-[var(--accent-gold)] hover:opacity-80">
                 Back to sign in
               </button>
             ) : mode === 'signin' ? (
@@ -273,7 +273,7 @@ export function LuciaAuth({ onGuest }: { onGuest: () => void }) {
         </section>
 
         <p className="text-center text-xs text-[var(--text-faint)] mt-5">
-          Trendora Tools · A Trendora product · LUCIA
+          Ariovelle · A product of Lucia LLC
         </p>
       </div>
     </main>
