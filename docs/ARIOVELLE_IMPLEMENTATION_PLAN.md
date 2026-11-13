@@ -1,22 +1,26 @@
 # Ariovelle Implementation Plan
 
-**Status:** Phase 1 foundation committed to `feat/ariovelle-phase-1-design-system`; local build and visual QA are still pending.
+**Status:** Phase 1 foundation and CI verification are committed to `feat/ariovelle-phase-1-design-system`; responsive visual QA and final design-system sign-off remain pending.
 
 ## Progress log — 2026-11-13
 
-### Phase 1 initial foundation (committed, verification pending)
+### Phase 1 initial foundation (committed; CI green, visual QA pending)
 - [x] Replaced the old top-level navigation shell with Ariovelle's responsive sidebar, topbar and mobile bottom navigation.
 - [x] Added dark/light Ariovelle navy, ivory and champagne-gold theme tokens; preserved legacy theme preference as a read fallback.
 - [x] Added a central theme toggle in the application shell.
 - [x] Added route scaffolds for Business Finance, AI Intelligence, Global Markets and Financial Planning, with explicit not-connected/planned messaging.
 - [x] Added compatibility styles so existing finance pages retain their shared glass/card/button primitives during gradual migration.
 - [x] Rebranded the existing home page's visible product references.
-- [ ] Run local install, typecheck/build and tests.
-- [ ] Inspect desktop, tablet and mobile screenshots; fix responsive/accessibility issues.
+- [x] Replaced visible legacy settings identity with Ariovelle / Lucia LLC copy and updated export filename.
+- [x] Replaced remaining violet home-page accents with the champagne-gold brand accent.
+- [x] Clarified shell controls that are not implemented yet; removed the inactive notification control and added Escape-key / scroll-lock behavior to the mobile navigation drawer.
+- [x] CI run 10: exact npm install, production build and seven financial utility tests all passed.
+- [x] Reproducible install, production build and automated tests pass in GitHub Actions run 10 (`c404a1b`).
+- [ ] Inspect desktop, tablet and mobile screenshots; fix responsive/accessibility issues (preview deployment is intentionally not triggered while Git auto-deploy is disabled).
 - [ ] Complete reusable component primitives and theme preference settings integration.
 - [ ] Confirm whether any legacy UI dependencies remain before moving to Phase 2.
 
-**Verification limitation:** GitHub source edits were committed through the repository connector. A local checkout/runtime was not available in this step, so no npm install, test, build, browser visual test or deployment was run. Do not mark Phase 1 fully accepted until these checks pass.
+**Verification limitation:** CI verifies dependency installation, production build and automated tests. A local browser preview and screenshot-based desktop/tablet/mobile QA have not yet been performed. Automatic Vercel Git deployments remain disabled by owner request; do not trigger a manual deployment without approval. Do not mark Phase 1 fully accepted until visual QA and remaining design-system acceptance checks pass.
 
   
 **Working branch:** `docs/ariovelle-product-blueprint` for documentation changes. Create separate implementation branches from the agreed base as needed.
