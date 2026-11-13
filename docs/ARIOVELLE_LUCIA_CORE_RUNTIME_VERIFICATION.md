@@ -1,79 +1,102 @@
 # Lucia Core runtime verification — Ariovelle integration
 
-Date: 2026-11-13
-Scope: read-only inspection of Lucia Core source and its linked Vercel project. No Core settings, deployments, domains, environment variables or secrets were changed.
+Date: 2026-11-13  
+Scope: read-only inspection of Lucia Core source and Vercel configuration, plus additive schema and integration verification on the disposable Ariovelle development database. No Lucia Core source, settings, secrets or deployments were changed.
 
 ## Result
 
-**Production OIDC integration is not currently verifiable and login must remain disabled.** Two concrete blockers were identified.
+**Ariovelle's local authentication foundation is implemented and exercised against the disposable development database. Production login remains disabled because the deployed Lucia Core environment is not currently verifiable and Core's current source drops the OIDC nonce.**
 
-### 1. Deployed Core environment is not live
+## 1. Lucia Core deployment verification
 
-Read-only Vercel inspection of the Git-linked Core project found:
-- Project: `lucia-secure`, linked to `trendorafindsinc-jpg/lucia-core`.
+Read-only Vercel inspection of project `lucia-secure` (linked to `trendorafindsinc-jpg/lucia-core`) found:
+
 - Project reports `live: false`.
-- Its only attached verified project domain is `lucia-secure.vercel.app`.
-- The latest deployment record is `CANCELED`; the most recent production-target deployment in the inspected history is also `CANCELED`.
-- No custom `auth.lucia.name.ng` domain is attached to this Vercel project.
-- The project's configured `APPLICATION_URL` is `https://lucia-secure.vercel.app`; no `OIDC_ISSUER` variable was present in the environment-variable inventory.
-- The configured `TRUSTED_ORIGINS` value does not include `https://ariovelle.lucia.name.ng`.
-- No `LUCIA_CLIENT_ID`, `LUCIA_CLIENT_SECRET` or Ariovelle audience/client configuration exists in the inspected Core project environment inventory.
+- Attached domains: `lucia-secure-trendoraplc-5738.vercel.app` and `lucia-secure-git-main-trendoraplc-5738.vercel.app`.
+- Latest deployment `dpl_5LH23WbmX4DQTHAjswg6KhSeHptq` is `CANCELED`.
+- Latest inspected production-target deployment `dpl_DXeiJzC5XuDAiAveoXZTiext4orH` is also `CANCELED`.
+- SSO protection is enabled for deployment URLs except custom domains.
+- No custom Lucia identity domain is attached. A project-domain lookup for `auth.lucia.name.ng` returned 404.
+- The discovery document on the attached deployment domain was not accessible through the available public retrieval path.
+- Earlier read-only environment inventory found no configured `OIDC_ISSUER`, no Ariovelle consumer client registration/credentials, and a `TRUSTED_ORIGINS` value that did not include `https://ariovelle.lucia.name.ng`. No secret values were retrieved or changed.
 
-The public discovery URL on the only attached domain could not be fetched from the available web retrieval path. Because the project is not live and its deployments are canceled, there is no successful runtime discovery/JWKS/token/UserInfo verification to report. Do not treat source-code tests as production endpoint verification.
+Therefore there is no verified deployed discovery document, JWKS, token exchange or UserInfo response. Source inspection and local tests are not substitutes for live provider verification.
 
-### 2. Core currently drops the OIDC nonce before issuing the ID token
+## 2. Core nonce propagation defect
 
-Source inspection found a concrete defect in the current Core main branch:
+Current Lucia Core main has a concrete defect:
 
-1. `src/modules/consumer/consent.ts` stores the incoming `nonce` on the consent transaction and copies it to the authorization-code row when consent is approved.
-2. `src/modules/consumer/service.ts` consumes the authorization code but its `exchangeAuthorizationCode()` return object does **not** include `existing.nonce`.
-3. `src/app/api/v1/consumer/oauth/token/route.ts` casts that result to a shape with optional `nonce`, then calls `maybeIssueIdToken({ nonce: exchangeWithNonce.nonce ?? null })`.
-4. Therefore the value passed to `maybeIssueIdToken` is currently `null`, and `src/modules/oidc/id-token.ts` omits the ID-token `nonce` claim.
+1. `src/modules/consumer/consent.ts` stores the incoming authorization request nonce on the consent transaction and copies it to the authorization-code row.
+2. `src/modules/consumer/service.ts` consumes the authorization code but `exchangeAuthorizationCode()` does not include `existing.nonce` in its return object.
+3. `src/app/api/v1/consumer/oauth/token/route.ts` passes `exchangeWithNonce.nonce ?? null` to ID-token issuance.
+4. Consequently, the issued ID token omits the nonce.
 
-Ariovelle correctly requires an exact nonce match. Consequently, the current Core source will cause Ariovelle to reject its ID token. This is intentional fail-closed behavior, not a reason to weaken Ariovelle validation.
+Ariovelle correctly rejects missing or mismatched nonce claims. Do not weaken that validation.
 
-Required Core-side correction (not applied by this Ariovelle task):
-- Include the consumed authorization-code row's `nonce` in the result returned by `exchangeAuthorizationCode()`.
-- Pass that value unchanged to `maybeIssueIdToken()`.
-- Add Core tests asserting the ID token includes the exact authorization request nonce, and rejects missing/wrong nonce.
-- Verify the fix in a deployed Core environment before Ariovelle login is enabled.
+Required Core-side correction (not performed here):
+- Return the consumed authorization-code nonce from `exchangeAuthorizationCode()`.
+- Pass it unchanged to `maybeIssueIdToken()`.
+- Add Core tests for exact nonce propagation and missing/wrong nonce rejection.
+- Deploy the correction to a reachable HTTPS issuer and verify the live token.
 
-### 3. Scope and consent configuration still require an operator check
-
-Ariovelle requests `openid email profile`. Core validates requested scopes against each registered consumer's grants. No Ariovelle consumer client is registered in the inspected project. The future client must explicitly grant the requested scopes, use a confidential client secret, register the exact callback URI, and use the agreed Ariovelle audience.
-
-## Ariovelle implementation state
+## 3. Ariovelle implementation
 
 Implemented on `feat/ariovelle-phase-1-design-system`:
-- Server-side discovery and endpoint allowlist validation.
+
+- Server-side OIDC discovery and exact issuer/endpoint allowlisting.
 - Authorization Code + PKCE S256 initiation.
-- Encrypted, expiring OAuth transaction cookie.
-- Token exchange using server-side confidential-client Basic authentication.
-- RS256 signature verification using Core JWKS, with one refresh for unknown `kid`.
-- Exact issuer/audience/expiry/issued-at/nonce checks.
-- UserInfo subject equality check.
-- Opaque local session tokens with SHA-256 hash-at-rest.
-- Database functions for stable external subject mapping, personal workspace bootstrap, session resolution and revocation.
-- Workspace permission checks inside transaction-local verified user/workspace RLS context.
-- Session resolution, transaction-local RLS setup, membership and role checks, and protected queries now share one PostgreSQL transaction, preventing a session-revocation race.
-- Fixed the migration's advisory-lock key so it does not call `chr(0)` (PostgreSQL text cannot contain a null character).
-- Unit tests and opt-in real PostgreSQL integration suites.
+- Server-side one-time OAuth transaction storage in PostgreSQL. State and browser-binding hashes are stored; nonce/verifier payload is encrypted with the server-only session secret.
+- Browser receives only a random opaque HttpOnly browser-binding cookie.
+- Callback atomically consumes the state/browser pair; wrong-browser and replayed callbacks fail.
+- Confidential-client token exchange using server-side HTTP Basic authentication.
+- RS256 ID-token signature validation against Core JWKS, with one JWKS refresh for an unknown `kid`.
+- Exact issuer, audience, expiry, issued-at, nonce and UserInfo subject checks.
+- Stable local user mapping by issuer + OIDC subject, independent of email.
+- Opaque Ariovelle sessions with SHA-256 hash-at-rest and local revocation.
+- Personal workspace bootstrap for a new identity.
+- Workspace authorization that resolves session, sets transaction-local RLS context, checks membership/role and runs protected queries in one transaction.
+- Logout revokes the local session and clears the cookie.
 
-The routes are guarded by `LUCIA_AUTH_ENABLED=true`; the default is disabled. No production secrets were read or changed. No Core consumer was provisioned. No Core changes or deployments were made. Migration 0004 has been applied to the disposable Ariovelle development database only; it creates the local session table and narrowly scoped identity/session functions. No production database was changed and no financial tables or records were created.
+## 4. Disposable development database verification
 
-The development database was exercised using the separate `ariovelle_runtime` role. The checks confirmed: two different Lucia subjects create distinct Ariovelle users and personal workspaces; session hashes resolve to their corresponding local users; the runtime role can establish transaction-local identity/workspace context; a user sees their own workspace but not another user's workspace; membership checks deny the other workspace; and revoking a local session makes subsequent resolution return null. The test sessions and two temporary identity/workspace fixtures remain in the disposable development database pending cleanup authorization. The automated opt-in PostgreSQL integration test now covers identity creation, hash-at-rest, session resolution/revocation, authenticated workspace access and cross-workspace denial.
+Migrations 0004 (identity/session functions) and 0005 (one-time OAuth transaction store) have been applied only to the disposable Neon development database `ariovelle_dev`. No production database was changed. The runtime role has EXECUTE on the narrow SECURITY DEFINER functions and no direct table access to local sessions or OAuth transactions.
 
-The first CI run exposed TypeScript errors in API test response header types and optional integration-test fixture IDs. Those source issues have been corrected; a successful build/test run for the corrected head has not yet been confirmed.
+Checks using the separate `ariovelle_runtime` role confirmed:
 
-## Release gate
+- Two different Lucia subjects create distinct Ariovelle users and personal workspaces.
+- Local session hashes resolve to the corresponding Ariovelle users.
+- Transaction-local identity/workspace context is honored by RLS.
+- A user sees their own workspace and cannot see another user's workspace.
+- Cross-workspace membership checks deny access.
+- Local session revocation causes subsequent resolution to return null.
+- OAuth state storage succeeds; a wrong browser binding cannot consume it; the correct binding consumes it once; a replay returns no transaction.
 
-Do not enable Ariovelle login until all are true:
+The disposable database currently contains two temporary identity/workspace fixtures, their session records, and one consumed OAuth transaction fixture from these manual checks. They contain synthetic test data only. Cleanup is pending owner authorization; no financial records were created.
+
+The automated opt-in PostgreSQL integration suite now covers OAuth one-time consumption, identity creation, session hash-at-rest, session resolution/revocation, authenticated workspace access and cross-workspace denial. The suite requires separate owner/runtime database URLs and is intentionally skipped in ordinary CI unless those variables are explicitly provided.
+
+## 5. Runtime configuration and release gate
+
+The routes fail closed unless `LUCIA_AUTH_ENABLED=true`. Required secrets and issuer values are server-only:
+
+- `LUCIA_ISSUER`
+- `LUCIA_CLIENT_ID`
+- `LUCIA_CLIENT_SECRET`
+- `LUCIA_AUDIENCE`
+- `LUCIA_REDIRECT_URI`
+- `ARIOVELLE_SESSION_SECRET`
+- `DATABASE_URL`
+
+No production credentials were added, no Lucia Core consumer was registered, no Core changes/deployments were made, and no Ariovelle deployment or production login was enabled.
+
+Do not enable login until all are true:
+
 1. Core fixes nonce propagation and its tests pass.
 2. Core is deployed to a reachable HTTPS canonical issuer.
-3. Discovery and JWKS are fetched from that deployed issuer and match the configured issuer/endpoints.
-4. The Ariovelle first-party confidential consumer is registered with exact callback, audience and scopes.
-5. Ariovelle development migration 0004 is applied and its real PostgreSQL identity/session/RLS integration tests pass.
-6. Ariovelle CI passes build and unit tests.
-7. An end-to-end test completes sign-in, session resolution, workspace authorization and logout against the deployed Core test environment.
+3. Discovery and JWKS are fetched from that deployment and match the configured issuer/endpoints.
+4. Ariovelle's first-party confidential consumer is registered with exact callback, audience and granted scopes.
+5. Development migrations and real PostgreSQL identity/session/OAuth/RLS integration tests pass.
+6. Ariovelle CI build and unit tests pass.
+7. An end-to-end test completes sign-in, local session resolution, workspace authorization and logout against the deployed Core test environment.
 
-No production login, deployment or Core configuration change is authorized by this report.
+No production login, deployment, Core configuration change or production database migration is authorized by this report.

@@ -53,7 +53,7 @@ No client has been registered as part of this implementation work. The linked Co
 ## 4. Authorization-code flow
 
 1. Generate cryptographically random `state` (at least 32 characters) and `nonce` (at least 8 characters). Generate a PKCE verifier and S256 challenge even though Core's confidential-client flow permits PKCE to be optional; Ariovelle should require it.
-2. Store state, nonce, verifier, creation time and a short expiry in a server-side, one-time authorization transaction bound to the initiating browser session. Do not rely on unsigned client-side state.
+2. Store the SHA-256 state hash, SHA-256 browser-binding hash, encrypted nonce/verifier payload, creation time and a ten-minute expiry in PostgreSQL. Set only a random opaque browser-binding value in an HttpOnly, SameSite=Lax cookie; do not put state, nonce or verifier in the browser. The callback atomically consumes the matching state/browser pair once through a narrowly scoped database function. Replayed, expired or wrong-browser callbacks return no transaction.
 3. Redirect the browser to the discovered authorization endpoint with:
    - `response_type=code`
    - `client_id`
@@ -123,7 +123,7 @@ After all validation succeeds, in a database transaction:
 - Create a new opaque, cryptographically random Ariovelle session token.
 - Store only a strong hash of the session token in PostgreSQL.
 - Set an HttpOnly, Secure, SameSite=Lax cookie with a bounded expiry and Path=/.
-- Rotate/revoke any pre-authentication transaction state.
+- Atomically consume the server-side pre-authentication transaction before token exchange; clear the browser-binding cookie after callback success or failure.
 - Record a minimal authentication audit event without tokens, secrets, authorization codes or unnecessary PII.
 
 The application session is independent of Lucia Core's browser session and must be revocable by Ariovelle. Do not make every API request depend on a live Core call; use the validated local session, with an explicit account-disable/revocation strategy to be designed.
@@ -170,4 +170,12 @@ Do not probe or alter production Core settings as part of this specification. Do
 ## 11. Explicitly out of scope
 
 This contract does not authorize changes to Lucia Core, client registration, production secrets, deployment, Firebase deletion, data migration, financial writes, payment processing or production database changes.
-\n\n## 12. Implementation status and fail-closed runtime gate\n\nAriovelle now contains a server-side adapter, OAuth start/callback routes, local hashed session persistence, logout/revocation, and a workspace wrapper that resolves the local session before setting transaction-local RLS context. These routes remain disabled unless `LUCIA_AUTH_ENABLED=true` is explicitly configured. Migration 0004 is source-only until applied to the disposable development database.\n\nThe current Core source drops the authorization request nonce before ID-token issuance, and the linked Vercel Core project is not live. Therefore there is no successful live discovery/JWKS/token/UserInfo verification. Login must remain disabled until Core is fixed, deployed, and end-to-end tested.\n
+\n\n## 12. Implementation status and fail-closed runtime gate
+
+Ariovelle contains a server-side adapter, OAuth start/callback routes, local hashed session persistence, logout/revocation, and a workspace wrapper that resolves the local session, establishes transaction-local RLS context, checks membership/role permissions and runs protected queries in one transaction.
+
+OAuth state is stored server-side in PostgreSQL. Only state and browser-binding hashes are indexed; the nonce/verifier payload is encrypted with the server-only session secret. The browser receives only a random HttpOnly browser-binding cookie. The callback consumes the state/browser pair atomically and exactly once.
+
+Migration 0004 (local identity/session functions) and migration 0005 (one-time OAuth transaction store) are applied only to the disposable Ariovelle development database. Neither migration has been applied to production. The runtime role receives EXECUTE on narrowly scoped SECURITY DEFINER functions and no direct session/OAuth transaction table access.
+
+Login remains disabled. Current Lucia Core main drops the authorization request nonce before ID-token issuance, and the linked Core Vercel project is not live with canceled deployments. No successful live discovery/JWKS/token/UserInfo verification is available. Do not weaken nonce validation or enable login until Core is corrected, deployed and verified end-to-end.
