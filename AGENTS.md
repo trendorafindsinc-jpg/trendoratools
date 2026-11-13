@@ -47,11 +47,20 @@ This file is the repository-level instruction contract for Codex and other codin
 - Do not use Firebase Authentication as a substitute for Lucia ID.
 - Do not use Neon Auth as a substitute for Lucia ID.
 - Existing Firebase-based auth code is legacy and must be inventoried and retired in a controlled sequence.
-- **Do not guess** Lucia ID issuer, JWT claims, signing keys/JWKS URL, OAuth/OIDC endpoints, SDK, callback URLs, token format, session semantics or logout behavior. Obtain and follow official Lucia ID documentation first.
+- Lucia Core's implementation has been inspected read-only in `trendorafindsinc-jpg/lucia-core` main. Follow `docs/ARIOVELLE_LUCIA_ID_INTEGRATION_CONTRACT.md` and `docs/ARIOVELLE_LUCIA_CORE_RUNTIME_VERIFICATION.md`; do not substitute guessed protocol details.
 - The legacy `LUCIA-...` string generated from Firebase UID is not proof of a real Lucia ID.
 - The server-side adapter and local session boundary exist on the Ariovelle feature branch. Login remains disabled until the Core nonce-propagation defect is fixed and a deployed HTTPS Core environment is available for end-to-end verification. Never weaken nonce validation to make the current Core token pass.
 
-## 5. Authentication implementation rules\n\n- Keep `LUCIA_AUTH_ENABLED` false unless the explicit release gates in `docs/ARIOVELLE_LUCIA_CORE_RUNTIME_VERIFICATION.md` have passed.\n- Keep `LUCIA_CLIENT_SECRET`, `ARIOVELLE_SESSION_SECRET`, and `DATABASE_URL` server-only; never use a `VITE_` prefix.\n- Validate the OIDC ID token using the discovered allowlisted issuer and RS256 JWKS. Do not validate the Core HS256 access assertion locally; use it only as a bearer credential to Core UserInfo.\n- Require exact nonce and UserInfo subject equality. The current Core source omits the nonce in its ID-token issuance path; reject those tokens until Core is fixed.\n- Store only a SHA-256 hash of opaque Ariovelle session tokens. Resolve session identity through the narrow database function, then perform workspace permission checks and tenant queries inside the same transaction-local RLS context.\n- The new migration 0004 is source-only until reviewed and applied to the disposable development database. Never apply it to production as part of this task.\n\n## 6. Financial correctness
+## 5. Authentication implementation rules
+
+- Keep `LUCIA_AUTH_ENABLED` false unless the explicit release gates in `docs/ARIOVELLE_LUCIA_CORE_RUNTIME_VERIFICATION.md` have passed.
+- Keep `LUCIA_CLIENT_SECRET`, `ARIOVELLE_SESSION_SECRET`, and `DATABASE_URL` server-only; never use a `VITE_` prefix.
+- Validate the OIDC ID token using the discovered allowlisted issuer and RS256 JWKS. Do not validate the Core HS256 access assertion locally; use it only as a bearer credential to Core UserInfo.
+- Require exact nonce and UserInfo subject equality. The current Core source omits the nonce in its ID-token issuance path; reject those tokens until Core is fixed.
+- Store only a SHA-256 hash of opaque Ariovelle session tokens. Resolve session identity through the narrow database function, then perform workspace permission checks and tenant queries inside the same transaction-local RLS context.
+- The new migration 0004 is source-only until reviewed and applied to the disposable development database. Never apply it to production as part of this task.
+
+## 6. Financial correctness
 
 - Store monetary values using PostgreSQL `BIGINT` minor units plus ISO currency code and exponent, or an explicitly documented exact decimal representation. Never use binary floating point for money calculations or persistence.
 - Do not assume all currencies have two fractional digits.
