@@ -178,7 +178,7 @@ export default function Settings() {
           className={`p-3 rounded-xl text-sm border ${
             msgError
               ? 'bg-rose-500/10 text-rose-700 border-rose-500/25'
-              : 'bg-indigo-500/10 text-indigo-800 border-indigo-500/20'
+              : 'bg-[var(--nav-active-bg)] text-[var(--text-secondary)] border-[var(--nav-active-border)]'
           }`}
         >
           {msg}
@@ -219,7 +219,7 @@ export default function Settings() {
           {isSignedIn ? (
             <div className="space-y-4">
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-xl bg-violet-500/15 flex items-center justify-center text-violet-400">
+                <div className="w-10 h-10 rounded-xl bg-[var(--nav-active-bg)] flex items-center justify-center text-[var(--accent-gold)]">
                   <LogOut size={19} />
                 </div>
                 <div className="flex-1 min-w-0">
