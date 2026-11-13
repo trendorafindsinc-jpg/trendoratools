@@ -305,7 +305,20 @@ No live auth, payments, market quotes or financial persistence should be implied
 - [x] Create `ariovelle_dev` database and dedicated owner role.
 - [x] Execute the nine-table foundation schema on the development database.
 - [x] Verify PostgreSQL 17.12, nine public tables and 90 constraints.
-- [ ] Add a separate least-privilege runtime role and connection adapter when integration is approved.
+- [ ] Add a separate least-privilege runtime role and a concrete pg Pool factory after RLS/context design is reviewed.
 - [ ] Add automated migration smoke test against disposable database in CI without committing credentials.
 
 **Boundary:** this database is development-only, has no customer or beta data, is not connected to Vercel or API runtime, and has no authentication or financial routes. No connection string or password was committed.
+
+
+### P2.4 — PostgreSQL adapter and workspace authorization primitives
+- [x] Add node-postgres-compatible query/transaction adapter with parameterized calls and rollback safety.
+- [x] Add unit tests for commit, rollback, error propagation and client release.
+- [x] Add active membership/workspace authorization query using bound user/workspace IDs.
+- [x] Add role permission tests for owner, admin, member and viewer.
+- [ ] Verify latest branch CI after the P2.4 commits.
+- [ ] Add and test transaction-local identity/workspace context and PostgreSQL RLS policies.
+- [ ] Create least-privilege runtime role after RLS policies are in place.
+- [ ] Install/configure a concrete PostgreSQL driver pool and secret only after the RLS gate is approved.
+
+**Boundary:** adapter and authorization primitives are implemented as isolated server modules; no HTTP route, Lucia ID integration, application runtime connection, database credentials, RLS policy or financial write path has been enabled.
