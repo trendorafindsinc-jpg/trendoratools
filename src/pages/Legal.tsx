@@ -1,10 +1,10 @@
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 
-const LAST_UPDATED = '7 September 2026';
-const COMPANY = 'LUCIA';
-const PRODUCT = 'Trendora Tools';
-const BRAND = 'Trendora';
+const LAST_UPDATED = '13 November 2026';
+const COMPANY = 'Lucia LLC';
+const PRODUCT = 'Ariovelle';
+const BRAND = 'Lucia';
 
 const content: Record<string, { title: string; body: string }> = {
   terms: {
@@ -224,7 +224,7 @@ export default function Legal() {
       </Link>
       <div className="glass-panel p-8 md:p-12 space-y-6">
         <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-violet-400 mb-2">{COMPANY} · {BRAND}</p>
+          <p className="text-xs uppercase tracking-[0.2em] text-[var(--accent-gold)] mb-2">{COMPANY} · {BRAND}</p>
           <h1 className="text-3xl font-bold text-gradient-brand">{data.title}</h1>
         </div>
         <div className="text-[var(--text-secondary)] leading-relaxed whitespace-pre-line text-sm sm:text-base">
