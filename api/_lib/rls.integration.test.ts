@@ -27,6 +27,7 @@ describe.skipIf(!ownerPool || !runtimePool)('PostgreSQL tenant RLS integration',
     const membershipA = randomUUID();
     const membershipB = randomUUID();
     let contextAfterRollback: { user_id: string; workspace_id: string } | undefined;
+    let fixturesCommitted = false;
 
     try {
       await owner.query('BEGIN');
@@ -52,6 +53,7 @@ describe.skipIf(!ownerPool || !runtimePool)('PostgreSQL tenant RLS integration',
         [userA, userB],
       );
       await owner.query('COMMIT');
+      fixturesCommitted = true;
 
       await runtime.query('BEGIN');
       await runtime.query(
@@ -116,12 +118,16 @@ describe.skipIf(!ownerPool || !runtimePool)('PostgreSQL tenant RLS integration',
       }
 
       try {
-        await owner.query('BEGIN');
-        await owner.query('DELETE FROM public.user_profiles WHERE user_id = ANY($1::uuid[])', [[userA, userB]]);
-        await owner.query('DELETE FROM public.workspace_memberships WHERE id = ANY($1::uuid[])', [[membershipA, membershipB]]);
-        await owner.query('DELETE FROM public.workspaces WHERE id = ANY($1::uuid[])', [[workspaceA, workspaceB]]);
-        await owner.query('DELETE FROM public.users WHERE id = ANY($1::uuid[])', [[userA, userB]]);
-        await owner.query('COMMIT');
+        if (fixturesCommitted) {
+          await owner.query('BEGIN');
+          await owner.query('DELETE FROM public.user_profiles WHERE user_id = ANY($1::uuid[])', [[userA, userB]]);
+          await owner.query('DELETE FROM public.workspace_memberships WHERE id = ANY($1::uuid[])', [[membershipA, membershipB]]);
+          await owner.query('DELETE FROM public.workspaces WHERE id = ANY($1::uuid[])', [[workspaceA, workspaceB]]);
+          await owner.query('DELETE FROM public.users WHERE id = ANY($1::uuid[])', [[userA, userB]]);
+          await owner.query('COMMIT');
+        } else {
+          await owner.query('ROLLBACK');
+        }
       } catch (error) {
         await owner.query('ROLLBACK');
         throw error;
