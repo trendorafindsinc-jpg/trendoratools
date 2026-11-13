@@ -1,4 +1,4 @@
-import { createHash, createPublicKey, randomBytes, verify as verifySignature, createCipheriv, createDecipheriv } from 'node:crypto';
+import { createHash, createPublicKey, randomBytes, verify as verifySignature, createCipheriv, createDecipheriv, timingSafeEqual } from 'node:crypto';
 
 export type LuciaConfig = {
   issuer: string;
