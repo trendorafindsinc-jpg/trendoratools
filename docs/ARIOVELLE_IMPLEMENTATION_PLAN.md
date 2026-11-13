@@ -31,13 +31,13 @@
 - Branch: `feat/ariovelle-phase-1-design-system`.
 - Verified code commit: `b25e3668091e41fc81667433d8fbf928a6409a4b`.
 - CI: [run 43476301845](https://github.com/trendorafindsinc-jpg/trendoratools/actions/runs/43476301845) — exact dependency install, production build and all seven tests passed.
-- Preview: current manual preview deployment is being built from `b25e366`; the preceding ready preview is [Ariovelle preview](https://trendoratools-9aku2lkhy-trendoraplc-5738.vercel.app/) — deployment `dpl_6iSTjjtjgUP5oyp7x3pjnqNLGvbp`, READY; not production.
+- Preview: [Ariovelle preview](https://trendoratools-8n5a6g8f1-trendoraplc-5738.vercel.app/) — manual Vercel deployment `dpl_CtnqewDBmivnK2AUYRHbjsYgcw5L`, READY from the verified code commit; not production. Root HTML, manifest and stylesheet respond HTTP 200.
 - Preview build output: route chunks are split; main JavaScript bundle is 938.92 kB (250.27 kB gzip). This is an improvement from the earlier 1,022.41 kB (270.51 kB gzip) main bundle, but the main chunk remains large and should be optimized in a later performance pass.
 
 **Responsive capture evidence**
-- [Desktop capture — 1440px](https://s0.wp.com/mshots/v1/https%3A%2F%2Ftrendoratools-9aku2lkhy-trendoraplc-5738.vercel.app%2F?vpw=1440&vph=1200&w=1200&requeue=true)
-- [Tablet capture — 768px](https://s0.wp.com/mshots/v1/https%3A%2F%2Ftrendoratools-9aku2lkhy-trendoraplc-5738.vercel.app%2F?vpw=768&vph=1200&w=1200&requeue=true)
-- [Mobile capture — 390px](https://s0.wp.com/mshots/v1/https%3A%2F%2Ftrendoratools-9aku2lkhy-trendoraplc-5738.vercel.app%2F?vpw=390&vph=1200&w=1200&requeue=true)
+- [Desktop capture — 1440px](https://s0.wp.com/mshots/v1/https%3A%2F%2Ftrendoratools-8n5a6g8f1-trendoraplc-5738.vercel.app%2F?vpw=1440&vph=1200&w=1200&requeue=true)
+- [Tablet capture — 768px](https://s0.wp.com/mshots/v1/https%3A%2F%2Ftrendoratools-8n5a6g8f1-trendoraplc-5738.vercel.app%2F?vpw=768&vph=1200&w=1200&requeue=true)
+- [Mobile capture — 390px](https://s0.wp.com/mshots/v1/https%3A%2F%2Ftrendoratools-8n5a6g8f1-trendoraplc-5738.vercel.app%2F?vpw=390&vph=1200&w=1200&requeue=true)
 - The capture service returned `ready` and `capture_shows=site` for all three widths. The screenshots show the public welcome/onboarding route; they do not exercise the signed-in workspace shell. The latest manual preview build is READY and the HTML route returns HTTP 200 with Ariovelle metadata.
 - **Visual QA limitation:** the screenshot service returned shareable capture URLs but this environment cannot render those image bytes for pixel inspection, and the connected browser extension is unavailable. Therefore no claim is made that pixel-level visual QA, horizontal-overflow checks or interactive desktop/tablet/mobile acceptance is complete. The user or a connected browser session must inspect the captures and authenticated shell before final acceptance.
 
