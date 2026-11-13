@@ -25,6 +25,7 @@ BEGIN
      OR p_expires_at <= now() OR p_expires_at > now()+interval '31 days' THEN
     RAISE EXCEPTION 'invalid identity/session input' USING ERRCODE='22023';
   END IF;
+  PERFORM pg_advisory_xact_lock(hashtextextended(p_issuer || chr(0) || p_subject, 0));
   SELECT ei.user_id INTO v_user FROM public.external_identities ei
    WHERE ei.provider='lucia' AND ei.issuer=p_issuer AND ei.subject=p_subject FOR UPDATE;
   IF v_user IS NULL THEN
