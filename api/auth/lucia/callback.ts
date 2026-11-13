@@ -1,4 +1,4 @@
-import { readLuciaConfig,fetchOidcDiscovery,exchangeLuciaCode,validateLuciaIdToken,fetchLuciaUserInfo,openOAuthTransaction,parseCookies,buildCookie,clearCookie,luciaCookieNames } from '../../_lib/lucia-oauth';
+import { readLuciaConfig,constantTimeEqual,fetchOidcDiscovery,exchangeLuciaCode,validateLuciaIdToken,fetchLuciaUserInfo,openOAuthTransaction,parseCookies,buildCookie,clearCookie,luciaCookieNames } from '../../_lib/lucia-oauth';
 import { establishLuciaSession } from '../../_lib/lucia-session';
 import { createRuntimePostgres } from '../../_lib/postgres-pool';
 import { sendError,sendMethodNotAllowed,type ApiRequest,type ApiResponse } from '../../_lib/http';
@@ -18,7 +18,7 @@ export default async function luciaCallback(request:ApiRequest,response:ApiRespo
     const tx=openOAuthTransaction(cookies[luciaCookieNames.transaction]??'',config.sessionSecret);
     const params=query(request.url);
     const returnedState=params.get('state')??'';
-    if(!returnedState||!params.get('code')||!((await import('../../_lib/lucia-oauth')).constantTimeEqual(returnedState,tx.state))) throw new Error('invalid callback');
+    if(!returnedState||!params.get('code')||!constantTimeEqual(returnedState,tx.state)) throw new Error('invalid callback');
     const discovery=await fetchOidcDiscovery(config);
     const tokens=await exchangeLuciaCode({config,discovery,code:params.get('code')!,verifier:tx.verifier});
     const claims=await validateLuciaIdToken({token:tokens.id_token!,config,discovery,nonce:tx.nonce});
