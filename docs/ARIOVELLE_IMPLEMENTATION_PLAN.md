@@ -18,20 +18,20 @@
 - [x] Rebranded the welcome, authentication, settings and legal screens as Ariovelle / Lucia LLC; removed the autoplaying external welcome video.
 - [x] Improved light-theme text/accent contrast and separated gold text from gold button-fill tokens.
 - [x] Added lazy loading for workspace routes and an accessible route-loading state.
-- [x] GitHub Actions run 43475545287 passed on commit `a141d3b`: exact dependency install, TypeScript/Vite production build and all seven financial utility tests.
+- [x] GitHub Actions run 43476301845 passed on commit `b25e366`: exact dependency install, TypeScript/Vite production build and all seven financial utility tests, including typechecking the new shared UI primitive library.
 - [x] Manual Vercel preview deployment is READY for the current Phase 1 sign-off commit `a141d3b`; HTTP response for `/` is 200 and the document title is Ariovelle. Preview URL: `https://trendoratools-9aku2lkhy-trendoraplc-5738.vercel.app/` (deployment `dpl_6iSTjjtjgUP5oyp7x3pjnqNLGvbp`).
 - [x] Responsive screenshot captures of the current preview were generated successfully at 1440px, 768px and 390px widths (capture service status `ready`, `capture_shows=site`).
 - [ ] Pixel-level inspection of desktop/tablet/mobile screenshots and interactive authenticated workspace flows.
-- [ ] Complete the planned reusable component set (Button, Input, Select, Dialog, Drawer, Tabs, Table, Badge, Tooltip, Toast, Skeleton, EmptyState and ErrorState); the current shared layer is Card plus compatibility styles and the app shell.
+- [x] Added a reusable UI primitive layer in `src/components/ui/index.tsx`: Button, Input, Select, Card, Dialog, Drawer, Tabs, DataTable, Badge, Tooltip, Toast, Skeleton, EmptyState and ErrorState; Card sections now expose accessible heading associations. The library is ready for adoption by feature pages; existing legacy screens have not all been migrated to it.
 - [ ] Confirm remaining legacy dependencies and finalize the Lucia ID migration plan before moving to Phase 2.
 
 ### Phase 1 conditional sign-off record — 2026-11-13
 
 **Engineering verification**
 - Branch: `feat/ariovelle-phase-1-design-system`.
-- Verified code commit: `a141d3bdb74a5ad0907d44772ff0f7afa33f5f6b`.
-- CI: [run 43475545287](https://github.com/trendorafindsinc-jpg/trendoratools/actions/runs/43475545287) — exact dependency install, production build and all seven tests passed.
-- Preview: [Ariovelle preview](https://trendoratools-9aku2lkhy-trendoraplc-5738.vercel.app/) — Vercel deployment `dpl_6iSTjjtjgUP5oyp7x3pjnqNLGvbp`, READY; not production.
+- Verified code commit: `b25e3668091e41fc81667433d8fbf928a6409a4b`.
+- CI: [run 43476301845](https://github.com/trendorafindsinc-jpg/trendoratools/actions/runs/43476301845) — exact dependency install, production build and all seven tests passed.
+- Preview: current manual preview deployment is being built from `b25e366`; the preceding ready preview is [Ariovelle preview](https://trendoratools-9aku2lkhy-trendoraplc-5738.vercel.app/) — deployment `dpl_6iSTjjtjgUP5oyp7x3pjnqNLGvbp`, READY; not production.
 - Preview build output: route chunks are split; main JavaScript bundle is 938.92 kB (250.27 kB gzip). This is an improvement from the earlier 1,022.41 kB (270.51 kB gzip) main bundle, but the main chunk remains large and should be optimized in a later performance pass.
 
 **Responsive capture evidence**
@@ -95,11 +95,11 @@
 - [x] Add Ariovelle brand tokens and approved geometric mark/brand lockup.
 - [x] Establish semantic color tokens for dark/light themes.
 - [ ] Establish and document the complete type scale, spacing, radii, elevation, borders and chart palette.
-- [ ] Create the complete shared primitive set: Button, Input, Select, Card, Dialog, Drawer, Tabs, Table, Badge, Tooltip, Toast, Skeleton, EmptyState and ErrorState. Current implementation includes Card and compatibility styles; the full set is not yet built.
+- [x] Create the shared primitive set: Button, Input, Select, Card, Dialog, Drawer, Tabs, DataTable, Badge, Tooltip, Toast, Skeleton, EmptyState and ErrorState. The primitives are implemented and typechecked; migration of legacy screens onto them is a later adoption task.
 - [x] Create the responsive AppShell with desktop sidebar, topbar, mobile bottom navigation and mobile navigation drawer. Tablet visual acceptance remains open; tablet currently retains the compact sidebar.
 - [ ] Complete functional workspace switching, global search, notifications and user menu. Current workspace identity is static, search is explicitly marked coming soon, inactive notifications were removed, and the profile shortcut opens Settings.
 - [x] Implement dark/light/system theme preference and synchronize the shell with Settings.
-- [ ] Complete contrast, focus, keyboard, reduced-motion and screen-reader acceptance. Targeted contrast calculations and source-level keyboard/status checks are documented; full browser-based and automated accessibility audits remain open.
+- [ ] Complete contrast, focus, keyboard, reduced-motion and screen-reader acceptance. Targeted contrast calculations and source-level keyboard/status checks are documented; full browser-based and automated accessibility audits remain open. Dialog/drawer focus trapping, Escape handling, focus restoration and scroll locking are implemented in the shared primitives.
 - [ ] Add component examples or Storybook only if it fits existing tooling.
 
 **Exit gate:** design system works at mobile, tablet and desktop widths with no horizontal overflow, keyboard and assistive-technology acceptance, and a reusable primitive set. Screenshot captures exist, but the signed-in workspace and image-level visual inspection still require a connected browser/user review.
