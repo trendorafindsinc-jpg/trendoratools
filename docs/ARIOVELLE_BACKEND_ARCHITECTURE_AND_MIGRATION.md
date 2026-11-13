@@ -679,3 +679,38 @@ The backend foundation is accepted only when:
 - Documentation and `AGENTS.md` match the actual implementation state.
 
 **Current status:** specification authored from selected source inspection. No backend code, database, credentials, auth provider, migration, production deployment or user data has been changed by this document.
+
+
+---
+
+## 14. Implementation status — 2026-11-13
+
+### P2.0 source inventory
+- Complete recursive Git tree inspection on `feat/ariovelle-phase-1-design-system`.
+- Firebase/Auth/Firestore import and call-site inventory recorded in `docs/REPOSITORY_AUDIT.md`.
+- Local persistence keys, store schema, export/import format, Firestore paths, rules, sync deletion behavior and legal/PWA dependencies documented.
+- Remote Firebase Auth/Firestore contents and per-device localStorage remain pending owner-authorized exports. No live user data has been accessed.
+
+### P2.1 API scaffold
+Implemented on the feature branch:
+- `api/_lib/http.ts`: shared API request/response types, request IDs, no-store/security headers, and a consistent method-not-allowed error.
+- `api/health/live.ts`: GET-only liveness endpoint.
+- `api/health/ready.ts`: GET-only readiness endpoint explicitly scoped to the health-only API scaffold.
+- `api/health/health.test.ts`: endpoint tests for liveness, readiness, headers and unsupported methods.
+- `tsconfig.json`: API source is included in TypeScript typechecking.
+
+Expected routes:
+- `GET /api/health/live`
+- `GET /api/health/ready`
+
+Readiness currently reports `database: not_configured` and `identityProvider: not_configured`. A successful health response means only that the API scaffold is responsive; it does not mean the finance backend, authentication, database or user/workspace services are available.
+
+Explicitly not implemented:
+- No live authentication, mock auth route, Lucia ID adapter or session cookie.
+- No database client, connection string or schema.
+- No financial read/write routes.
+- No payment, AI, market-data or background-job integration.
+- No Firebase code removal or data migration.
+- No Vercel deployment or production change.
+
+**Validation status:** GitHub Actions must verify `npm ci`, `npm test` and `npm run build` against the resulting feature-branch commit. No local commands are claimed as run in this environment.
