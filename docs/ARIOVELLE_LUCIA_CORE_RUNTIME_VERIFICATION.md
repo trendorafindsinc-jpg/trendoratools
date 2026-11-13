@@ -49,7 +49,7 @@ Implemented on `feat/ariovelle-phase-1-design-system`:
 - Browser receives only a random opaque HttpOnly browser-binding cookie.
 - Callback atomically consumes the state/browser pair; wrong-browser and replayed callbacks fail.
 - Confidential-client token exchange using server-side HTTP Basic authentication.
-- RS256 ID-token signature validation against Core JWKS, with one JWKS refresh for an unknown `kid`.
+- RS256 ID-token signature validation using maintained `jose@6.2.17` against Core JWKS, with one JWKS refresh for an unknown `kid`.
 - Exact issuer, audience, expiry, issued-at, nonce and UserInfo subject checks.
 - Stable local user mapping by issuer + OIDC subject, independent of email.
 - Opaque Ariovelle sessions with SHA-256 hash-at-rest and local revocation.
@@ -73,7 +73,7 @@ Checks using the separate `ariovelle_runtime` role confirmed:
 
 The disposable database currently contains two temporary identity/workspace fixtures, their session records, and one consumed OAuth transaction fixture from these manual checks. They contain synthetic test data only. Cleanup is pending owner authorization; no financial records were created.
 
-The automated opt-in PostgreSQL integration suite now covers OAuth one-time consumption, identity creation, session hash-at-rest, session resolution/revocation, authenticated workspace access and cross-workspace denial. The suite requires separate owner/runtime database URLs and is intentionally skipped in ordinary CI unless those variables are explicitly provided. GitHub Actions run [43500425622](https://github.com/trendorafindsinc-jpg/trendoratools/actions/runs/43500425622) passed the production build and automated tests: 13 test files and 63 tests passed; the two opt-in real-PostgreSQL suites were skipped because CI does not receive development database credentials.
+The automated opt-in PostgreSQL integration suite now covers OAuth one-time consumption, identity creation, session hash-at-rest, session resolution/revocation, authenticated workspace access and cross-workspace denial. The suite requires separate owner/runtime database URLs and is intentionally skipped in ordinary CI unless those variables are explicitly provided. GitHub Actions run [43500787261](https://github.com/trendorafindsinc-jpg/trendoratools/actions/runs/43500787261) passed the production build and automated tests: 13 test files and 64 tests passed; the two opt-in real-PostgreSQL suites were skipped because CI does not receive development database credentials. The workflow reconciled and committed the npm lockfile for `jose`.
 
 ## 5. Runtime configuration and release gate
 

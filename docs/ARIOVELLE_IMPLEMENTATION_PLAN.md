@@ -351,7 +351,7 @@ No live auth, payments, market quotes or financial persistence should be implied
 ## 20. P2.6 Lucia Core OAuth adapter and local application session — 2026-11-13
 
 Implemented on `feat/ariovelle-phase-1-design-system`:
-- `api/_lib/lucia-oauth.ts`: server-side discovery, PKCE, encrypted OAuth transaction payload, confidential token exchange, RS256/JWKS validation, exact issuer/audience/expiry/nonce checks and UserInfo subject match.
+- `api/_lib/lucia-oauth.ts`: server-side discovery, PKCE, encrypted OAuth transaction payload, confidential token exchange, RS256/JWKS validation through `jose@6.2.17`, exact issuer/audience/expiry/nonce checks and UserInfo subject match.
 - `api/_lib/lucia-oauth-store.ts`: hashes OAuth state and browser binding, stores encrypted nonce/verifier payload in PostgreSQL, and atomically consumes the transaction once.
 - `api/auth/lucia/start.ts` and `api/auth/lucia/callback.ts`: authorization redirect and callback. Both fail closed unless `LUCIA_AUTH_ENABLED=true`.
 - `api/_lib/lucia-session.ts` and migration 0004: stable issuer+subject mapping, local personal workspace bootstrap, hashed opaque sessions, lookup and revocation.
@@ -364,7 +364,7 @@ Implemented on `feat/ariovelle-phase-1-design-system`:
 - Neon migrations 0004 and 0005 applied to disposable development database `ariovelle_dev` only.
 - Actual database checks using `ariovelle_runtime` passed for identity mapping, session hash resolution/revocation, transaction-local RLS, cross-workspace denial, OAuth browser binding and one-time state consumption.
 - Verified the runtime role has no direct SELECT/INSERT privileges on `app_sessions` or `oauth_transactions`, but has EXECUTE on the narrow identity/session/OAuth functions.
-- GitHub Actions run [43500425622](https://github.com/trendorafindsinc-jpg/trendoratools/actions/runs/43500425622) passed production build and automated tests: 13 test files passed, 63 tests passed; two opt-in PostgreSQL suites were skipped because CI does not receive development database credentials.
+- GitHub Actions run [43500787261](https://github.com/trendorafindsinc-jpg/trendoratools/actions/runs/43500787261) passed production build and automated tests: 13 test files passed, 64 tests passed; two opt-in PostgreSQL suites were skipped because CI does not receive development database credentials. The workflow reconciled and committed the lockfile for `jose@6.2.17`.
 - Synthetic manual verification fixtures remain in the disposable database pending owner authorization for cleanup.
 
 **Verification blockers:** the Core source currently fails to pass the authorization-code nonce into ID-token issuance, so its ID token omits `nonce`; Ariovelle correctly rejects it. The linked Core Vercel project reports `live: false`, its latest inspected deployments are canceled, and no custom identity domain is attached. No live discovery/JWKS/token/UserInfo verification is possible yet. See `ARIOVELLE_LUCIA_CORE_RUNTIME_VERIFICATION.md`.
