@@ -1,6 +1,6 @@
 # Codex instructions for Ariovelle
 
-This file is the repository-level instruction contract for Codex and other coding agents. Read it before changing code. The product and architecture decisions are in [docs/ARIOVELLE_PRODUCT_SPEC.md](docs/ARIOVELLE_PRODUCT_SPEC.md), the implementation sequence is in [docs/ARIOVELLE_IMPLEMENTATION_PLAN.md](docs/ARIOVELLE_IMPLEMENTATION_PLAN.md), and the observed baseline is in [docs/REPOSITORY_AUDIT.md](docs/REPOSITORY_AUDIT.md).
+This file is the repository-level instruction contract for Codex and other coding agents. Read it before changing code. The product and architecture decisions are in [docs/ARIOVELLE_PRODUCT_SPEC.md](docs/ARIOVELLE_PRODUCT_SPEC.md), the backend architecture and data migration specification is in [docs/ARIOVELLE_BACKEND_ARCHITECTURE_AND_MIGRATION.md](docs/ARIOVELLE_BACKEND_ARCHITECTURE_AND_MIGRATION.md), the phased implementation plan is in [docs/ARIOVELLE_IMPLEMENTATION_PLAN.md](docs/ARIOVELLE_IMPLEMENTATION_PLAN.md), and the observed baseline is in [docs/REPOSITORY_AUDIT.md](docs/REPOSITORY_AUDIT.md).
 
 ## 1. Product identity and ownership
 
@@ -28,28 +28,33 @@ This file is the repository-level instruction contract for Codex and other codin
 - Work on a feature branch. Do not push to `main`, deploy production, change domains, or perform destructive migrations without explicit authorization.
 - Audit before replacing. Preserve validated financial business logic and user data; replace legacy UI deliberately.
 - Never silently discard, reset, or migrate user data. Any migration needs a versioned, tested, reversible plan and a backup/restore procedure.
+- Do not remove Firebase packages, auth flows, Firestore rules, cloud backup, or legacy data paths until the migration and reconciliation gates are met.
 - Do not claim a provider, auth flow, market feed, payment flow, AI feature or integration is connected unless it is implemented and verified.
 - Never place secrets in source, docs, client-side environment variables, logs, fixtures or commits. Update `.env.example` with variable names and safe descriptions only.
 - Never fabricate balances, prices, market data, news, economic events, forecasts or investment returns. Clearly mark fixtures and demo data.
 - Never treat LLM output as a source of truth for prices, accounting calculations, financial records or market forecasts. Quantitative systems supply structured facts; AI may explain them with provenance and uncertainty.
 - No brokerage execution, custody, deposits, withdrawals or payment initiation unless separately approved and all legal, provider and security requirements are satisfied.
 - Respect least privilege and workspace ownership on every server operation. Frontend route hiding is not authorization.
+- Do not use JavaScript floating-point values for money. Every amount has explicit currency and currency exponent.
+- Do not automatically merge guest/local data into a signed-in account. Show a validated import preview and require explicit confirmation.
+- Do not cache private financial API responses in service-worker CacheStorage.
 
 ## 4. Authentication boundary: Lucia ID
 
 - Lucia ID is the intended global identity provider.
 - Ariovelle must own its own application database and internal user IDs.
-- Store a stable mapping from a verified external Lucia ID subject to Ariovelle's internal user ID.
+- Store a stable mapping from a verified external Lucia ID subject to an Ariovelle internal user ID.
 - Do not use Firebase Authentication as a substitute for Lucia ID.
 - Do not use Neon Auth as a substitute for Lucia ID.
-- Existing Firebase-based auth code is legacy and must be inventoried and removed/replaced in a controlled sequence.
+- Existing Firebase-based auth code is legacy and must be inventoried and retired in a controlled sequence.
 - **Do not guess** Lucia ID issuer, JWT claims, signing keys/JWKS URL, OAuth/OIDC endpoints, SDK, callback URLs, token format, session semantics or logout behavior. Obtain and follow official Lucia ID documentation first.
-- Until that documentation is supplied and validated, build an auth adapter/interface and a clearly labelled local development mock only. Never make mock auth available in production.
+- The legacy `LUCIA-...` string generated from Firebase UID is not proof of a real Lucia ID.
+- Until official documentation and a test environment are supplied, build only a provider interface and clearly labelled local/test fake. A fake provider must fail closed in production.
 
 ## 5. Financial correctness
 
-- Store monetary values using PostgreSQL `NUMERIC/DECIMAL` or an explicitly documented integer-minor-unit representation with currency and exponent. Never use binary floating point for money calculations or persistence.
-- Every amount must have an explicit ISO 4217 currency code; do not assume one global currency.
+- Store monetary values using PostgreSQL `BIGINT` minor units plus ISO currency code and exponent, or an explicitly documented exact decimal representation. Never use binary floating point for money calculations or persistence.
+- Do not assume all currencies have two fractional digits.
 - Use UTC timestamps for persisted instants and preserve local date semantics for bills, budgets and accounting periods.
 - Define rounding rules and currency precision explicitly.
 - Keep source records, derived totals and forecasts distinguishable.
@@ -62,6 +67,7 @@ This file is the repository-level instruction contract for Codex and other codin
 - Feature entitlements must be centrally defined and checked on the server for protected operations/data.
 - Client-side gating is presentation only, never security.
 - Free users retain access to their own existing financial records and basic export. Expiry must not delete user data.
+- Lucia ID authentication is not a paid feature.
 - Keep plan/feature keys stable and machine-readable. Do not scatter string comparisons throughout components.
 - Usage quotas are configurable; do not hardcode unapproved numerical limits or prices.
 - Payment webhooks must be signature-verified, idempotent, replay-safe and authoritative for subscription state.
@@ -90,7 +96,7 @@ This file is the repository-level instruction contract for Codex and other codin
 
 ## 9. Engineering workflow
 
-1. Read this file and the three linked docs.
+1. Read this file and all four linked Ariovelle specification/audit documents.
 2. Inspect the relevant existing code before editing; do not assume the audit is exhaustive.
 3. State the scope and identify data/security implications.
 4. Make small, reviewable changes on a feature branch.
@@ -99,9 +105,17 @@ This file is the repository-level instruction contract for Codex and other codin
 7. Update documentation when a decision or implementation status changes.
 8. Do not commit secrets, generated build artifacts, local databases or user data.
 9. Do not merge or deploy without explicit approval.
+10. Keep Vercel Git auto-deploy disabled; no deployment is implied by a repository change.
 
 ## 10. Current known repository baseline
 
-The inspected default branch is a React 18 + TypeScript + Vite app with React Router, Zustand/localStorage persistence, Tailwind, PWA tooling and Capacitor Android configuration. It contains Firebase SDK/auth/Firestore code and a legacy Firebase rules file. Existing pages cover expenses, income, budgets, bills, savings, debts, reports, planner, insights, settings and legal content. See the repository audit for details and limitations.
+The inspected feature branch is a React 18 + TypeScript + Vite app with React Router, Zustand/localStorage persistence, Tailwind, PWA tooling and Capacitor Android configuration. It contains Firebase SDK/Auth/Firestore code and a legacy Firebase rules file. Existing pages cover expenses, income, budgets, bills, savings, debts, reports, planner, insights, settings and legal content.
 
-The current docs are a decision/specification baseline, not evidence that the target architecture has been implemented. Update status honestly as work proceeds.
+Important observed details and migration cautions:
+- Zustand persist key is `trendoratools-v10`, schema version 2; JSON export says version `1.0.0`.
+- Financial records currently have no currency field. The legacy amount helper stores integer hundredths; display defaults to NGN but that does not prove every record's currency.
+- Firestore cloud sync uses full collection reads and can delete remote records absent from a local snapshot. Do not reuse this algorithm as the new sync or migration mechanism.
+- Firebase-generated `LUCIA-...` IDs are legacy labels derived from Firebase UID, not verified global Lucia ID subjects.
+- See [docs/ARIOVELLE_BACKEND_ARCHITECTURE_AND_MIGRATION.md](docs/ARIOVELLE_BACKEND_ARCHITECTURE_AND_MIGRATION.md) for the authoritative architecture, schema, API, security and migration requirements.
+
+The documents are a decision/specification baseline, not evidence that the target architecture has been implemented. Update status honestly as work proceeds.
