@@ -69,6 +69,6 @@ describe('financial utility calculations', () => {
     const categories = allCategories(['Travel', 'Food', 'Travel']);
     expect(categories.filter((category) => category === 'Food')).toHaveLength(1);
     expect(categories.filter((category) => category === 'Travel')).toHaveLength(1);
-    expect(categories.at(-1)).toBe('Travel');
+    expect(categories[categories.length - 1]).toBe('Travel');
   });
 });
