@@ -27,6 +27,7 @@ describe.skipIf(!databaseUrl)('PostgreSQL tenant RLS integration', () => {
     const membershipA = randomUUID();
     const membershipB = randomUUID();
 
+    let contextAfterRollback: { user_id: string | null; workspace_id: string | null } | undefined;
     try {
       await client.query('BEGIN');
       await client.query(
@@ -105,12 +106,13 @@ describe.skipIf(!databaseUrl)('PostgreSQL tenant RLS integration', () => {
       expect(reverseRead.rowCount).toBe(0);
     } finally {
       await client.query('ROLLBACK');
+      const cleared = await client.query(
+        "SELECT current_setting('app.user_id', true) AS user_id, current_setting('app.workspace_id', true) AS workspace_id",
+      );
+      contextAfterRollback = cleared.rows[0];
       client.release();
     }
 
-    const contextAfterRollback = await client.query(
-      "SELECT current_setting('app.user_id', true) AS user_id, current_setting('app.workspace_id', true) AS workspace_id",
-    );
-    expect(contextAfterRollback.rows[0]).toEqual({ user_id: null, workspace_id: null });
+    expect(contextAfterRollback).toEqual({ user_id: null, workspace_id: null });
   });
 });
