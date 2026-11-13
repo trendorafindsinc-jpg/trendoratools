@@ -59,7 +59,7 @@ export default function Home() {
             { to: '/insights', icon: BarChart3, title: 'Insights', desc: 'Understand your recorded financial position.' }
           ].map(({ to, icon: Icon, title, desc }) => (
             <Link key={to} to={to} className="glass-interactive p-5 space-y-3 group">
-              <div className="w-10 h-10 rounded-xl bg-violet-500/15 border border-violet-500/20 flex items-center justify-center text-violet-400 group-hover:bg-violet-500/25 transition">
+              <div className="w-10 h-10 rounded-xl bg-[var(--nav-active-bg)] border border-[var(--nav-active-border)] flex items-center justify-center text-[var(--accent-gold)] group-hover:bg-violet-500/25 transition">
                 <Icon size={20} />
               </div>
               <h3 className="font-semibold text-[var(--text-primary)]">{title}</h3>
@@ -70,10 +70,10 @@ export default function Home() {
       </section>
 
       <section className="glass-primary p-6 sm:p-10 relative overflow-hidden">
-        <div className="absolute -right-10 -top-10 w-48 h-48 bg-violet-600/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -right-10 -top-10 w-48 h-48 bg-[var(--nav-active-bg)] rounded-full blur-3xl pointer-events-none" />
         <div className="relative grid md:grid-cols-2 gap-8 items-center">
           <div className="space-y-4">
-            <div className="inline-flex items-center gap-2 text-xs text-violet-400 font-medium">
+            <div className="inline-flex items-center gap-2 text-xs text-[var(--accent-gold)] font-medium">
               <CalendarCheck2 size={14} /> Planner + Insights
             </div>
             <h2 className="text-2xl font-bold text-[var(--text-primary)]">See the picture. Act on what matters.</h2>
@@ -92,7 +92,7 @@ export default function Home() {
           </div>
           <div className="glass-card p-5 space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-violet-500/15 border border-violet-500/20 flex items-center justify-center text-violet-400">
+              <div className="w-10 h-10 rounded-xl bg-[var(--nav-active-bg)] border border-[var(--nav-active-border)] flex items-center justify-center text-[var(--accent-gold)]">
                 <Shield size={20} />
               </div>
               <div>
