@@ -1,23 +1,30 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createPostgresAdapter, type PgClient, type PgPool } from './postgres-adapter';
 
-function fakePool(queryImpl?: PgPool['query']) {
+type FakeQuery = (
+  statement: string,
+  parameters?: readonly unknown[],
+) => Promise<{ rows: Record<string, unknown>[]; rowCount: number | null }>;
+
+function fakePool(queryImpl?: FakeQuery) {
   const statements: string[] = [];
+  const execute: FakeQuery = async (statement, parameters) => {
+    statements.push(statement);
+    return queryImpl
+      ? queryImpl(statement, parameters)
+      : { rows: [], rowCount: 0 };
+  };
   const client: PgClient = {
-    async query(statement, parameters) {
-      statements.push(statement);
-      return queryImpl
-        ? queryImpl(statement, parameters)
-        : { rows: [] as never[], rowCount: 0 };
+    async query<Row extends Record<string, unknown>>(statement: string, parameters?: readonly unknown[]) {
+      const result = await execute(statement, parameters);
+      return { rows: result.rows as Row[], rowCount: result.rowCount };
     },
     release: vi.fn(),
   };
   const pool: PgPool = {
-    async query(statement, parameters) {
-      statements.push(statement);
-      return queryImpl
-        ? queryImpl(statement, parameters)
-        : { rows: [] as never[], rowCount: 0 };
+    async query<Row extends Record<string, unknown>>(statement: string, parameters?: readonly unknown[]) {
+      const result = await execute(statement, parameters);
+      return { rows: result.rows as Row[], rowCount: result.rowCount };
     },
     connect: vi.fn(async () => client),
   };
