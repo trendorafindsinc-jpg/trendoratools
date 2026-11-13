@@ -1,37 +1,16 @@
 import { useEffect, useState } from 'react';
 import { ArrowRight, Play } from 'lucide-react';
 
-/** Optional welcome video; the reduced-motion preference disables autoplay. */
-const DEFAULT_WELCOME_VIDEO = 'https://www.pexels.com/download/video/6773475/';
-
 export function WelcomeExperience({ onGetStarted, onGuest }: { onGetStarted: () => void; onGuest: () => void }) {
   const [ready, setReady] = useState(false);
-  const [reducedMotion, setReducedMotion] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-  const videoSrc =
-    (import.meta.env.VITE_ARIOVELLE_WELCOME_VIDEO_URL as string | undefined)?.trim() ||
-    (import.meta.env.VITE_TRENDORA_WELCOME_VIDEO_URL as string | undefined)?.trim() ||
-    DEFAULT_WELCOME_VIDEO;
 
   useEffect(() => {
     const timer = window.setTimeout(() => setReady(true), 80);
-    const media = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const updateMotion = () => setReducedMotion(media.matches);
-    media.addEventListener?.('change', updateMotion);
-    return () => { window.clearTimeout(timer); media.removeEventListener?.('change', updateMotion); };
+    return () => window.clearTimeout(timer);
   }, []);
 
   return (
     <main className="relative min-h-dvh overflow-hidden bg-[var(--bg-deep)] text-[var(--text-primary)] flex items-end sm:items-center">
-      <video
-        className="absolute inset-0 w-full h-full object-cover welcome-video"
-        src={videoSrc}
-        autoPlay={!reducedMotion}
-        muted
-        loop
-        playsInline
-        preload="none"
-        aria-hidden="true"
-      />
       {/* Theme-aware scrim: stronger in light so type stays readable over the video */}
       <div className="absolute inset-0 welcome-scrim" />
       <div className="absolute inset-0 opacity-25 theme-light:opacity-10 bg-[linear-gradient(rgba(255,255,255,.04)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.04)_1px,transparent_1px)] bg-[size:56px_56px] pointer-events-none" />
