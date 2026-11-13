@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useId } from 'react';
 
 interface CardProps {
   title?: string;
@@ -8,15 +8,16 @@ interface CardProps {
 }
 
 export function Card({ title, children, className = '', action }: CardProps) {
+  const titleId = useId();
   return (
-    <div className={`card ${className}`}>
+    <section className={`card ${className}`} aria-labelledby={title ? titleId : undefined}>
       {(title || action) && (
         <div className="flex items-center justify-between mb-4 gap-3">
-          {title && <h2 className="text-lg font-semibold text-[var(--text-primary)]">{title}</h2>}
+          {title && <h2 id={titleId} className="text-lg font-semibold text-[var(--text-primary)]">{title}</h2>}
           {action}
         </div>
       )}
       {children}
-    </div>
+    </section>
   );
 }
