@@ -74,7 +74,7 @@ By default, expenses, income, budgets, bills, savings goals, debts, categories, 
 If you sign in with a LUCIA ID (email/password or supported identity providers such as Google, where enabled), we process identifiers needed for authentication (for example email address, display name, user ID, and verification status). Authentication is provided through infrastructure configured at deployment time (for example Firebase Authentication). API keys and project identifiers are supplied via environment variables and are not hard-coded in the public application source repository.
 
 2.3 Optional Lucia Cloud backup
-If you use Lucia Cloud backup or sync while signed in, copies of your Trendora Tools records may be stored in cloud databases associated with your authenticated user ID so you can restore them on another device. Access is scoped to your account.
+If you use Lucia Cloud backup or sync while signed in, copies of your Ariovelle records may be stored in cloud databases associated with your authenticated user ID so you can restore them on another device. Access is scoped to your account.
 
 2.4 Technical and preference data
 We may store on-device preferences such as theme (light/dark), welcome/onboarding flags, and guest-mode flags. Hosting platforms and CDNs may automatically process standard technical logs (IP address, user agent, timestamps) as part of delivering the website; such processing is governed by those providers’ policies and our configuration of them.
