@@ -6,13 +6,18 @@ const DEFAULT_WELCOME_VIDEO = 'https://www.pexels.com/download/video/6773475/';
 
 export function WelcomeExperience({ onGetStarted, onGuest }: { onGetStarted: () => void; onGuest: () => void }) {
   const [ready, setReady] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   const videoSrc =
+    (import.meta.env.VITE_ARIOVELLE_WELCOME_VIDEO_URL as string | undefined)?.trim() ||
     (import.meta.env.VITE_TRENDORA_WELCOME_VIDEO_URL as string | undefined)?.trim() ||
     DEFAULT_WELCOME_VIDEO;
 
   useEffect(() => {
     const timer = window.setTimeout(() => setReady(true), 80);
-    return () => window.clearTimeout(timer);
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const updateMotion = () => setReducedMotion(media.matches);
+    media.addEventListener?.('change', updateMotion);
+    return () => { window.clearTimeout(timer); media.removeEventListener?.('change', updateMotion); };
   }, []);
 
   return (
@@ -20,11 +25,11 @@ export function WelcomeExperience({ onGetStarted, onGuest }: { onGetStarted: () 
       <video
         className="absolute inset-0 w-full h-full object-cover welcome-video"
         src={videoSrc}
-        autoPlay
+        autoPlay={!reducedMotion}
         muted
         loop
         playsInline
-        preload="auto"
+        preload="none"
         aria-hidden="true"
       />
       {/* Theme-aware scrim: stronger in light so type stays readable over the video */}
@@ -49,7 +54,7 @@ export function WelcomeExperience({ onGetStarted, onGuest }: { onGetStarted: () 
             </div>
           </div>
           <p className="text-sm sm:text-base text-violet-400 theme-dark:text-violet-200/90 mb-3 tracking-wide">
-            Welcome to Trendora.
+            Welcome to Ariovelle.
           </p>
           <h1 className="text-4xl sm:text-6xl md:text-7xl font-semibold tracking-tight leading-[.98] text-[var(--text-primary)]">
             Make every move
@@ -73,7 +78,7 @@ export function WelcomeExperience({ onGetStarted, onGuest }: { onGetStarted: () 
             </button>
           </div>
           <p className="mt-5 text-xs text-[var(--text-faint)]">
-            Free to use. Your local data stays on your device unless you choose Lucia Cloud backup.
+            Start with useful free tools. Your local data stays on this device unless you choose to connect a supported service.
           </p>
         </div>
       </div>
