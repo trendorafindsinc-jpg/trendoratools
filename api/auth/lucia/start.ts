@@ -6,6 +6,7 @@ import { sendError, sendMethodNotAllowed, type ApiRequest, type ApiResponse } fr
 export default async function startLuciaAuth(request:ApiRequest,response:ApiResponse) {
   if(request.method!=='GET') return sendMethodNotAllowed(response,['GET']);
   try {
+    if(process.env.LUCIA_AUTH_ENABLED!=='true') return sendError(response,404,'AUTH_DISABLED','Sign-in is not enabled.');
     const config=readLuciaConfig(process.env);
     if(!config.enabled) return sendError(response,404,'AUTH_DISABLED','Sign-in is not enabled.');
     const discovery=await fetchOidcDiscovery(config);
