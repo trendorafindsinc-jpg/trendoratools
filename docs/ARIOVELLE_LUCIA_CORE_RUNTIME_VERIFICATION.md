@@ -59,7 +59,11 @@ Implemented on `feat/ariovelle-phase-1-design-system`:
 - Fixed the migration's advisory-lock key so it does not call `chr(0)` (PostgreSQL text cannot contain a null character).
 - Unit tests and opt-in real PostgreSQL integration suites.
 
-The routes are guarded by `LUCIA_AUTH_ENABLED=true`; the default is disabled. No production secrets were read or changed. No Core consumer was provisioned. No Core changes or deployments were made. Migration 0004 has been added to source but must be applied to the disposable Ariovelle development database before the PostgreSQL integration suite can run.
+The routes are guarded by `LUCIA_AUTH_ENABLED=true`; the default is disabled. No production secrets were read or changed. No Core consumer was provisioned. No Core changes or deployments were made. Migration 0004 has been applied to the disposable Ariovelle development database only; it creates the local session table and narrowly scoped identity/session functions. No production database was changed and no financial tables or records were created.
+
+The development database was exercised using the separate `ariovelle_runtime` role. The checks confirmed: two different Lucia subjects create distinct Ariovelle users and personal workspaces; session hashes resolve to their corresponding local users; the runtime role can establish transaction-local identity/workspace context; a user sees their own workspace but not another user's workspace; membership checks deny the other workspace; and revoking a local session makes subsequent resolution return null. The test sessions and two temporary identity/workspace fixtures remain in the disposable development database pending cleanup authorization. The automated opt-in PostgreSQL integration test now covers identity creation, hash-at-rest, session resolution/revocation, authenticated workspace access and cross-workspace denial.
+
+The first CI run exposed TypeScript errors in API test response header types and optional integration-test fixture IDs. Those source issues have been corrected; a successful build/test run for the corrected head has not yet been confirmed.
 
 ## Release gate
 
