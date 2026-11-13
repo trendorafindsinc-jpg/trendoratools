@@ -7,7 +7,6 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      // Avoid workbox+terser crashes on low-memory Termux / mobile builds.
       minify: false,
       includeAssets: [
         'icons/favicon-32.png',
@@ -16,14 +15,14 @@ export default defineConfig({
         'icons/icon-192-maskable.png',
         'icons/icon-512.png',
         'icons/icon-512-maskable.png',
-        'brand/trendora-mark.svg',
+        'brand/ariovelle-mark.svg',
       ],
       manifest: {
-        name: 'Trendora Tools',
-        short_name: 'Trendora',
-        description: 'Trendora Tools by Trendora — Budget, Expenses & Savings under the LUCIA brand.',
-        theme_color: '#07070A',
-        background_color: '#07070A',
+        name: 'Ariovelle',
+        short_name: 'Ariovelle',
+        description: 'Financial Intelligence. Without Limits. A product of Lucia LLC.',
+        theme_color: '#0b111b',
+        background_color: '#0b111b',
         display: 'standalone',
         orientation: 'portrait-primary',
         start_url: './',
@@ -40,38 +39,15 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,woff,ttf}'],
         navigateFallback: 'index.html',
-        // Skip heavy SW minify path that fails on constrained devices.
         mode: 'development',
         runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'google-fonts-cache',
-              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 },
-            },
-          },
-          {
-            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'gstatic-fonts-cache',
-              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 },
-            },
-          },
+          { urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i, handler: 'CacheFirst', options: { cacheName: 'google-fonts-cache', expiration: { maxEntries: 10, maxAgeSeconds: 31536000 } } },
+          { urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i, handler: 'CacheFirst', options: { cacheName: 'gstatic-fonts-cache', expiration: { maxEntries: 10, maxAgeSeconds: 31536000 } } },
         ],
       },
-      devOptions: {
-        enabled: false,
-      },
+      devOptions: { enabled: false },
     }),
   ],
   base: './',
-  build: {
-    outDir: 'dist',
-    target: 'es2020',
-    // esbuild minify is lighter than terser on Termux.
-    minify: 'esbuild',
-    chunkSizeWarningLimit: 1200,
-  },
+  build: { outDir: 'dist', target: 'es2020', minify: 'esbuild', chunkSizeWarningLimit: 1200 },
 });
