@@ -19,7 +19,7 @@ export default async function startLuciaAuth(request:ApiRequest,response:ApiResp
     url.searchParams.set('nonce',tx.nonce); url.searchParams.set('code_challenge',challenge);
     url.searchParams.set('code_challenge_method','S256');
     response.setHeader('Cache-Control','no-store'); response.setHeader('Referrer-Policy','no-referrer');
-    response.setHeader('Set-Cookie',buildCookie('__Host-ariovelle_oauth_tx',sealOAuthTransaction(tx,config.sessionSecret),{maxAge:600,secure:config.environment==='production'}));
+    response.setHeader('Set-Cookie',buildCookie('ariovelle_oauth_tx',sealOAuthTransaction(tx,config.sessionSecret),{maxAge:600,secure:config.environment==='production'}));
     response.setHeader('Location',url.toString()); response.status(302).json({redirecting:true});
   } catch { sendError(response,503,'AUTH_UNAVAILABLE','Lucia sign-in is temporarily unavailable.'); }
 }
