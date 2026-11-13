@@ -12,6 +12,16 @@
 - [ ] Review sanitized inventory and resolve currency, identity-linking and source-conflict policies before designing a migration dry run.
 - **Important:** the runbook is documentation only. Live Firebase Auth/Firestore and local-device contents remain uninspected; no Firebase data or settings were changed.
 
+
+### Phase 2.0 / clean-start backend foundation
+- [x] Owner confirmed legacy Firebase data belongs to beta testers and is out of scope for migration. Ariovelle starts with a clean application dataset; no Firebase export is required.
+- [x] Recorded the clean-start decision and guardrails in the authoritative backend specification. Firebase remains untouched until separate retirement approval.
+- [x] Added `db/migrations/0001_foundation.sql` with PostgreSQL foundation tables: users, external identities, profiles, preferences, workspaces, memberships, audit events and migration provenance.
+- [ ] Review SQL against a provisioned disposable PostgreSQL instance after the owner approves development database provisioning.
+- [ ] Implement and test transaction-scoped workspace authorization/RLS before any tenant-owned financial routes.
+- [ ] Obtain official Lucia ID technical documentation before implementing live authentication.
+- **Scope:** SQL file only. No database was provisioned or connected, no SQL was executed, and no production or Firebase resources were changed.
+
 ## Progress log — 2026-11-13
 
 ### Phase 1 initial foundation (committed; CI green)
