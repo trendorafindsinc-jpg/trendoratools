@@ -14,6 +14,13 @@ GRANT EXECUTE ON FUNCTION app_private.is_workspace_admin(UUID) TO ariovelle_runt
 REVOKE ALL ON TABLE public.migration_batches, public.migration_records
   FROM ariovelle_runtime;
 
+-- Future public tables receive no automatic SELECT grant to the runtime role.
+-- Every new tenant table must explicitly enable RLS and receive reviewed grants.
+ALTER DEFAULT PRIVILEGES FOR ROLE ariovelle_owner IN SCHEMA public
+  REVOKE SELECT ON TABLES FROM ariovelle_runtime;
+ALTER DEFAULT PRIVILEGES FOR ROLE ariovelle_owner IN SCHEMA app_private
+  REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC;
+
 -- Only the profile/preferences/workspace membership and audit operations needed
 -- by the future server are granted. RLS remains the row-level authorization gate.
 GRANT INSERT, UPDATE ON TABLE public.user_profiles, public.user_preferences
