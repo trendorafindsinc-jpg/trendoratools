@@ -7,8 +7,8 @@ const config=readLuciaConfig(env);
 const discovery:OidcDiscovery={issuer:config.issuer,authorization_endpoint:config.issuer+'/api/v1/consumer/oauth/authorize',token_endpoint:config.issuer+'/api/v1/consumer/oauth/token',userinfo_endpoint:config.issuer+'/api/v1/oidc/userinfo',jwks_uri:config.issuer+'/.well-known/jwks.json',response_types_supported:['code'],id_token_signing_alg_values_supported:['RS256'],code_challenge_methods_supported:['S256']};
 const {publicKey,privateKey}=generateKeyPairSync('rsa',{modulusLength:2048});
 const jwk={...(publicKey.export({format:'jwk'}) as JsonWebKey),kid:'test-key',kty:'RSA',alg:'RS256',use:'sig'};
-function token(claims:Record<string,unknown>,alg='RS256') {
- const h=Buffer.from(JSON.stringify({alg,kid:'test-key',typ:'JWT'})).toString('base64url');
+function token(claims:Record<string,unknown>,alg='RS256',kid='test-key') {
+ const h=Buffer.from(JSON.stringify({alg,kid,typ:'JWT'})).toString('base64url');
  const p=Buffer.from(JSON.stringify(claims)).toString('base64url');
  const input=h+'.'+p;
  return input+'.'+sign('RSA-SHA256',Buffer.from(input),privateKey).toString('base64url');
@@ -48,6 +48,17 @@ describe('Lucia OIDC adapter',()=>{
   await expect(validateLuciaIdToken({token:jwt,config,discovery,nonce:'wrong',fetcher:fetchJwks})).rejects.toMatchObject({code:'INVALID_ID_TOKEN'});
   const wrongAud=token({iss:config.issuer,sub:'subject',aud:'other-client',iat:now,exp:now+300,nonce:'expected-nonce'});
   await expect(validateLuciaIdToken({token:wrongAud,config,discovery,nonce:'expected-nonce',fetcher:fetchJwks})).rejects.toMatchObject({code:'INVALID_ID_TOKEN'});
+ });
+ it('refreshes JWKS once when a rotated signing key is not in the first response',async()=>{
+  const now=Math.floor(Date.now()/1000);
+  const rotatedKey={...jwk,kid:'rotated-key'};
+  const jwt=token({iss:config.issuer,sub:'rotated-subject',aud:config.clientId,iat:now,exp:now+300,nonce:'rotated-nonce'},'RS256','rotated-key');
+  const rotatingFetcher=vi.fn()
+   .mockResolvedValueOnce(new Response(JSON.stringify({keys:[{...jwk,kid:'retired-key'}]}),{status:200}))
+   .mockResolvedValueOnce(new Response(JSON.stringify({keys:[rotatedKey]}),{status:200})) as unknown as typeof fetch;
+  const claims=await validateLuciaIdToken({token:jwt,config,discovery,nonce:'rotated-nonce',fetcher:rotatingFetcher});
+  expect(claims.sub).toBe('rotated-subject');
+  expect(rotatingFetcher).toHaveBeenCalledTimes(2);
  });
  it('rejects a missing nonce and unsupported algorithm',async()=>{
   const now=Math.floor(Date.now()/1000);

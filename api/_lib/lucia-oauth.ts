@@ -1,4 +1,5 @@
-import { createHash, createPublicKey, randomBytes, verify as verifySignature, createCipheriv, createDecipheriv, timingSafeEqual } from 'node:crypto';
+import { createHash, randomBytes, createCipheriv, createDecipheriv, timingSafeEqual } from 'node:crypto';
+import { createLocalJWKSet, decodeProtectedHeader, jwtVerify } from 'jose';
 
 export type LuciaConfig = {
   issuer: string;
@@ -51,10 +52,6 @@ export function readLuciaConfig(env: Record<string,string|undefined>): LuciaConf
   return { issuer: parsed.origin, clientId, clientSecret, audience, redirectUri, sessionSecret, enabled, environment };
 }
 function b64url(input: Buffer | string): string { return Buffer.from(input).toString('base64url'); }
-function decodePart<T>(part: string): T {
-  try { return JSON.parse(Buffer.from(part,'base64url').toString('utf8')) as T; }
-  catch { throw new LuciaAuthError('INVALID_TOKEN','Malformed token.'); }
-}
 export function createPkcePair() {
   const verifier = b64url(randomBytes(32));
   return { verifier, challenge: b64url(createHash('sha256').update(verifier).digest()) };
@@ -117,28 +114,101 @@ export async function exchangeLuciaCode(input:{config:LuciaConfig;discovery:Oidc
   if(!body.access_token||!body.id_token||body.token_type?.toLowerCase()!=='bearer') throw new LuciaAuthError('TOKEN_RESPONSE_INVALID','Lucia Core did not return the required OIDC ID token and bearer access token.');
   return body;
 }
-export async function validateLuciaIdToken(input:{token:string;config:LuciaConfig;discovery:OidcDiscovery;nonce:string;fetcher?:typeof fetch;now?:number}) {
-  const parts=input.token.split('.');
-  if(parts.length!==3) throw new LuciaAuthError('INVALID_ID_TOKEN','ID token is malformed.');
-  const header=decodePart<{alg?:string;kid?:string;typ?:string}>(parts[0]);
-  const claims=decodePart<JwtClaims>(parts[1]);
-  if(header.alg!=='RS256'||!header.kid) throw new LuciaAuthError('INVALID_ID_TOKEN','ID token algorithm or key identifier is not accepted.');
-  const now=Math.floor((input.now??Date.now())/1000);
-  if(claims.iss!==input.config.issuer||!(typeof claims.aud==='string'?claims.aud===input.config.clientId:Array.isArray(claims.aud)&&claims.aud.includes(input.config.clientId))) throw new LuciaAuthError('INVALID_ID_TOKEN','ID token issuer or audience is invalid.');
-  if(typeof claims.sub!=='string'||!claims.sub||typeof claims.exp!=='number'||claims.exp<=now||typeof claims.iat!=='number'||claims.iat>now+30||claims.iat<now-600||claims.exp-claims.iat>600) throw new LuciaAuthError('INVALID_ID_TOKEN','ID token subject or lifetime is invalid.');
-  if(typeof claims.nonce!=='string'||!constantTimeEqual(claims.nonce,input.nonce)) throw new LuciaAuthError('INVALID_ID_TOKEN','ID token nonce is missing or does not match.');
-  const fetcher=input.fetcher??fetch;
-  const getKeys=async()=> {
-    const res=await fetcher(input.discovery.jwks_uri,{headers:{Accept:'application/json'},cache:'no-store',redirect:'error'});
-    if(!res.ok) throw new LuciaAuthError('JWKS_UNAVAILABLE','Lucia Core signing keys could not be loaded.');
-    return (await res.json() as {keys:Jwk[]}).keys;
+export async function validateLuciaIdToken(input: {
+  token: string;
+  config: LuciaConfig;
+  discovery: OidcDiscovery;
+  nonce: string;
+  fetcher?: typeof fetch;
+  now?: number;
+}) {
+  let header: ReturnType<typeof decodeProtectedHeader>;
+  try {
+    header = decodeProtectedHeader(input.token);
+  } catch {
+    throw new LuciaAuthError('INVALID_ID_TOKEN', 'ID token is malformed.');
+  }
+  if (header.alg !== 'RS256' || typeof header.kid !== 'string' || !header.kid) {
+    throw new LuciaAuthError('INVALID_ID_TOKEN', 'ID token algorithm or key identifier is not accepted.');
+  }
+
+  const fetcher = input.fetcher ?? fetch;
+  const getKeys = async (): Promise<Jwk[]> => {
+    const response = await fetcher(input.discovery.jwks_uri, {
+      headers: { Accept: 'application/json' },
+      cache: 'no-store',
+      redirect: 'error',
+    });
+    if (!response.ok) {
+      throw new LuciaAuthError('JWKS_UNAVAILABLE', 'Lucia Core signing keys could not be loaded.');
+    }
+    const document = await response.json() as { keys?: Jwk[] };
+    if (!Array.isArray(document.keys)) {
+      throw new LuciaAuthError('JWKS_INVALID', 'Lucia Core signing keys are malformed.');
+    }
+    return document.keys.filter((key) =>
+      key.kty === 'RSA' &&
+      key.alg === 'RS256' &&
+      key.use === 'sig' &&
+      typeof key.kid === 'string' &&
+      typeof key.n === 'string' &&
+      typeof key.e === 'string'
+    );
   };
-  let keys=await getKeys(), jwk=keys.find(k=>k.kid===header.kid&&k.kty==='RSA'&&k.alg==='RS256'&&(!k.use||k.use==='sig'));
-  if(!jwk) { keys=await getKeys(); jwk=keys.find(k=>k.kid===header.kid&&k.kty==='RSA'&&k.alg==='RS256'&&(!k.use||k.use==='sig')); }
-  if(!jwk) throw new LuciaAuthError('UNKNOWN_SIGNING_KEY','Lucia Core ID token signing key is unknown.');
-  let valid=false;
-  try { const key=createPublicKey({key:jwk as JsonWebKey,format:'jwk'}); valid=verifySignature('RSA-SHA256',Buffer.from(parts[0]+'.'+parts[1]),key,Buffer.from(parts[2],'base64url')); } catch { valid=false; }
-  if(!valid) throw new LuciaAuthError('INVALID_ID_TOKEN','ID token signature verification failed.');
+
+  const nowMs = input.now ?? Date.now();
+  const verifyWithKeys = async (keys: Jwk[]) => {
+    try {
+      const localJwks = createLocalJWKSet({ keys: keys as never[] });
+      return await jwtVerify(input.token, localJwks, {
+        algorithms: ['RS256'],
+        issuer: input.config.issuer,
+        audience: input.config.clientId,
+        clockTolerance: 30,
+        maxTokenAge: '10m',
+        currentDate: new Date(nowMs),
+      });
+    } catch (error) {
+      if ((error as { code?: string })?.code === 'ERR_JWKS_NO_MATCHING_KEY') {
+        throw error;
+      }
+      throw new LuciaAuthError('INVALID_ID_TOKEN', 'ID token signature or standard claims are invalid.');
+    }
+  };
+
+  let verified: Awaited<ReturnType<typeof verifyWithKeys>>;
+  let keys = await getKeys();
+  try {
+    verified = await verifyWithKeys(keys);
+  } catch (error) {
+    if ((error as { code?: string })?.code !== 'ERR_JWKS_NO_MATCHING_KEY') {
+      throw error;
+    }
+    // Refresh exactly once for key rotation; never trust token-supplied key URLs.
+    keys = await getKeys();
+    try {
+      verified = await verifyWithKeys(keys);
+    } catch {
+      throw new LuciaAuthError('UNKNOWN_SIGNING_KEY', 'Lucia Core ID token signing key is unknown.');
+    }
+  }
+
+  const claims = verified.payload as JwtClaims;
+  const now = Math.floor(nowMs / 1000);
+  if (
+    typeof claims.sub !== 'string' ||
+    !claims.sub ||
+    typeof claims.exp !== 'number' ||
+    typeof claims.iat !== 'number' ||
+    claims.iat > now + 30 ||
+    claims.iat < now - 600 ||
+    claims.exp - claims.iat > 600
+  ) {
+    throw new LuciaAuthError('INVALID_ID_TOKEN', 'ID token subject or lifetime is invalid.');
+  }
+  if (typeof claims.nonce !== 'string' || !constantTimeEqual(claims.nonce, input.nonce)) {
+    throw new LuciaAuthError('INVALID_ID_TOKEN', 'ID token nonce is missing or does not match.');
+  }
   return claims;
 }
 export async function fetchLuciaUserInfo(input:{discovery:OidcDiscovery;accessToken:string;expectedSubject:string;fetcher?:typeof fetch}) {
