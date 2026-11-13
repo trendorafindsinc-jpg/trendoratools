@@ -1,6 +1,6 @@
 # Ariovelle — Lucia product rebuild
 
-> **Current status:** The repository still contains the legacy TrendoraTools application. The Ariovelle product is approved and documented; the implementation has not yet been rebuilt. Do not interpret the legacy instructions below as the target product architecture.
+ > **Current status:** Ariovelle's premium UI and backend security foundation are being implemented on the feature branch. The repository still contains legacy TrendoraTools modules; do not interpret legacy instructions below as target architecture.
 
 **Codex / coding-agent entry point:** Read [AGENTS.md](AGENTS.md) first.
 
@@ -16,7 +16,7 @@
 **Commercial model:** Freemium; basic personal finance, basic business tools and basic market access remain free; advanced capabilities are paid.  
 **Themes:** Premium dark and light.
 
-**Safety:** Keep the existing production app and data intact during rebuild. Work on a feature branch. Do not remove Firebase or migrate user data until all dependencies and preservation paths are understood. Lucia ID's official technical specification is required before implementing authentication; do not guess its protocol. The backend architecture/migration specification is authoritative for Phase 2.
+**Safety:** Keep the existing production app and data intact during rebuild. Work on a feature branch. Do not remove Firebase or migrate user data. Lucia Core has been inspected and an OIDC adapter is implemented, but login remains disabled until Core's nonce propagation is fixed and its deployed HTTPS environment is verifiable. See the runtime verification report.
 
 ---
 
