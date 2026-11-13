@@ -4,6 +4,14 @@
 
 > **Phase sequencing authority (2026-11-13):** The approved next implementation is **Phase 2 — Backend Foundation**, governed by [ARIOVELLE_BACKEND_ARCHITECTURE_AND_MIGRATION.md](ARIOVELLE_BACKEND_ARCHITECTURE_AND_MIGRATION.md). Earlier numbered screen-scaffolding/backend sections in this plan predate the agreed execution sequence and are retained as historical planning material; do not use their old phase numbers to override the new specification. Do not start production auth, database provisioning or data migration without the gates in that specification.
 
+
+### Phase 2.0 / data preservation — runbook prepared
+- [x] Added `docs/FIREBASE_EXPORT_AND_RECONCILIATION_RUNBOOK.md` with least-privilege export requirements, Auth metadata allowlist, recursive Firestore inventory requirements, local-device export boundaries, checksum/manifest requirements, data-quality checks, currency review and reconciliation acceptance gates.
+- [x] Linked the runbook from the repository README.
+- [ ] Owner to confirm Firebase project ID/ownership and perform the read-only export in a controlled environment.
+- [ ] Review sanitized inventory and resolve currency, identity-linking and source-conflict policies before designing a migration dry run.
+- **Important:** the runbook is documentation only. Live Firebase Auth/Firestore and local-device contents remain uninspected; no Firebase data or settings were changed.
+
 ## Progress log — 2026-11-13
 
 ### Phase 1 initial foundation (committed; CI green)
