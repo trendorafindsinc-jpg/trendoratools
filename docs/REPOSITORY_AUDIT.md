@@ -237,3 +237,13 @@ After the source inventory commit, the feature branch gained a health-only Verce
 - Root `tsconfig.json` now includes `api` so the API code is typechecked with the application.
 
 This does not close the remote-data inventory gap and does not connect to Firebase, Lucia ID, PostgreSQL or financial records. The API scaffold has not been deployed. CI status is recorded separately after the workflow completes.
+
+
+## 12. CI verification of the health-only API scaffold
+
+GitHub Actions run [43483593294](https://github.com/trendorafindsinc-jpg/trendoratools/actions/runs/43483593294) on commit `962e7c333c1874805054b3deb9708f0b34eb272f` completed successfully:
+- Exact locked dependency installation (`npm ci`): passed.
+- Production build / TypeScript project build (`npm run build`): passed.
+- Automated test suite (`npm test`): passed.
+
+The run includes the API health handlers and the root TypeScript configuration that includes `api`. This verifies compilation and automated behavior in CI. It does **not** verify deployed Vercel route behavior because no manual deployment was requested or performed. A local checkout build was not run in this environment.
