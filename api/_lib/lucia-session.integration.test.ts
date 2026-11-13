@@ -4,19 +4,22 @@ import { Pool } from 'pg';
 import { createPostgresAdapter } from './postgres-adapter';
 import { hashSessionToken, resolveLocalSession, revokeLocalSession } from './lucia-session';
 import { withAuthenticatedWorkspace } from './authenticated-workspace';
+import { consumeOAuthTransaction, storeOAuthTransaction } from './lucia-oauth-store';
+import { openOAuthTransaction, sealOAuthTransaction } from './lucia-oauth';
 
 const ownerUrl = process.env.ARIOVELLE_RLS_TEST_OWNER_DATABASE_URL;
 const runtimeUrl = process.env.ARIOVELLE_RLS_TEST_RUNTIME_DATABASE_URL;
 const ownerPool = ownerUrl ? new Pool({ connectionString: ownerUrl, max: 1, ssl: { rejectUnauthorized: true } }) : null;
 const runtimePool = runtimeUrl ? new Pool({ connectionString: runtimeUrl, max: 1, ssl: { rejectUnauthorized: true } }) : null;
 const runtimeDb = runtimePool ? createPostgresAdapter(runtimePool as never) : null;
+const transactionSecret = 'integration-transaction-secret-'.padEnd(48, 'x');
 
 afterAll(async () => {
   await Promise.all([ownerPool?.end(), runtimePool?.end()]);
 });
 
-describe.skipIf(!ownerPool || !runtimePool || !runtimeDb)('Lucia identity and local session PostgreSQL integration', () => {
-  it('creates isolated identities, resolves hashed sessions and enforces workspace authorization', async () => {
+describe.skipIf(!ownerPool || !runtimePool || !runtimeDb)('Lucia identity, OAuth transaction and local session PostgreSQL integration', () => {
+  it('stores and consumes OAuth state once, then enforces identity and workspace isolation', async () => {
     if (!ownerPool || !runtimePool || !runtimeDb) {
       throw new Error('Dedicated owner and runtime PostgreSQL URLs are required.');
     }
@@ -28,6 +31,15 @@ describe.skipIf(!ownerPool || !runtimePool || !runtimeDb)('Lucia identity and lo
     const hashA = hashSessionToken(tokenA);
     const hashB = hashSessionToken(tokenB);
     const expires = new Date(Date.now() + 60_000);
+    const oauthState = 'oauth-state-' + randomUUID();
+    const browserBinding = 'oauth-browser-' + randomUUID();
+    const oauthPayload = {
+      state: oauthState,
+      nonce: 'nonce-' + randomUUID(),
+      verifier: 'v'.repeat(43),
+      createdAt: Date.now(),
+    };
+    const encryptedTransaction = sealOAuthTransaction(oauthPayload, transactionSecret);
     let userA: string | undefined;
     let userB: string | undefined;
     let workspaceA: string | undefined;
@@ -36,6 +48,18 @@ describe.skipIf(!ownerPool || !runtimePool || !runtimeDb)('Lucia identity and lo
     const owner = await ownerPool.connect();
 
     try {
+      await storeOAuthTransaction(runtimeDb, {
+        state: oauthState,
+        browserBinding,
+        encryptedTransaction,
+        expiresAt: new Date(Date.now() + 10 * 60_000),
+      });
+      await expect(consumeOAuthTransaction(runtimeDb, oauthState, 'wrong-browser-binding')).resolves.toBeNull();
+      const consumed = await consumeOAuthTransaction(runtimeDb, oauthState, browserBinding);
+      expect(consumed).toBe(encryptedTransaction);
+      expect(openOAuthTransaction(consumed!, transactionSecret)).toEqual(oauthPayload);
+      await expect(consumeOAuthTransaction(runtimeDb, oauthState, browserBinding)).resolves.toBeNull();
+
       const a = await runtime.query(
         'SELECT * FROM app_private.establish_lucia_identity($1,$2,$3,$4,$5,$6,$7)',
         ['https://identity.integration.test', subjectA, 'a@example.test', true, 'Integration A', hashA, expires],
@@ -111,6 +135,10 @@ describe.skipIf(!ownerPool || !runtimePool || !runtimeDb)('Lucia identity and lo
       })).rejects.toThrow('valid Ariovelle session');
     } finally {
       runtime.release();
+      await owner.query(
+        'DELETE FROM public.oauth_transactions WHERE state_hash=$1',
+        [hashSessionToken(oauthState)],
+      );
       const userIds = [userA, userB].filter((id): id is string => Boolean(id));
       const workspaceIds = [workspaceA, workspaceB].filter((id): id is string => Boolean(id));
       if (userIds.length) {
