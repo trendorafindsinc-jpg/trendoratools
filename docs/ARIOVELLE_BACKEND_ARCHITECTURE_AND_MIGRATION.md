@@ -744,3 +744,42 @@ Security and operational boundaries:
 - The database interface is a seam for a later approved adapter, not a working persistence layer.
 
 Next gate: obtain explicit authorization for a disposable development PostgreSQL database, then test the foundation SQL against PostgreSQL 15+ and add the selected driver/adapter. Do not connect production or deploy as part of that work.
+
+
+---
+
+## 16. Disposable development PostgreSQL provisioned — 2026-11-13
+
+Owner authorization received to provision a disposable development database.
+
+**Provisioned resource**
+- Provider: Neon, Lucia organization (Free plan).
+- Project: `ariovelle-dev`
+- Project ID: `super-base-35733977`
+- Region: `aws-eu-central-1`
+- PostgreSQL: `17.12`
+- Default branch: `main` (`br-young-sound-ba8m1n50`)
+- Database: `ariovelle_dev`
+- Owner role: `ariovelle_owner`
+- Compute: minimum and maximum 0.25 CU; provider default scale-to-zero behavior.
+- Branch history retention: 6 hours (organization maximum).
+- Purpose: disposable development and migration validation only. Not production, not staging, and not connected to Vercel or application runtime.
+
+**Migration validation**
+- Executed the nine-table foundation schema corresponding to `db/migrations/0001_foundation.sql`.
+- Verified PostgreSQL server version `17.12`.
+- Verified 9 public base tables and 90 table constraints.
+- Verified expected tables: users, external_identities, user_profiles, user_preferences, workspaces, workspace_memberships, audit_events, migration_batches, migration_records.
+- No customer, beta-tester or Firebase data was inserted.
+- No auth, financial data, RLS policy or runtime application role was added.
+
+**Credential handling**
+- No connection string or password was committed to Git.
+- No `DATABASE_URL` was added to Vercel or local app configuration.
+- The database is provisioned but not yet connected to Ariovelle API runtime.
+- Create a separate least-privilege runtime role and configure a secret only when the application adapter is ready and the owner approves that integration.
+
+**Provider constraints encountered**
+- Organization rejects HIPAA-mode projects; HIPAA was not enabled.
+- Account does not permit overriding compute suspend interval; provider default was retained.
+- Organization caps branch history retention at 21,600 seconds (6 hours); this cap was retained.
