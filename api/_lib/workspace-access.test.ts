@@ -6,8 +6,11 @@ const workspaceId = '00000000-0000-4000-8000-000000000002';
 
 function dbWith(row?: Record<string, unknown>) {
   return {
-    query: vi.fn(async (_sql: string, _params?: readonly unknown[]) => ({
-      rows: row ? [row] : [],
+    query: vi.fn(async <Row extends Record<string, unknown>>(
+      _sql: string,
+      _params?: readonly unknown[],
+    ) => ({
+      rows: (row ? [row] : []) as Row[],
       rowCount: row ? 1 : 0,
     })),
   };
