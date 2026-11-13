@@ -2,25 +2,25 @@
 
 **Status:** Phase 1 engineering foundation is implemented and CI-verified on `feat/ariovelle-phase-1-design-system`. A manual Vercel preview is ready. Responsive screenshot captures exist, but pixel-level visual acceptance remains open; see the conditional sign-off record below.
 
-> **Phase sequencing authority (2026-11-13):** The approved next implementation is **Phase 2 — Backend Foundation**, governed by [ARIOVELLE_BACKEND_ARCHITECTURE_AND_MIGRATION.md](ARIOVELLE_BACKEND_ARCHITECTURE_AND_MIGRATION.md). Earlier numbered screen-scaffolding/backend sections in this plan predate the agreed execution sequence and are retained as historical planning material; do not use their old phase numbers to override the new specification. Do not start production auth, database provisioning or data migration without the gates in that specification.
+> **Phase sequencing authority (2026-11-13):** The approved implementation sequence is **Phase 2 — Backend Foundation**, governed by [ARIOVELLE_BACKEND_ARCHITECTURE_AND_MIGRATION.md](ARIOVELLE_BACKEND_ARCHITECTURE_AND_MIGRATION.md). Earlier numbered screen-scaffolding/backend sections in this plan predate the agreed execution sequence and are retained as historical planning material; do not use their old phase numbers to override the new specification. The disposable development Neon project is already authorized and provisioned. Do not provision production infrastructure, implement live authentication without official Lucia ID documentation, or perform production data migration without the gates in that specification.
 
 
-### Phase 2.0 / data preservation — runbook prepared
-- [x] Added `docs/FIREBASE_EXPORT_AND_RECONCILIATION_RUNBOOK.md` with least-privilege export requirements, Auth metadata allowlist, recursive Firestore inventory requirements, local-device export boundaries, checksum/manifest requirements, data-quality checks, currency review and reconciliation acceptance gates.
+### Phase 2.0 / legacy data preservation — contingency only
+- [x] Added `docs/FIREBASE_EXPORT_AND_RECONCILIATION_RUNBOOK.md` as a least-privilege recovery/export procedure.
 - [x] Linked the runbook from the repository README.
-- [ ] Owner to confirm Firebase project ID/ownership and perform the read-only export in a controlled environment.
-- [ ] Review sanitized inventory and resolve currency, identity-linking and source-conflict policies before designing a migration dry run.
-- **Important:** the runbook is documentation only. Live Firebase Auth/Firestore and local-device contents remain uninspected; no Firebase data or settings were changed.
+- [x] Owner confirmed legacy Firebase beta-tester data is out of scope for Ariovelle's clean start; no export or migration is required for the approved path.
+- [ ] Reopen the export/reconciliation process only if the owner explicitly changes the clean-start decision.
+- **Important:** Firebase Auth/Firestore and local-device contents remain uninspected and unchanged. This is not a migration blocker under the approved clean-start decision.
 
 
 ### Phase 2.0 / clean-start backend foundation
 - [x] Owner confirmed legacy Firebase data belongs to beta testers and is out of scope for migration. Ariovelle starts with a clean application dataset; no Firebase export is required.
-- [x] Recorded the clean-start decision and guardrails in the authoritative backend specification. Firebase remains untouched until separate retirement approval.
-- [x] Added `db/migrations/0001_foundation.sql` with PostgreSQL foundation tables: users, external identities, profiles, preferences, workspaces, memberships, audit events and migration provenance.
-- [ ] Review SQL against a provisioned disposable PostgreSQL instance after the owner approves development database provisioning.
-- [ ] Implement and test transaction-scoped workspace authorization/RLS before any tenant-owned financial routes.
-- [ ] Obtain official Lucia ID technical documentation before implementing live authentication.
-- **Scope:** SQL file only. No database was provisioned or connected, no SQL was executed, and no production or Firebase resources were changed.
+- [x] Added `db/migrations/0001_foundation.sql` and executed the nine-table foundation schema on the disposable Neon development database.
+- [x] Added and applied `0002_request_context_and_rls.sql` and `0003_runtime_role_grants.sql` on the disposable development database.
+- [x] Implemented PostgreSQL adapter, transaction-local request context, workspace authorization primitives, runtime pool factory and direct tenant-isolation tests.
+- [x] Read-only Neon inspection confirmed nine empty foundation tables, RLS policies, helper functions and runtime grants match the checked-in migrations.
+- [ ] Obtain official Lucia ID technical documentation and a test environment before implementing live authentication or onboarding routes.
+- **Scope:** development-only. No production database, live auth, financial records, Vercel database secret, production deployment or Firebase retirement.
 
 ## Progress log — 2026-11-13
 
@@ -339,3 +339,14 @@ No live auth, payments, market quotes or financial persistence should be implied
 - [ ] Do not set Vercel `DATABASE_URL` or connect the application until Lucia ID integration and API security review are approved.
 
 **Security boundary:** the database role and RLS are live only in the disposable development project. No production DB, runtime secret, auth provider, financial endpoint, deployment or Firebase retirement has been enabled.
+
+
+### P2.6 — typed health API client and current verification
+- [x] Add a same-origin, no-store typed frontend client for the liveness and readiness endpoints.
+- [x] Add safe network/invalid-response error handling and structured API error mapping.
+- [x] Add client tests for request options, readiness DTO, structured API errors and network failures.
+- [x] GitHub Actions run [43491824253](https://github.com/trendorafindsinc-jpg/trendoratools/actions/runs/43491824253) passed on commit `27bec666`: exact npm install, production build and automated tests.
+- [x] GitHub Actions run [43492105152](https://github.com/trendorafindsinc-jpg/trendoratools/actions/runs/43492105152) passed on the subsequent backend-spec documentation update commit `98c85b0`.
+- [ ] Add shared API route composition/error middleware and request/response validation contracts without inventing identity assumptions.
+- [ ] Obtain official Lucia ID documentation; no public official integration specification was located during the current review.
+- **Boundary:** API client exposes health probes only. No live authentication, user/workspace endpoint, finance endpoint, database connection or write route was introduced.
