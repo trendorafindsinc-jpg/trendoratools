@@ -14,7 +14,7 @@ function fakeDb(allowed = true) {
       return {
         rows: (sql.includes('is_active_workspace_member')
           ? [{ allowed }]
-          : []) as Row[],
+          : []) as unknown as Row[],
         rowCount: sql.includes('is_active_workspace_member') ? 1 : 0,
       };
     },
