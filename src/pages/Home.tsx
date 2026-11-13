@@ -59,7 +59,7 @@ export default function Home() {
             { to: '/insights', icon: BarChart3, title: 'Insights', desc: 'Understand your recorded financial position.' }
           ].map(({ to, icon: Icon, title, desc }) => (
             <Link key={to} to={to} className="glass-interactive p-5 space-y-3 group">
-              <div className="w-10 h-10 rounded-xl bg-[var(--nav-active-bg)] border border-[var(--nav-active-border)] flex items-center justify-center text-[var(--accent-gold)] group-hover:bg-violet-500/25 transition">
+              <div className="w-10 h-10 rounded-xl bg-[var(--nav-active-bg)] border border-[var(--nav-active-border)] flex items-center justify-center text-[var(--accent-gold)] group-hover:bg-[var(--nav-hover)] transition">
                 <Icon size={20} />
               </div>
               <h3 className="font-semibold text-[var(--text-primary)]">{title}</h3>
