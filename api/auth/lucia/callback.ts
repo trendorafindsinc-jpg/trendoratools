@@ -10,8 +10,9 @@ function header(request:ApiRequest,name:string):string|undefined {
 function query(url:string|undefined):URLSearchParams { return new URL(url??'/api/auth/lucia/callback','https://ariovelle.invalid').searchParams; }
 export default async function luciaCallback(request:ApiRequest,response:ApiResponse) {
   if(request.method!=='GET') return sendMethodNotAllowed(response,['GET']);
-  const config=readLuciaConfig(process.env);
-  if(!config.enabled) return sendError(response,404,'AUTH_DISABLED','Sign-in is not enabled.');
+  if(process.env.LUCIA_AUTH_ENABLED!=='true') return sendError(response,404,'AUTH_DISABLED','Sign-in is not enabled.');
+  let config;
+  try { config=readLuciaConfig(process.env); } catch { return sendError(response,503,'AUTH_NOT_CONFIGURED','Lucia sign-in is not configured.'); }
   const cookies=parseCookies(header(request,'cookie'));
   try {
     const tx=openOAuthTransaction(cookies[luciaCookieNames.transaction]??'',config.sessionSecret);
