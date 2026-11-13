@@ -49,9 +49,9 @@ This file is the repository-level instruction contract for Codex and other codin
 - Existing Firebase-based auth code is legacy and must be inventoried and retired in a controlled sequence.
 - **Do not guess** Lucia ID issuer, JWT claims, signing keys/JWKS URL, OAuth/OIDC endpoints, SDK, callback URLs, token format, session semantics or logout behavior. Obtain and follow official Lucia ID documentation first.
 - The legacy `LUCIA-...` string generated from Firebase UID is not proof of a real Lucia ID.
-- Until official documentation and a test environment are supplied, build only a provider interface and clearly labelled local/test fake. A fake provider must fail closed in production.
+- The server-side adapter and local session boundary exist on the Ariovelle feature branch. Login remains disabled until the Core nonce-propagation defect is fixed and a deployed HTTPS Core environment is available for end-to-end verification. Never weaken nonce validation to make the current Core token pass.
 
-## 5. Financial correctness
+## 5. Authentication implementation rules\n\n- Keep `LUCIA_AUTH_ENABLED` false unless the explicit release gates in `docs/ARIOVELLE_LUCIA_CORE_RUNTIME_VERIFICATION.md` have passed.\n- Keep `LUCIA_CLIENT_SECRET`, `ARIOVELLE_SESSION_SECRET`, and `DATABASE_URL` server-only; never use a `VITE_` prefix.\n- Validate the OIDC ID token using the discovered allowlisted issuer and RS256 JWKS. Do not validate the Core HS256 access assertion locally; use it only as a bearer credential to Core UserInfo.\n- Require exact nonce and UserInfo subject equality. The current Core source omits the nonce in its ID-token issuance path; reject those tokens until Core is fixed.\n- Store only a SHA-256 hash of opaque Ariovelle session tokens. Resolve session identity through the narrow database function, then perform workspace permission checks and tenant queries inside the same transaction-local RLS context.\n- The new migration 0004 is source-only until reviewed and applied to the disposable development database. Never apply it to production as part of this task.\n\n## 6. Financial correctness
 
 - Store monetary values using PostgreSQL `BIGINT` minor units plus ISO currency code and exponent, or an explicitly documented exact decimal representation. Never use binary floating point for money calculations or persistence.
 - Do not assume all currencies have two fractional digits.
@@ -62,7 +62,7 @@ This file is the repository-level instruction contract for Codex and other codin
 - Validate imports, prevent duplicate processing, and record provenance.
 - Tests must cover rounding, currency handling, negative/zero values, timezone boundaries, ownership and concurrent updates.
 
-## 6. Entitlements and billing
+## 7. Entitlements and billing
 
 - Feature entitlements must be centrally defined and checked on the server for protected operations/data.
 - Client-side gating is presentation only, never security.
@@ -73,7 +73,7 @@ This file is the repository-level instruction contract for Codex and other codin
 - Payment webhooks must be signature-verified, idempotent, replay-safe and authoritative for subscription state.
 - Do not grant paid access based solely on a client redirect or browser state.
 
-## 7. Markets and AI integrity
+## 8. Markets and AI integrity
 
 - Market coverage is enabled only when provider availability, licensing, redistribution/display rights, latency, quality and cost are verified.
 - Show quote source, instrument, currency, timestamp, delay/real-time status and data limitations.
@@ -83,7 +83,7 @@ This file is the repository-level instruction contract for Codex and other codin
 - AI-generated explanations must distinguish observed facts, calculations, estimates and opinions.
 - Do not provide personalized buy/sell guarantees or imply guaranteed returns.
 
-## 8. UI and accessibility
+## 9. UI and accessibility
 
 - Build one responsive system, not three separate applications.
 - Desktop: persistent/collapsible sidebar and top utility bar.
@@ -94,7 +94,7 @@ This file is the repository-level instruction contract for Codex and other codin
 - Provide loading, empty, error, offline, permission-denied and upgrade states for every data-backed screen.
 - Never use fabricated production-looking financial values. Fixtures must be labelled as sample/demo data.
 
-## 9. Engineering workflow
+## 10. Engineering workflow
 
 1. Read this file and all four linked Ariovelle specification/audit documents.
 2. Inspect the relevant existing code before editing; do not assume the audit is exhaustive.
@@ -107,7 +107,7 @@ This file is the repository-level instruction contract for Codex and other codin
 9. Do not merge or deploy without explicit approval.
 10. Keep Vercel Git auto-deploy disabled; no deployment is implied by a repository change.
 
-## 10. Current known repository baseline
+## 11. Current known repository baseline
 
 The inspected feature branch is a React 18 + TypeScript + Vite app with React Router, Zustand/localStorage persistence, Tailwind, PWA tooling and Capacitor Android configuration. It contains Firebase SDK/Auth/Firestore code and a legacy Firebase rules file. Existing pages cover expenses, income, budgets, bills, savings, debts, reports, planner, insights, settings and legal content.
 
