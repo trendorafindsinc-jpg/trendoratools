@@ -66,7 +66,7 @@ export default function Settings() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `trendora-tools-backup-${stamp}.json`;
+      a.download = `ariovelle-backup-${stamp}.json`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -160,7 +160,7 @@ export default function Settings() {
   const themeBtn = (mode: ThemePreference, active: boolean) =>
     `flex items-center justify-center gap-2 px-3 py-3 rounded-xl border text-sm font-medium transition ${
       active
-        ? 'border-violet-500/50 bg-violet-500/15 text-violet-600'
+        ? 'border-[var(--accent-gold)] bg-[var(--nav-active-bg)] text-[var(--accent-gold)]'
         : 'border-[var(--glass-border)] text-[var(--text-secondary)] hover:bg-[var(--nav-hover)]'
     }`;
 
@@ -189,7 +189,7 @@ export default function Settings() {
         <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-faint)] px-1">Appearance</h2>
         <Card title="Theme">
           <div className="flex items-start gap-3 mb-5">
-            <div className="w-10 h-10 rounded-xl bg-violet-500/15 flex items-center justify-center text-violet-400">
+            <div className="w-10 h-10 rounded-xl bg-[var(--nav-active-bg)] flex items-center justify-center text-[var(--accent-gold)]">
               <Palette size={19} />
             </div>
             <div>
@@ -241,13 +241,13 @@ export default function Settings() {
           ) : isGuest ? (
             <div className="space-y-4">
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-xl bg-cyan-500/15 flex items-center justify-center text-cyan-400">
+                <div className="w-10 h-10 rounded-xl bg-[var(--nav-active-bg)] flex items-center justify-center text-[var(--accent-gold)]">
                   <LogIn size={19} />
                 </div>
                 <div>
                   <h3 className="font-semibold text-[var(--text-primary)]">Guest mode</h3>
                   <p className="text-sm text-[var(--text-muted)] mt-1">
-                    You are using Trendora Tools without a LUCIA ID. Sign in to enable Lucia Cloud backup and sync.
+                    You are using Ariovelle without a LUCIA ID. Sign in to enable Lucia Cloud backup and sync.
                   </p>
                 </div>
               </div>
@@ -332,15 +332,13 @@ export default function Settings() {
 
       <section className="space-y-3">
         <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-faint)] px-1">About</h2>
-        <Card title="Trendora Tools">
+        <Card title="Ariovelle">
           <p className="text-sm text-[var(--text-muted)] leading-relaxed">
-            Trendora Tools is a product of <strong className="text-[var(--text-secondary)]">Trendora</strong>, under{' '}
-            <strong className="text-[var(--text-secondary)]">LUCIA</strong>. It is local-first software for practical
-            financial tracking, planning, and deterministic insights. Optional Lucia Cloud backup is available only for
-            authenticated LUCIA ID users. Firebase and related services are configured via deployment environment
-            variables and are never hard-coded in the source repository.
+            Ariovelle is a financial platform by <strong className="text-[var(--text-secondary)]">Lucia LLC</strong>, bringing
+            personal finance, business finance, financial intelligence, markets, and planning into one workspace.
+            Existing account, backup, and integration capabilities are being reviewed as part of the platform rebuild.
           </p>
-          <p className="text-xs text-[var(--text-faint)] mt-4">Version 1.2 · © LUCIA / Trendora</p>
+          <p className="text-xs text-[var(--text-faint)] mt-4">Version 1.3 · © Lucia LLC</p>
         </Card>
       </section>
     </div>
