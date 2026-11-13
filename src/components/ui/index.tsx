@@ -5,6 +5,7 @@ import {
   useState,
   type ButtonHTMLAttributes,
   type InputHTMLAttributes,
+  type KeyboardEvent as ReactKeyboardEvent,
   type ReactNode,
   type SelectHTMLAttributes,
 } from 'react';
@@ -147,9 +148,10 @@ export function Skeleton({ className = '', label = 'Loading' }: { className?: st
 }
 
 export function EmptyState({ title, description, action }: { title: string; description: string; action?: ReactNode }) {
+  const titleId = useId();
   return (
-    <section className="rounded-2xl border border-dashed border-[var(--glass-border)] bg-[var(--surface)] px-6 py-10 text-center" aria-labelledby="empty-state-title">
-      <h2 id="empty-state-title" className="text-base font-semibold text-[var(--text-primary)]">{title}</h2>
+    <section className="rounded-2xl border border-dashed border-[var(--glass-border)] bg-[var(--surface)] px-6 py-10 text-center" aria-labelledby={titleId}>
+      <h2 id={titleId} className="text-base font-semibold text-[var(--text-primary)]">{title}</h2>
       <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[var(--text-muted)]">{description}</p>
       {action && <div className="mt-5 flex justify-center">{action}</div>}
     </section>
@@ -188,7 +190,7 @@ export function Tabs({ items, value, defaultValue, onValueChange, label = 'Secti
     if (value === undefined) setInternalValue(next);
     onValueChange?.(next);
   };
-  const onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+  const onKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
     const enabled = items.map((item, index) => ({ item, index })).filter(entry => !entry.item.disabled);
     const current = enabled.findIndex(entry => entry.item.value === active);
     let nextIndex = current;
@@ -303,8 +305,8 @@ function OverlaySurface({ open, onClose, title, description, children, kind }: {
         if (!focusable.length) { event.preventDefault(); return; }
         const first = focusable[0];
         const last = focusable[focusable.length - 1];
-        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
-        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+        if (event.shiftKey && (document.activeElement === first || !panelRef.current?.contains(document.activeElement))) { event.preventDefault(); last.focus(); }
+        else if (!event.shiftKey && (document.activeElement === last || !panelRef.current?.contains(document.activeElement))) { event.preventDefault(); first.focus(); }
       }
     };
     document.addEventListener('keydown', handleKeyDown);
