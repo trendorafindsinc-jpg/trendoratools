@@ -60,8 +60,8 @@ export function createPkcePair() {
   return { verifier, challenge: b64url(createHash('sha256').update(verifier).digest()) };
 }
 export type OAuthTransaction = { state:string; nonce:string; verifier:string; createdAt:number };
-const TX_COOKIE = '__Host-ariovelle_oauth_tx';
-const SESSION_COOKIE = '__Host-ariovelle_session';
+const TX_COOKIE = 'ariovelle_oauth_tx';
+const SESSION_COOKIE = 'ariovelle_session';
 export const luciaCookieNames = { transaction: TX_COOKIE, session: SESSION_COOKIE };
 function encryptionKey(secret:string):Buffer { return createHash('sha256').update(secret).digest(); }
 export function sealOAuthTransaction(tx:OAuthTransaction, secret:string):string {
@@ -83,12 +83,7 @@ export function openOAuthTransaction(value:string,secret:string,now=Date.now()):
 }
 export function constantTimeEqual(a:string,b:string):boolean {
   const aa=Buffer.from(a),bb=Buffer.from(b);
-  return aa.length===bb.length && (awaitlessTimingSafeEqual(aa,bb));
-}
-function awaitlessTimingSafeEqual(a:Buffer,b:Buffer):boolean {
-  // Fixed-length hash comparison avoids length-dependent timing behavior.
-  const ah=createHash('sha256').update(a).digest(), bh=createHash('sha256').update(b).digest();
-  return ah.equals(bh) && a.length===b.length;
+  return aa.length===bb.length && timingSafeEqual(aa,bb);
 }
 export function buildCookie(name:string,value:string,options:{maxAge:number;secure:boolean;httpOnly?:boolean;sameSite?:string}):string {
   return name+'='+value+'; Path=/; Max-Age='+options.maxAge+'; HttpOnly; SameSite='+(options.sameSite??'Lax')+(options.secure?'; Secure':'');
