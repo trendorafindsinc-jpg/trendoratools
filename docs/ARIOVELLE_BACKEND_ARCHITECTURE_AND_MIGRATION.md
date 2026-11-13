@@ -29,6 +29,17 @@ Codex MUST follow these rules. They are acceptance requirements, not suggestions
 14. Before every implementation step, state its scope, files to change, data/security implications and tests. Make small changes. Run actual tests/build and report exact outcomes.
 15. If a required input is missing, stop at an interface or documented TODO with a clear blocker. Do not guess to make the build appear complete.
 
+## 0.1 Legacy beta data disposition — owner decision (2026-11-13)
+
+The owner has confirmed that the existing Firebase accounts and records belong only to beta testers and are not real customer data. **Ariovelle will not migrate legacy Firebase Auth users, Firestore records, or local beta-tester records into the new PostgreSQL application.** The Firebase export/reconciliation runbook is retained as historical documentation only; no owner export is required for the new-build path.
+
+Implementation consequences:
+- Treat the new Ariovelle data model as a clean start. New users receive new Ariovelle internal UUIDs and link only through the approved Lucia ID integration once its official technical documentation is available.
+- Do not import Firebase UIDs as external identities, do not map legacy email addresses to Lucia ID accounts, and do not seed production with beta-tester financial records.
+- Preserve the legacy Firebase implementation and existing deployment until the replacement has passed acceptance and the owner separately approves retirement. The decision not to migrate beta data is not permission to delete or alter the Firebase project.
+- If the owner later requests recovery of beta records, treat that as a new, separately scoped export/import project with explicit approval.
+- The initial PostgreSQL schema may include migration provenance tables for future controlled imports, but no Firebase migration batch should be created by default.
+
 ## 1. Audit scope and observed baseline
 
 This specification is based on a read-only inspection of selected files on the Ariovelle feature branch on 2026-11-13. It is deeper than the earlier default-branch baseline, but it is not a complete local runtime, security or data audit. Codex must continue inspecting the full repository before modifying relevant code.
