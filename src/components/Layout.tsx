@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
-import { Activity, Bell, BrainCircuit, Building2, BarChart3, ChevronDown, CircleHelp, FileText, Gauge, Home, Landmark, LayoutDashboard, Menu, Moon, MoreHorizontal, PiggyBank, ReceiptText, Settings2, Sun, Target, Wallet, X } from 'lucide-react';
+import { Activity, Bell, BrainCircuit, Building2, BarChart3, ChevronDown, HelpCircle, FileText, Gauge, Home, Landmark, LayoutDashboard, Menu, Moon, MoreHorizontal, PiggyBank, ReceiptText, Settings2, Sun, Target, Wallet, X } from 'lucide-react';
 import { applyTheme, getStoredPreference, type ThemePreference } from '../lib/theme';
 
 const groups = [
