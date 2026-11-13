@@ -20,6 +20,7 @@ import Reports from './pages/Reports';
 import Insights from './pages/Insights';
 import Settings from './pages/Settings';
 import Legal from './pages/Legal';
+import ProductArea from './pages/ProductArea';
 
 const WELCOME_KEY = 'trendora_tools_welcome_seen';
 const GUEST_KEY = 'trendora_tools_guest_mode';
@@ -118,6 +119,10 @@ export default function App() {
           <Route path="/debts" element={<Debts />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/insights" element={<Insights />} />
+          <Route path="/business" element={<ProductArea area="business" />} />
+          <Route path="/ai" element={<ProductArea area="ai" />} />
+          <Route path="/markets" element={<ProductArea area="markets" />} />
+          <Route path="/planning" element={<ProductArea area="planning" />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/legal/:page" element={<Legal />} />
         </Route>
