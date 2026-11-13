@@ -103,10 +103,10 @@ export function LuciaAuth({ onGuest }: { onGuest: () => void }) {
           </div>
 
           {!isFirebaseConfigured && (
-            <div className="mb-5 text-sm glass-card p-3 flex gap-2 text-amber-700 theme-dark:text-amber-200 border border-amber-500/25">
+            <div role="status" className="mb-5 text-sm glass-card p-3 flex gap-2 text-amber-700 theme-dark:text-amber-200 border border-amber-500/25">
               <AlertCircle size={17} className="shrink-0 mt-0.5" />
               <span>
-                Sign-in is unavailable until Firebase is configured on this host (VITE_FIREBASE_* env vars). You can
+                Sign-in is unavailable until the current identity provider is configured for this deployment. You can
                 still continue as a guest — data stays on this device.
               </span>
             </div>
@@ -199,7 +199,8 @@ export function LuciaAuth({ onGuest }: { onGuest: () => void }) {
             )}
             {message && (
               <div
-                role={isError ? 'alert' : 'status'} aria-live={isError ? 'assertive' : 'polite'}\n                className={`text-sm glass-card p-3 flex gap-2 ${
+                role={isError ? 'alert' : 'status'} aria-live={isError ? 'assertive' : 'polite'}
+                className={`text-sm glass-card p-3 flex gap-2 ${
                   isError ? 'text-rose-600 theme-dark:text-rose-300' : 'text-[var(--text-secondary)]'
                 }`}
               >
@@ -265,7 +266,7 @@ export function LuciaAuth({ onGuest }: { onGuest: () => void }) {
                 </button>
               </>
             ) : (
-              <button type="button" onClick={() => setMode('signin')} className="text-violet-500 hover:text-violet-400">
+              <button type="button" onClick={() => setMode('signin')} className="text-[var(--accent-gold)] hover:opacity-80">
                 Already have a LUCIA ID? Sign in
               </button>
             )}
