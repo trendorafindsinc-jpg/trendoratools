@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
-import { Bell, BrainCircuit, Building2, ChartNoAxesCombined, ChevronDown, CircleHelp, FileChartColumnIncreasing, Gauge, Home, Landmark, LayoutDashboard, Menu, Moon, MoreHorizontal, PiggyBank, ReceiptText, Settings2, Sun, Target, Wallet, X } from 'lucide-react';
+import { Activity, Bell, BrainCircuit, Building2, BarChart3, ChevronDown, CircleHelp, FileText, Gauge, Home, Landmark, LayoutDashboard, Menu, Moon, MoreHorizontal, PiggyBank, ReceiptText, Settings2, Sun, Target, Wallet, X } from 'lucide-react';
 import { applyTheme, getStoredPreference, type ThemePreference } from '../lib/theme';
 
 const groups = [
  { title:'Workspace', items:[{to:'/',label:'Overview',icon:LayoutDashboard}] },
- { title:'Manage money', items:[{to:'/expenses',label:'Transactions',icon:Wallet},{to:'/budget',label:'Budgets',icon:Gauge},{to:'/bills',label:'Bills & recurring',icon:ReceiptText},{to:'/savings',label:'Savings goals',icon:PiggyBank},{to:'/debts',label:'Debt management',icon:Landmark},{to:'/reports',label:'Reports',icon:FileChartColumnIncreasing}] },
- { title:'Intelligence', items:[{to:'/business',label:'Business finance',icon:Building2},{to:'/ai',label:'AI intelligence',icon:BrainCircuit},{to:'/markets',label:'Global markets',icon:ChartNoAxesCombined},{to:'/planning',label:'Financial planning',icon:Target}] }
+ { title:'Manage money', items:[{to:'/expenses',label:'Transactions',icon:Wallet},{to:'/budget',label:'Budgets',icon:Gauge},{to:'/bills',label:'Bills & recurring',icon:ReceiptText},{to:'/savings',label:'Savings goals',icon:PiggyBank},{to:'/debts',label:'Debt management',icon:Landmark},{to:'/reports',label:'Reports',icon:FileText}] },
+ { title:'Intelligence', items:[{to:'/business',label:'Business finance',icon:Building2},{to:'/ai',label:'AI intelligence',icon:BrainCircuit},{to:'/markets',label:'Global markets',icon:BarChart3},{to:'/planning',label:'Financial planning',icon:Target}] }
 ];
 const mobile=[{to:'/',label:'Home',icon:Home},{to:'/expenses',label:'Finance',icon:Wallet},{to:'/ai',label:'AI',icon:BrainCircuit},{to:'/markets',label:'Markets',icon:Activity}];
 
@@ -23,7 +23,7 @@ export function Layout(){
  return <div className="ari-shell">
   <aside className="ari-sidebar" aria-label="Main navigation">
    <NavLink to="/" className="ari-brand"><span className="ari-brand-mark">A</span><span><span className="ari-brand-name">ariovelle</span><span className="ari-brand-caption">A PRODUCT OF LUCIA</span></span></NavLink>
-   <button className="ari-workspace-switch" type="button"><span className="ari-workspace-avatar">P</span><span className="min-w-0 text-left"><b className="block text-xs">Personal workspace</b><small className="ari-muted">Individual account</small></span><ChevronDown size={15} className="ml-auto ari-muted"/></button>
+   <div className="ari-workspace-switch"><span className="ari-workspace-avatar">P</span><span className="min-w-0 text-left"><b className="block text-xs">Personal workspace</b><small className="ari-muted">Individual account</small></span><ChevronDown size={15} className="ml-auto ari-muted"/></div>
    <nav className="ari-nav">{nav()}</nav>
    <div className="ari-sidebar-bottom"><div className="ari-plan-card"><span className="ari-plan-kicker">YOUR PLAN</span><strong>Free plan</strong><span className="ari-muted text-xs">Explore more with Ariovelle Pro.</span><NavLink to="/settings" className="ari-plan-link">Explore plans ↗</NavLink></div><NavLink to="/settings" className="ari-nav-link"><Settings2 size={17}/>Settings</NavLink><span className="ari-nav-link" aria-label="Help and support information"><CircleHelp size={17}/>Help & support</span><div className="ari-sidebar-footer">© {new Date().getFullYear()} Lucia LLC</div></div>
   </aside>
