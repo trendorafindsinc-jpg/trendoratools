@@ -83,13 +83,8 @@ $function$;
 
 REVOKE ALL ON ALL FUNCTIONS IN SCHEMA app_private FROM PUBLIC;
 
-GRANT USAGE ON SCHEMA app_private TO PUBLIC;
-GRANT EXECUTE ON FUNCTION app_private.current_user_id() TO PUBLIC;
-GRANT EXECUTE ON FUNCTION app_private.current_workspace_id() TO PUBLIC;
--- Membership helpers are callable by policies; PUBLIC execution reveals only booleans.
-GRANT EXECUTE ON FUNCTION app_private.is_active_workspace_member(UUID) TO PUBLIC;
-GRANT EXECUTE ON FUNCTION app_private.is_workspace_owner(UUID) TO PUBLIC;
-GRANT EXECUTE ON FUNCTION app_private.is_workspace_admin(UUID) TO PUBLIC;
+-- Runtime execution is granted to the dedicated role after it is provisioned.
+-- Do not grant schema access or helper execution to PUBLIC.
 
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.external_identities ENABLE ROW LEVEL SECURITY;
