@@ -14,7 +14,7 @@ export class ServerConfigError extends Error {
 
 /**
  * Parse server-only environment variables without reading process.env at module
- * load time. DATABASE_URL is optional until a database adapter is approved.
+ * load time. DATABASE_URL remains optional until an application runtime connection is explicitly approved.
  * Never pass this configuration to browser code or include it in API responses.
  */
 export function readServerConfig(
