@@ -90,17 +90,19 @@
 
 ## 3. Phase 1 — product foundation and design system
 
-- [ ] Add Ariovelle brand tokens and approved brand lockup.
-- [ ] Establish semantic color tokens for dark/light themes.
-- [ ] Establish type scale, spacing, radii, elevation, borders and chart palette.
-- [ ] Create shared primitives: Button, Input, Select, Card, Dialog, Drawer, Tabs, Table, Badge, Tooltip, Toast, Skeleton, EmptyState, ErrorState.
-- [ ] Create responsive AppShell: desktop sidebar, tablet drawer/rail, mobile bottom nav.
-- [ ] Add workspace switcher, global search shell, notifications and user menu.
-- [ ] Implement theme preference: light/dark/system if supported by design.
-- [ ] Verify contrast, focus states, keyboard support and reduced motion.
+**Acceptance status (2026-11-13): conditional; do not treat this phase as fully accepted yet.**
+
+- [x] Add Ariovelle brand tokens and approved geometric mark/brand lockup.
+- [x] Establish semantic color tokens for dark/light themes.
+- [ ] Establish and document the complete type scale, spacing, radii, elevation, borders and chart palette.
+- [ ] Create the complete shared primitive set: Button, Input, Select, Card, Dialog, Drawer, Tabs, Table, Badge, Tooltip, Toast, Skeleton, EmptyState and ErrorState. Current implementation includes Card and compatibility styles; the full set is not yet built.
+- [x] Create the responsive AppShell with desktop sidebar, topbar, mobile bottom navigation and mobile navigation drawer. Tablet visual acceptance remains open; tablet currently retains the compact sidebar.
+- [ ] Complete functional workspace switching, global search, notifications and user menu. Current workspace identity is static, search is explicitly marked coming soon, inactive notifications were removed, and the profile shortcut opens Settings.
+- [x] Implement dark/light/system theme preference and synchronize the shell with Settings.
+- [ ] Complete contrast, focus, keyboard, reduced-motion and screen-reader acceptance. Targeted contrast calculations and source-level keyboard/status checks are documented; full browser-based and automated accessibility audits remain open.
 - [ ] Add component examples or Storybook only if it fits existing tooling.
 
-**Exit gate:** design system works at mobile, tablet and desktop widths with no horizontal overflow.
+**Exit gate:** design system works at mobile, tablet and desktop widths with no horizontal overflow, keyboard and assistive-technology acceptance, and a reusable primitive set. Screenshot captures exist, but the signed-in workspace and image-level visual inspection still require a connected browser/user review.
 
 ## 4. Phase 2 — navigation and screen scaffolding
 
