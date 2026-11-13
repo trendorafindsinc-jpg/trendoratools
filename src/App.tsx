@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import type { User } from 'firebase/auth';
 import { Layout } from './components/Layout';
@@ -8,19 +8,19 @@ import { LuciaAuth } from './components/LuciaAuth';
 import { completeGoogleRedirectIfAny, subscribeToLuciaAuth } from './lib/lucia-auth';
 import { startLuciaCloudSync, stopLuciaCloudSync, subscribeToLuciaCloudSync } from './lib/lucia-cloud-sync';
 import { analytics } from './lib/analytics';
-import Home from './pages/Home';
-import Planner from './pages/Planner';
-import Expenses from './pages/Expenses';
-import Income from './pages/Income';
-import Budget from './pages/Budget';
-import Bills from './pages/Bills';
-import Savings from './pages/Savings';
-import Debts from './pages/Debts';
-import Reports from './pages/Reports';
-import Insights from './pages/Insights';
-import Settings from './pages/Settings';
-import Legal from './pages/Legal';
-import ProductArea from './pages/ProductArea';
+const Home = lazy(() => import('./pages/Home'));
+const Planner = lazy(() => import('./pages/Planner'));
+const Expenses = lazy(() => import('./pages/Expenses'));
+const Income = lazy(() => import('./pages/Income'));
+const Budget = lazy(() => import('./pages/Budget'));
+const Bills = lazy(() => import('./pages/Bills'));
+const Savings = lazy(() => import('./pages/Savings'));
+const Debts = lazy(() => import('./pages/Debts'));
+const Reports = lazy(() => import('./pages/Reports'));
+const Insights = lazy(() => import('./pages/Insights'));
+const Settings = lazy(() => import('./pages/Settings'));
+const Legal = lazy(() => import('./pages/Legal'));
+const ProductArea = lazy(() => import('./pages/ProductArea'));
 
 const WELCOME_KEY = 'trendora_tools_welcome_seen';
 const GUEST_KEY = 'trendora_tools_guest_mode';
@@ -106,6 +106,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <AnalyticsTracker />
+      <Suspense fallback={<div className="ari-route-loading" role="status" aria-live="polite">Loading workspace…</div>}>
       <Routes>
         <Route element={<Layout />}>
           <Route path="/" element={<Home />} />
@@ -127,6 +128,7 @@ export default function App() {
           <Route path="/legal/:page" element={<Legal />} />
         </Route>
       </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 }
