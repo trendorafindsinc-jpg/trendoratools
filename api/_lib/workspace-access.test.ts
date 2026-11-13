@@ -1,19 +1,19 @@
 import { describe, expect, it, vi } from 'vitest';
 import { authorizeWorkspacePermission, type VerifiedInternalUserId } from './workspace-access';
+import type { SqlExecutor } from './database';
 
 const userId = '00000000-0000-4000-8000-000000000001' as VerifiedInternalUserId;
 const workspaceId = '00000000-0000-4000-8000-000000000002';
 
 function dbWith(row?: Record<string, unknown>) {
-  return {
-    query: vi.fn(async <Row extends Record<string, unknown>>(
-      _sql: string,
-      _params?: readonly unknown[],
-    ) => ({
-      rows: (row ? [row] : []) as Row[],
-      rowCount: row ? 1 : 0,
-    })),
-  };
+  const query = vi.fn(async (
+    _sql: string,
+    _params?: readonly unknown[],
+  ) => ({
+    rows: row ? [row] : [],
+    rowCount: row ? 1 : 0,
+  }));
+  return { query } as unknown as SqlExecutor & { query: typeof query };
 }
 
 describe('workspace permission authorization', () => {
