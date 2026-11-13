@@ -10,22 +10,17 @@ export class WorkspaceContextError extends Error {
   }
 }
 
-type ContextCheckRow = { allowed: boolean };
-
 /**
- * Runs work in one database transaction with transaction-local identity and
- * workspace GUCs. userId must be created only by a verified server identity
- * adapter. The workspace is revalidated by PostgreSQL before work executes.
- *
- * SET LOCAL semantics are implemented with set_config(..., true), so context
- * is cleared automatically at COMMIT/ROLLBACK and cannot leak through pooling.
+ * Establish transaction-local identity and workspace context on an existing
+ * transaction. This is exported so authentication, membership checks and
+ * protected queries can share one transaction without a session-revocation
+ * race between separate database transactions.
  */
-export async function withVerifiedRequestContext<Result>(
-  db: DatabaseAdapter,
+export async function setVerifiedRequestContext(
+  transaction: SqlExecutor,
   userId: VerifiedInternalUserId,
   workspaceId: string,
-  work: (transaction: SqlExecutor) => Promise<Result>,
-): Promise<Result> {
+): Promise<void> {
   if (!UUID_PATTERN.test(userId)) {
     throw new WorkspaceContextError('Verified internal user ID must be a UUID.');
   }
@@ -33,22 +28,35 @@ export async function withVerifiedRequestContext<Result>(
     throw new WorkspaceContextError('Workspace ID must be a UUID.');
   }
 
+  await transaction.query(
+    `SELECT
+       set_config('app.user_id', $1, true),
+       set_config('app.workspace_id', $2, true)`,
+    [userId, workspaceId],
+  );
+
+  const check = await transaction.query<{ allowed: boolean }>(
+    'SELECT app_private.is_active_workspace_member($1::uuid) AS allowed',
+    [workspaceId],
+  );
+  if (check.rows[0]?.allowed !== true) {
+    throw new WorkspaceContextError('Verified user is not an active member of this workspace.');
+  }
+}
+
+/**
+ * Runs work in one database transaction with transaction-local identity and
+ * workspace GUCs. The workspace is revalidated by PostgreSQL before work.
+ * set_config(..., true) clears the context automatically at COMMIT/ROLLBACK.
+ */
+export async function withVerifiedRequestContext<Result>(
+  db: DatabaseAdapter,
+  userId: VerifiedInternalUserId,
+  workspaceId: string,
+  work: (transaction: SqlExecutor) => Promise<Result>,
+): Promise<Result> {
   return db.transaction(async (transaction) => {
-    await transaction.query(
-      `SELECT
-         set_config('app.user_id', $1, true),
-         set_config('app.workspace_id', $2, true)`,
-      [userId, workspaceId],
-    );
-
-    const check = await transaction.query<ContextCheckRow>(
-      'SELECT app_private.is_active_workspace_member($1::uuid) AS allowed',
-      [workspaceId],
-    );
-    if (check.rows[0]?.allowed !== true) {
-      throw new WorkspaceContextError('Verified user is not an active member of this workspace.');
-    }
-
+    await setVerifiedRequestContext(transaction, userId, workspaceId);
     return work(transaction);
   });
 }

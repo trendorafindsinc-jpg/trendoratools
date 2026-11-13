@@ -19,13 +19,17 @@ CREATE OR REPLACE FUNCTION app_private.establish_lucia_identity(
 LANGUAGE plpgsql SECURITY DEFINER
 SET search_path = pg_catalog, public, app_private
 AS $$
-DECLARE v_user UUID; v_workspace UUID; v_identity UUID;
+DECLARE v_user UUID; v_workspace UUID;
 BEGIN
   IF length(trim(p_issuer))=0 OR length(trim(p_subject))=0 OR p_session_hash !~ '^[0-9a-f]{64}$'
      OR p_expires_at <= now() OR p_expires_at > now()+interval '31 days' THEN
     RAISE EXCEPTION 'invalid identity/session input' USING ERRCODE='22023';
   END IF;
-  PERFORM pg_advisory_xact_lock(hashtextextended(p_issuer || chr(0) || p_subject, 0));
+  -- Length-prefix both components; PostgreSQL text cannot contain chr(0).
+  PERFORM pg_advisory_xact_lock(hashtextextended(
+    octet_length(p_issuer)::text || ':' || p_issuer ||
+    octet_length(p_subject)::text || ':' || p_subject, 0
+  ));
   SELECT ei.user_id INTO v_user FROM public.external_identities ei
    WHERE ei.provider='lucia' AND ei.issuer=p_issuer AND ei.subject=p_subject FOR UPDATE;
   IF v_user IS NULL THEN
