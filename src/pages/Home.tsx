@@ -14,13 +14,13 @@ export default function Home() {
         <div className="space-y-7">
           <div className="inline-flex items-center gap-2 px-4 py-2 glass-card">
             <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-xs text-[var(--text-secondary)] font-medium">A Trendora product · LUCIA</span>
+            <span className="text-xs text-[var(--text-secondary)] font-medium">A product of Lucia</span>
           </div>
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-gradient-brand leading-[1.1]">
             Take control of your money.
           </h1>
           <p className="text-lg sm:text-xl text-[var(--text-muted)] max-w-lg">
-            Trendora Tools helps you understand your financial reality, plan with confidence, and get
+            Ariovelle helps you understand your financial reality, plan with confidence, and get
             things done — with exact math, not guesses.
           </p>
           <div className="flex flex-wrap gap-3">
@@ -48,7 +48,7 @@ export default function Home() {
         <div className="text-center max-w-2xl mx-auto">
           <h2 className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)] mb-3">Powerful tools. Simply done.</h2>
           <p className="text-[var(--text-muted)]">
-            Everything you need to track spending, set budgets, and grow savings — on your device.
+            A clearer view of your personal finances, business performance and global markets — in one place.
           </p>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -97,7 +97,7 @@ export default function Home() {
               </div>
               <div>
                 <div className="font-semibold text-[var(--text-primary)]">Private by design</div>
-                <div className="text-xs text-[var(--text-faint)]">Your financial records stay on your device by default.</div>
+                <div className="text-xs text-[var(--text-faint)]">Your financial data, managed with care.</div>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-2 text-xs">
