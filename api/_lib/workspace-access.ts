@@ -12,7 +12,7 @@ export type VerifiedInternalUserId = string & { readonly __verifiedInternalUserI
 
 const ROLE_PERMISSIONS: Record<WorkspaceRole, ReadonlySet<WorkspacePermission>> = {
   owner: new Set(['workspace:read', 'finance:read', 'finance:write', 'members:manage', 'settings:manage']),
-  admin: new Set(['workspace:read', 'finance:read', 'finance:write', 'members:manage', 'settings:manage']),
+  admin: new Set(['workspace:read', 'finance:read', 'finance:write', 'members:manage']),
   member: new Set(['workspace:read', 'finance:read', 'finance:write']),
   viewer: new Set(['workspace:read', 'finance:read']),
 };
