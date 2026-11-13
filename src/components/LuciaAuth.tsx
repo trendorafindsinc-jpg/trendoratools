@@ -252,7 +252,7 @@ export function LuciaAuth({ onGuest }: { onGuest: () => void }) {
               </button>
             ) : mode === 'signin' ? (
               <>
-                <button type="button" onClick={() => setMode('signup')} className="text-violet-500 hover:text-violet-400">
+                <button type="button" onClick={() => setMode('signup')} className="text-[var(--accent-gold)] hover:opacity-80">
                   Create a LUCIA ID
                 </button>
                 <span className="mx-2">·</span>
