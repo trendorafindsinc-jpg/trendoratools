@@ -225,3 +225,15 @@ Required next input/action: an owner-authorized Firestore export or read-only in
 **Local build/test/runtime/security validation: not run in this environment.**
 
 No Firebase code, Firebase project, Firestore data, customer records, user devices, authentication accounts, production deployment or domain configuration was modified by this audit.
+
+
+## 11. API scaffold follow-up
+
+After the source inventory commit, the feature branch gained a health-only Vercel API scaffold:
+- `api/_lib/http.ts`: shared response helpers, request IDs and no-store/security headers.
+- `api/health/live.ts`: GET-only liveness probe.
+- `api/health/ready.ts`: GET-only scaffold readiness probe. It explicitly reports database and identity provider as `not_configured`.
+- `api/health/health.test.ts`: four endpoint behavior tests.
+- Root `tsconfig.json` now includes `api` so the API code is typechecked with the application.
+
+This does not close the remote-data inventory gap and does not connect to Firebase, Lucia ID, PostgreSQL or financial records. The API scaffold has not been deployed. CI status is recorded separately after the workflow completes.
