@@ -231,7 +231,7 @@ export default function Legal() {
           {data.body}
         </div>
         <p className="text-xs text-[var(--text-faint)] pt-8 border-t border-[var(--divider)]">
-          {PRODUCT} is a product of {BRAND}, under {COMPANY}. Last updated: {LAST_UPDATED}.
+          {PRODUCT} is a product of {COMPANY}. Last updated: {LAST_UPDATED}.
         </p>
       </div>
     </div>
