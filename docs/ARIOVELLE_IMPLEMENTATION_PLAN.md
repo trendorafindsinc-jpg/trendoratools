@@ -1,6 +1,24 @@
 # Ariovelle Implementation Plan
 
-**Status:** Planning baseline. No implementation completion is implied by this document.  
+**Status:** Phase 1 foundation committed to `feat/ariovelle-phase-1-design-system`; local build and visual QA are still pending.
+
+## Progress log — 2026-11-13
+
+### Phase 1 initial foundation (committed, verification pending)
+- [x] Replaced the old top-level navigation shell with Ariovelle's responsive sidebar, topbar and mobile bottom navigation.
+- [x] Added dark/light Ariovelle navy, ivory and champagne-gold theme tokens; preserved legacy theme preference as a read fallback.
+- [x] Added a central theme toggle in the application shell.
+- [x] Added route scaffolds for Business Finance, AI Intelligence, Global Markets and Financial Planning, with explicit not-connected/planned messaging.
+- [x] Added compatibility styles so existing finance pages retain their shared glass/card/button primitives during gradual migration.
+- [x] Rebranded the existing home page's visible product references.
+- [ ] Run local install, typecheck/build and tests.
+- [ ] Inspect desktop, tablet and mobile screenshots; fix responsive/accessibility issues.
+- [ ] Complete reusable component primitives and theme preference settings integration.
+- [ ] Confirm whether any legacy UI dependencies remain before moving to Phase 2.
+
+**Verification limitation:** GitHub source edits were committed through the repository connector. A local checkout/runtime was not available in this step, so no npm install, test, build, browser visual test or deployment was run. Do not mark Phase 1 fully accepted until these checks pass.
+
+  
 **Working branch:** `docs/ariovelle-product-blueprint` for documentation changes. Create separate implementation branches from the agreed base as needed.
 
 ## 1. Execution principles
