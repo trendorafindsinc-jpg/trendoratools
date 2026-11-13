@@ -1,6 +1,6 @@
 # Ariovelle ↔ Lucia Core Identity Integration Contract
 
-Status: implementation specification; authentication remains disabled.
+Status: implementation contract; authentication remains disabled. See [runtime verification findings](ARIOVELLE_LUCIA_CORE_RUNTIME_VERIFICATION.md) for blockers discovered in the current Core source and linked Vercel project.
 
 Source of truth inspected read-only:
 - Repository: https://github.com/trendorafindsinc-jpg/lucia-core
@@ -48,7 +48,7 @@ Provisioning inputs supported by Core include:
 
 Use a dedicated audience for Ariovelle, agreed during provisioning. Register only the exact callback URI(s), including scheme, host, path and any required port. Production callback must use HTTPS. Keep client secret in server-side secret storage; never expose it in Vite variables, browser bundles, source control, logs or client responses.
 
-No client has been registered as part of this documentation work.
+No client has been registered as part of this implementation work. The linked Core Vercel project is currently reported as not live, with its latest deployment canceled and no Ariovelle consumer variables present. See the runtime verification report.
 
 ## 4. Authorization-code flow
 
@@ -77,7 +77,7 @@ No client has been registered as part of this documentation work.
 
 ## 5. Token response: two distinct JWTs
 
-The inspected Core implementation returns an access assertion and, when the granted scope contains `openid`, an OIDC ID token. They are not interchangeable.
+The inspected Core token route returns an access assertion and, when the granted scope contains `openid`, attempts to issue an OIDC ID token. They are not interchangeable. **Current Core main has a nonce propagation defect:** `exchangeAuthorizationCode()` does not return the nonce stored on the consumed authorization-code row, so the token route passes `null` to `maybeIssueIdToken()` and the ID token omits `nonce`. Ariovelle rejects that token by design. Do not weaken nonce validation; Core must be corrected and redeployed first.
 
 ### Consumer access assertion
 
@@ -170,3 +170,4 @@ Do not probe or alter production Core settings as part of this specification. Do
 ## 11. Explicitly out of scope
 
 This contract does not authorize changes to Lucia Core, client registration, production secrets, deployment, Firebase deletion, data migration, financial writes, payment processing or production database changes.
+\n\n## 12. Implementation status and fail-closed runtime gate\n\nAriovelle now contains a server-side adapter, OAuth start/callback routes, local hashed session persistence, logout/revocation, and a workspace wrapper that resolves the local session before setting transaction-local RLS context. These routes remain disabled unless `LUCIA_AUTH_ENABLED=true` is explicitly configured. Migration 0004 is source-only until applied to the disposable development database.\n\nThe current Core source drops the authorization request nonce before ID-token issuance, and the linked Vercel Core project is not live. Therefore there is no successful live discovery/JWKS/token/UserInfo verification. Login must remain disabled until Core is fixed, deployed, and end-to-end tested.\n
