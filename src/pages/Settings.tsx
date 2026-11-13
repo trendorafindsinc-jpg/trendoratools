@@ -270,7 +270,7 @@ export default function Settings() {
         <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-faint)] px-1">Data &amp; backup</h2>
         <Card title="Lucia Cloud">
           <div className="flex items-start gap-3 mb-5">
-            <div className="w-10 h-10 rounded-xl bg-violet-500/15 flex items-center justify-center text-violet-400">
+            <div className="w-10 h-10 rounded-xl bg-[var(--nav-active-bg)] flex items-center justify-center text-[var(--accent-gold)]">
               <Cloud size={19} />
             </div>
             <div>
