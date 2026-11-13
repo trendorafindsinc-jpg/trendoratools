@@ -40,19 +40,30 @@ export function sendJson(
   response.status(statusCode).json({ ...body, requestId });
 }
 
+
+export function sendError(
+  response: ApiResponse,
+  statusCode: number,
+  code: string,
+  message: string,
+) {
+  const requestId = createRequestId();
+  applyResponseHeaders(response, requestId);
+  const body: ApiErrorBody = {
+    error: { code, message, requestId },
+  };
+  response.status(statusCode).json(body);
+}
+
 export function sendMethodNotAllowed(
   response: ApiResponse,
   allowedMethods: readonly string[],
 ) {
-  const requestId = createRequestId();
-  applyResponseHeaders(response, requestId);
   response.setHeader('Allow', allowedMethods.join(', '));
-  const body: ApiErrorBody = {
-    error: {
-      code: 'METHOD_NOT_ALLOWED',
-      message: `Only ${allowedMethods.join(', ')} is supported for this endpoint.`,
-      requestId,
-    },
-  };
-  response.status(405).json(body);
+  return sendError(
+    response,
+    405,
+    'METHOD_NOT_ALLOWED',
+    `Only ${allowedMethods.join(', ')} is supported for this endpoint.`,
+  );
 }
