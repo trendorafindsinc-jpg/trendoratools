@@ -45,6 +45,14 @@ describe('workspace permission authorization', () => {
       .resolves.toEqual({ allowed: false, reason: 'permission_denied' });
   });
 
+  it('allows admins to manage members but reserves workspace settings for owners', async () => {
+    const db = dbWith({ role: 'admin', membership_status: 'active', workspace_status: 'active' });
+    await expect(authorizeWorkspacePermission(db, userId, workspaceId, 'members:manage'))
+      .resolves.toMatchObject({ allowed: true, role: 'admin' });
+    await expect(authorizeWorkspacePermission(db, userId, workspaceId, 'settings:manage'))
+      .resolves.toEqual({ allowed: false, reason: 'permission_denied' });
+  });
+
   it('allows members to write finance but not manage membership', async () => {
     const db = dbWith({ role: 'member', membership_status: 'active', workspace_status: 'active' });
     await expect(authorizeWorkspacePermission(db, userId, workspaceId, 'finance:write'))
