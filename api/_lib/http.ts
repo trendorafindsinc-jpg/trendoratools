@@ -1,10 +1,11 @@
 export type ApiRequest = {
   method?: string;
+  url?: string;
   headers?: Record<string, string | string[] | undefined>;
 };
 
 export type ApiResponse = {
-  setHeader(name: string, value: string): void;
+  setHeader(name: string, value: string | string[]): void;
   status(code: number): ApiResponse;
   json(body: unknown): void;
 };
