@@ -1,5 +1,5 @@
 import { Pool, type PoolConfig } from 'pg';
-import { createPostgresAdapter } from './postgres-adapter';
+import { createPostgresAdapter, type PgPool } from './postgres-adapter';
 
 /**
  * Vercel Node.js / Fluid Compute pool configuration. A single connection per
@@ -43,10 +43,6 @@ export function buildPostgresPoolConfig(databaseUrl: string): PoolConfig {
  */
 export function createRuntimePostgres(databaseUrl: string) {
   const pool = new Pool(buildPostgresPoolConfig(databaseUrl));
-  const database = createPostgresAdapter(pool as unknown as ConstructorParameters<typeof Pool>[0] extends never
-    ? never
-    : Parameters<typeof createPostgresAdapter>[0] extends never
-      ? never
-      : import('./postgres-adapter').PgPool);
+  const database = createPostgresAdapter(pool as unknown as PgPool);
   return { pool, database };
 }
