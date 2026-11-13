@@ -1,6 +1,6 @@
 # Firebase Read-only Export and Reconciliation Runbook
 
-**Status:** Owner-operated data-access procedure. Documentation only; no Firebase project was accessed or changed while writing this runbook.  
+**Status:** Historical contingency procedure — not required for the approved Ariovelle clean-start path. The owner confirmed legacy Firebase data belongs only to beta testers and will not be migrated. Retain this runbook only in case recovery is requested later.  
 **Product:** Ariovelle, a product of Lucia LLC.  
 **Purpose:** Obtain a verifiable, least-privilege snapshot of legacy Firebase Auth metadata and Firestore records so the migration can be designed from actual data rather than assumptions.
 
@@ -230,8 +230,8 @@ Do not upload raw customer exports to this Git repository. Do not paste raw user
 ## 12. Current status
 
 - Source-code dependency and schema inventory: completed for the inspected repository revision; see `docs/REPOSITORY_AUDIT.md`.
-- Live Firebase Auth / Firestore contents: **not yet accessed**.
+- Live Firebase Auth / Firestore contents: **not accessed; no export required under the current owner decision**.
 - Local device/browser storage: **not yet accessed**.
-- Real record counts, data quality, orphan records, conflicts and currency distribution: **unknown pending owner-run export**.
+- Real record counts, data quality, orphan records, conflicts and currency distribution: **not being inventoried; legacy beta data is out of scope**.
 - Firebase dependencies and data: unchanged by this runbook.
-- Next engineering gate after review: design a deterministic, idempotent migration plan and dry-run validator. Do not begin live migration until that plan, target schema, currency policy, identity-link policy and rollback procedure are approved.
+- Next engineering gate: proceed with the clean Ariovelle backend. Do not begin Firebase export/import unless the owner separately changes this decision.
