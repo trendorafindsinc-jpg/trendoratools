@@ -56,7 +56,7 @@
 **Remaining risks / owner acceptance gates**
 - Vercel preview logs contain npm warnings about an unknown `cache-dir` environment config and install scripts not covered by `allowScripts` for `@firebase/util`, `esbuild` and `protobufjs`. The preview build nevertheless completed successfully; investigate the Node/npm version difference (Vercel project currently uses Node 24.x, CI pins Node 20.19.0 / npm 10.8.2) before release.
 - Firebase authentication/cloud code remains in the repository; it has not been removed or replaced. Obtain the official Lucia ID integration specification before implementing that migration.
-- The canonical/public URL still uses `trendoratools.vercel.app`; choose and configure the final Ariovelle domain separately.
+- **Approved canonical domain:** `https://ariovelle.lucia.name.ng/` (subdomain of Lucia LLC's `lucia.name.ng`). Added to the Vercel project and verified, mapped to the Phase 1 feature branch for preview only. Existing `lucia.name.ng` nameservers remain on Go54; its existing wildcard ALIAS already routes to Vercel, so no nameserver migration or existing mail/DNS record replacement was made. `index.html` canonical, Open Graph and JSON-LD URLs now use the approved Ariovelle domain. Keep the mapping on the feature branch until production cutover is explicitly approved.
 - Legal copy has been rebranded but requires qualified legal review before public launch.
 - Git automatic deployments remain disabled by owner request. No production deployment, domain reassignment, merge to `main` or production cutover was performed.
 
