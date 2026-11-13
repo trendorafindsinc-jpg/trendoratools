@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
-import { Activity, Bell, BrainCircuit, Building2, ChartNoAxesCombined, ChevronDown, CircleHelp, FileChartColumnIncreasing, Gauge, Home, Landmark, LayoutDashboard, Menu, Moon, MoreHorizontal, PiggyBank, ReceiptText, Settings2, Sun, Target, Wallet, X } from 'lucide-react';
+import { Bell, BrainCircuit, Building2, ChartNoAxesCombined, ChevronDown, CircleHelp, FileChartColumnIncreasing, Gauge, Home, Landmark, LayoutDashboard, Menu, Moon, MoreHorizontal, PiggyBank, ReceiptText, Settings2, Sun, Target, Wallet, X } from 'lucide-react';
 import { applyTheme, getStoredPreference, type ThemePreference } from '../lib/theme';
 
 const groups = [
@@ -25,7 +25,7 @@ export function Layout(){
    <NavLink to="/" className="ari-brand"><span className="ari-brand-mark">A</span><span><span className="ari-brand-name">ariovelle</span><span className="ari-brand-caption">A PRODUCT OF LUCIA</span></span></NavLink>
    <button className="ari-workspace-switch" type="button"><span className="ari-workspace-avatar">P</span><span className="min-w-0 text-left"><b className="block text-xs">Personal workspace</b><small className="ari-muted">Individual account</small></span><ChevronDown size={15} className="ml-auto ari-muted"/></button>
    <nav className="ari-nav">{nav()}</nav>
-   <div className="ari-sidebar-bottom"><div className="ari-plan-card"><span className="ari-plan-kicker">YOUR PLAN</span><strong>Free plan</strong><span className="ari-muted text-xs">Explore more with Ariovelle Pro.</span><NavLink to="/settings" className="ari-plan-link">Explore plans ↗</NavLink></div><NavLink to="/settings" className="ari-nav-link"><Settings2 size={17}/>Settings</NavLink><a href="mailto:support@lucia.example" className="ari-nav-link"><CircleHelp size={17}/>Help & support</a><div className="ari-sidebar-footer">© {new Date().getFullYear()} Lucia LLC</div></div>
+   <div className="ari-sidebar-bottom"><div className="ari-plan-card"><span className="ari-plan-kicker">YOUR PLAN</span><strong>Free plan</strong><span className="ari-muted text-xs">Explore more with Ariovelle Pro.</span><NavLink to="/settings" className="ari-plan-link">Explore plans ↗</NavLink></div><NavLink to="/settings" className="ari-nav-link"><Settings2 size={17}/>Settings</NavLink><span className="ari-nav-link" aria-label="Help and support information"><CircleHelp size={17}/>Help & support</span><div className="ari-sidebar-footer">© {new Date().getFullYear()} Lucia LLC</div></div>
   </aside>
   {menu&&<div className="ari-mobile-overlay" onClick={close}><aside className="ari-mobile-drawer" onClick={e=>e.stopPropagation()}><div className="flex items-center justify-between mb-5"><span className="ari-brand-name">ariovelle</span><button className="ari-icon-button" onClick={close} aria-label="Close menu"><X size={18}/></button></div>{nav(close)}<NavLink to="/settings" onClick={close} className="ari-nav-link"><Settings2 size={17}/>Settings</NavLink></aside></div>}
   <div className="ari-main-column">
