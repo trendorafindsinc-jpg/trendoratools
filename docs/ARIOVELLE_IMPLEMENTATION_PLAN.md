@@ -2,6 +2,8 @@
 
 **Status:** Phase 1 engineering foundation is implemented and CI-verified on `feat/ariovelle-phase-1-design-system`. A manual Vercel preview is ready. Responsive screenshot captures exist, but pixel-level visual acceptance remains open; see the conditional sign-off record below.
 
+> **Phase sequencing authority (2026-11-13):** The approved next implementation is **Phase 2 — Backend Foundation**, governed by [ARIOVELLE_BACKEND_ARCHITECTURE_AND_MIGRATION.md](ARIOVELLE_BACKEND_ARCHITECTURE_AND_MIGRATION.md). Earlier numbered screen-scaffolding/backend sections in this plan predate the agreed execution sequence and are retained as historical planning material; do not use their old phase numbers to override the new specification. Do not start production auth, database provisioning or data migration without the gates in that specification.
+
 ## Progress log — 2026-11-13
 
 ### Phase 1 initial foundation (committed; CI green)
