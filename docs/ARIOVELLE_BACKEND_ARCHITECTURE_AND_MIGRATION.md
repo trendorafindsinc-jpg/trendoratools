@@ -663,7 +663,7 @@ These are intentional blockers; Codex must not fill them with guesses.
 |---|---|---|
 | Official Lucia ID integration documentation | Not present in inspected repository | Real auth adapter, account linking, Firebase auth retirement |
 | Lucia ID test tenant/credentials | Not supplied | Provider integration tests |
-| Development Neon project/database | Not provisioned/authorized in this task | Database connection/migrations against hosted DB |
+| Development Neon project/database | Provisioned and schema/RLS validated on disposable project `ariovelle-dev`; no app runtime secret configured | Runtime adapter wiring and API integration after auth contract is approved |
 | Final currency policy for legacy records | Unknown per record | Financial data import |
 | Local-vs-Firestore conflict resolution | Not approved | User data merge |
 | Legacy account ownership proof/linking flow | Not designed/approved | Identity migration |
@@ -861,3 +861,55 @@ Important limitations:
 - The runtime role exists in the development database, but its password/connection string is not stored in the repository or Vercel. The pool factory is not wired to the application. No database secret was configured.
 - The RLS suite has been exercised directly against the development database through the Neon runtime role. CI's opt-in integration suite remains skipped until dedicated owner/runtime test secrets are deliberately configured.
 - No financial tables, financial write routes, Lucia ID auth adapter, production DB, deployment or Firebase retirement were implemented.
+
+
+---
+
+## 19. Live development database verification and API client progress — 2026-11-13
+
+### 19.1 Read-only Neon inspection
+
+A read-only inspection was performed against the owner-authorized disposable Neon project. No SQL writes, schema changes, role changes, credentials retrieval, or application connections were made during this inspection.
+
+Verified resource:
+- Project: `ariovelle-dev` (`super-base-35733977`)
+- Region: `aws-eu-central-1`
+- PostgreSQL major version: 17
+- Default branch: `main` (`br-young-sound-ba8m1n50`)
+- Database: `ariovelle_dev`
+- Runtime role: `ariovelle_runtime`
+
+Observed state:
+- Exactly the nine expected public foundation tables exist.
+- All nine foundation tables contain zero rows.
+- All nine tables have row-level security enabled.
+- The `app_private` schema contains the five expected request-context and membership helper functions.
+- RLS policy inventory matches migration 0002: self-scoped user/profile/preferences/identity policies; selected-workspace membership policies; actor/workspace audit-event policies; and no runtime policies for migration metadata.
+- Runtime table grants match migration 0003: only the reviewed profile/preferences/workspace/membership/audit operations are granted. No runtime grants exist on migration batch/record tables.
+- `ariovelle_runtime` is non-superuser, cannot create roles/databases, and does not bypass RLS. The owner role does bypass RLS and must remain server-side/administrative only.
+- Runtime role has bounded statement, lock and idle-in-transaction timeouts.
+- No database triggers were found.
+- No schema migration ledger table was found. The `migration_batches` and `migration_records` tables are data-import provenance, not a DDL migration ledger; migration execution tracking must be added to the chosen migration tooling before future automated deployments.
+- No production or staging database was inspected or connected.
+
+Security notes:
+- RLS is enabled but not forced. This is acceptable for the current separation only because the application runtime role is not the table owner and does not have BYPASSRLS; owner credentials must never be used by the API.
+- The runtime role can set custom PostgreSQL configuration values. This is an intentional PostgreSQL behavior, not an identity mechanism. It is safe only while the database credential stays server-side and every tenant query is executed inside the verified, transaction-local request context.
+- The runtime role has no INSERT permission or RLS insert policy for initial `users`, `workspaces`, or `external_identities` bootstrap. Do not work around this with owner credentials. Design a narrowly scoped, reviewed onboarding function/role only after the Lucia ID contract is available.
+- The database contains no user, beta-tester, or financial records.
+
+### 19.2 Typed frontend health API client
+
+Added:
+- `src/lib/api-client.ts`: typed health DTOs, a minimal same-origin/no-store GET client, safe network/invalid-response errors, and structured API error mapping.
+- `src/lib/api-client.test.ts`: tests request options, typed readiness payload, structured API errors, and safe network-error handling.
+
+Scope is deliberately health-only. No authenticated endpoint, identity/session storage, financial read/write, or live database connection was introduced.
+
+### 19.3 Next implementation gate
+
+- Complete CI verification for the typed API client.
+- Add shared API error/response contracts and a minimal route composition layer without identity assumptions.
+- Obtain the official Lucia ID integration specification and test environment before implementing P2.3 authentication or P2.4 user/workspace HTTP routes.
+- Keep the Neon runtime credential out of Git, Vercel and browser bundles until the verified auth and route boundary is ready.
+- Do not add financial tables or financial endpoints in this foundation package.
