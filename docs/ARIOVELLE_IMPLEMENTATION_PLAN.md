@@ -44,12 +44,14 @@
 **Shared component and accessibility checks completed in code**
 - Mobile drawer: Escape closes, focus is trapped, focus returns to the opener, background scroll is locked while open.
 - Navigation: labelled desktop/mobile navigation, active links use React Router's current-page semantics, menu controls expose expanded state.
+- Shared primitives: `src/components/ui/index.tsx` exports Button, Input, Select, Card, Dialog, Drawer, Tabs, DataTable, Badge, Tooltip, Toast, Skeleton, EmptyState and ErrorState. Dialog/Drawer include Escape dismissal, focus trapping/restoration and background scroll locking; Tabs supports arrow/Home/End keyboard navigation; Input/Select connect labels, hints and validation errors. Card title headings are associated with their section landmarks.
+- Verification scope: the shared primitive source is included in the successful TypeScript production build. There are not yet dedicated component interaction tests or an automated axe scan, and legacy screens have not all migrated to the new primitives.
 - Forms: labels wrap inputs; authentication feedback uses status/alert announcements; password visibility control has an accessible name.
 - Motion: removed autoplaying external welcome video; global reduced-motion styles remain active.
 - Focus: global `:focus-visible` outline uses the brand accent.
 - Theme: dark/light/system preference support, header/Settings synchronization and safe storage fallback.
 - Light-theme contrast tokens were checked against the `#f5f3ee` surface: `--text-muted` `#5f6b7b` ≈ 4.89:1; `--text-faint` `#596678` ≈ 5.27:1; `--accent-gold` `#80612f` ≈ 5.16:1; `--warning` `#8f5e1c` ≈ 5.00:1. The primary button fill `#a88346` with `#172333` text is ≈ 4.53:1. These are targeted token checks, not a full automated axe/WCAG audit.
-- The full reusable component library listed in the Phase 1 requirements is not yet implemented; do not describe it as complete.
+- The reusable primitive set is now implemented; its adoption across existing feature screens and dedicated interaction tests remain open.
 
 **Remaining risks / owner acceptance gates**
 - Vercel preview logs contain npm warnings about an unknown `cache-dir` environment config and install scripts not covered by `allowScripts` for `@firebase/util`, `esbuild` and `protobufjs`. The preview build nevertheless completed successfully; investigate the Node/npm version difference (Vercel project currently uses Node 24.x, CI pins Node 20.19.0 / npm 10.8.2) before release.
@@ -58,7 +60,7 @@
 - Legal copy has been rebranded but requires qualified legal review before public launch.
 - Git automatic deployments remain disabled by owner request. No production deployment, domain reassignment, merge to `main` or production cutover was performed.
 
-**Decision:** conditional engineering sign-off only. CI and preview build gates pass; visual and full component-library acceptance remain open. Do not mark Phase 1 fully accepted or proceed to production until the screenshot and authenticated-shell review is completed.
+**Decision:** conditional engineering sign-off only. CI, preview build and primitive-library typechecking pass. Pixel-level responsive inspection, authenticated-shell interaction testing, dedicated component tests, full automated accessibility review and migration of legacy screens onto the shared primitives remain open. Do not mark Phase 1 fully accepted or proceed to production until those acceptance gates are completed.
 
 **Working branch:** `feat/ariovelle-phase-1-design-system` for Phase 1 implementation and sign-off documentation.
 
