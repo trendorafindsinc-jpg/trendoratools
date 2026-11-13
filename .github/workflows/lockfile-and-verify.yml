@@ -1,0 +1,49 @@
+name: Ariovelle lockfile and verification
+
+on:
+  push:
+    branches:
+      - feat/ariovelle-phase-1-design-system
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ariovelle-phase-1-verification
+  cancel-in-progress: false
+
+jobs:
+  lockfile-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v4
+        with:
+          ref: feat/ariovelle-phase-1-design-system
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set up Node.js and npm
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.19.0
+          cache: npm
+      - name: Generate lockfile if missing
+        run: |
+          if [ ! -f package-lock.json ]; then
+            npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+          fi
+      - name: Commit generated lockfile
+        run: |
+          if [ -f package-lock.json ] && ! git ls-files --error-unmatch package-lock.json >/dev/null 2>&1; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add package-lock.json
+            git commit -m "chore: add reproducible npm lockfile"
+            git push origin HEAD:feat/ariovelle-phase-1-design-system
+          fi
+      - name: Install exact locked dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Production build
+        run: npm run build
+      - name: Automated tests
+        run: npm test
