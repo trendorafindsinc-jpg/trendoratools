@@ -51,20 +51,22 @@ describe.skipIf(!ownerPool||!runtimePool||!runtimeDb)('Lucia identity and local 
    });
    expect(crossTenant).toBe(0);
 
-   const persisted=await runtime.query('SELECT token_hash FROM public.app_sessions WHERE token_hash=ANY($1::char(64)[])',[ [hashA,hashB] ]);
+   const persisted=await owner.query('SELECT token_hash FROM public.app_sessions WHERE token_hash=ANY($1::char(64)[])',[ [hashA,hashB] ]);
    expect(persisted.rows.map(row=>row.token_hash.trim()).sort()).toEqual([hashA,hashB].sort());
    expect(persisted.rows.some(row=>row.token_hash===tokenA)).toBe(false);
   }finally{
    runtime.release();
-   if(userA&&userB){
+   const userIds=[userA,userB].filter((id):id is string=>Boolean(id));
+   const workspaceIds=[workspaceA,workspaceB].filter((id):id is string=>Boolean(id));
+   if(userIds.length){
     await owner.query('BEGIN');
-    await owner.query('DELETE FROM public.app_sessions WHERE user_id=ANY($1::uuid[])',[[userA,userB]]);
-    await owner.query('DELETE FROM public.external_identities WHERE user_id=ANY($1::uuid[])',[[userA,userB]]);
-    await owner.query('DELETE FROM public.workspace_memberships WHERE user_id=ANY($1::uuid[])',[[userA,userB]]);
-    await owner.query('DELETE FROM public.workspaces WHERE id=ANY($1::uuid[])',[[workspaceA,workspaceB]]);
-    await owner.query('DELETE FROM public.user_profiles WHERE user_id=ANY($1::uuid[])',[[userA,userB]]);
-    await owner.query('DELETE FROM public.user_preferences WHERE user_id=ANY($1::uuid[])',[[userA,userB]]);
-    await owner.query('DELETE FROM public.users WHERE id=ANY($1::uuid[])',[[userA,userB]]);
+    await owner.query('DELETE FROM public.app_sessions WHERE user_id=ANY($1::uuid[])',[userIds]);
+    await owner.query('DELETE FROM public.external_identities WHERE user_id=ANY($1::uuid[])',[userIds]);
+    await owner.query('DELETE FROM public.workspace_memberships WHERE user_id=ANY($1::uuid[])',[userIds]);
+    if(workspaceIds.length) await owner.query('DELETE FROM public.workspaces WHERE id=ANY($1::uuid[])',[workspaceIds]);
+    await owner.query('DELETE FROM public.user_profiles WHERE user_id=ANY($1::uuid[])',[userIds]);
+    await owner.query('DELETE FROM public.user_preferences WHERE user_id=ANY($1::uuid[])',[userIds]);
+    await owner.query('DELETE FROM public.users WHERE id=ANY($1::uuid[])',[userIds]);
     await owner.query('COMMIT');
    }
    owner.release();
