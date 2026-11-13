@@ -1,6 +1,6 @@
 # Ariovelle Backend Architecture and Data Migration Specification
 
-**Status:** Approved implementation specification for Phase 2 planning; no backend implementation or infrastructure provisioning is authorized by this document alone.  
+**Status:** Approved Phase 2 implementation specification. A disposable development Neon database has been explicitly authorized and provisioned; production infrastructure and deployment remain unauthorized.  
 **Product owner/operator:** Lucia LLC.  
 **Product:** Ariovelle.  
 **Target branch:** `feat/ariovelle-phase-1-design-system`.  
@@ -15,7 +15,7 @@ Codex MUST follow these rules. They are acceptance requirements, not suggestions
 
 1. Read `AGENTS.md`, this document, `docs/ARIOVELLE_PRODUCT_SPEC.md`, `docs/ARIOVELLE_IMPLEMENTATION_PLAN.md` and `docs/REPOSITORY_AUDIT.md` before changing code.
 2. Work only on `feat/ariovelle-phase-1-design-system` or a new owner-approved feature branch created from it. Never push to `main`.
-3. Do not deploy, provision a Neon project/database, create production credentials, change Vercel settings, enable automatic deployments, or perform a production data operation. Git auto-deployment is intentionally disabled. Manual preview deployment requires a separate explicit request.
+3. Do not deploy, provision additional Neon projects/databases, create production credentials, change Vercel settings, enable automatic deployments, or perform production data operations. The sole approved disposable development project is `ariovelle-dev` (`super-base-35733977`) in `aws-eu-central-1`; it is not production. Git auto-deployment remains disabled. Manual preview deployment requires a separate explicit request.
 4. Do not remove Firebase packages, files, rules, auth flows, cloud backup, or legacy identifiers in the foundation milestone. They are preservation dependencies until the migration gates in section 11 pass.
 5. Do not invent Lucia ID protocol details. No guessed issuer, audience, token claims, JWKS URL, OAuth/OIDC endpoints, SDK, callback, logout semantics, session lifetime, or key rotation behavior. The official Lucia ID specification is a hard blocker for a real provider adapter.
 6. Do not use Firebase Auth or Neon Auth as the new identity provider. Lucia ID is external identity; Ariovelle owns its own application database and internal user IDs.
@@ -783,3 +783,30 @@ Owner authorization received to provision a disposable development database.
 - Organization rejects HIPAA-mode projects; HIPAA was not enabled.
 - Account does not permit overriding compute suspend interval; provider default was retained.
 - Organization caps branch history retention at 21,600 seconds (6 hours); this cap was retained.
+
+
+---
+
+## 17. P2.4 PostgreSQL adapter and workspace authorization primitives
+
+Implemented on the feature branch:
+- `api/_lib/postgres-adapter.ts`: wraps a node-postgres-compatible pool interface; parameterized query forwarding, nullable row-count normalization, explicit BEGIN/COMMIT/ROLLBACK behavior, original-error preservation and guaranteed client release.
+- `api/_lib/postgres-adapter.test.ts`: adapter tests cover parameter forwarding, commit, rollback and client release on setup failure.
+- `api/_lib/workspace-access.ts`: checks an internal verified user ID against an active workspace membership and active workspace using a parameterized join; applies role permissions.
+- `api/_lib/workspace-access.test.ts`: tests missing/inactive membership, inactive workspace, viewer write denial, member finance permissions, admin membership management and owner-only workspace settings.
+
+Permission policy:
+- owner: workspace read, finance read/write, member management and workspace settings.
+- admin: workspace read, finance read/write and member management; cannot manage workspace settings.
+- member: workspace read and finance read/write.
+- viewer: workspace read and finance read only.
+
+Security boundaries:
+- The authorization function accepts a server-verified internal user ID. It must never receive a user ID asserted by a browser request.
+- Workspace ID and user ID are bound as SQL parameters; no client-supplied SQL is constructed.
+- These primitives are not yet wired to an HTTP route or live identity provider.
+- The adapter accepts a node-postgres-compatible pool but the driver/pool factory and runtime connection are not installed/configured. No database credential is present in the repo or Vercel.
+- Database RLS and least-privilege runtime-role grants remain a required gate before connecting any application runtime or exposing tenant-scoped endpoints.
+- No financial tables or financial API writes were added.
+
+The existing development database remains schema-only and contains no seeded user or financial records. Next: verify the adapter/authorization tests in CI, then design and test transaction-local identity/workspace context, RLS policies and runtime-role grants against this disposable database before adding any financial routes.
