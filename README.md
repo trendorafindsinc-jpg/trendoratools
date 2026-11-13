@@ -9,7 +9,7 @@
 - [Product, screens, responsive UI and free/premium entitlements](docs/ARIOVELLE_PRODUCT_SPEC.md)
 - [Backend architecture, database model, API, security and migration specification](docs/ARIOVELLE_BACKEND_ARCHITECTURE_AND_MIGRATION.md)
 - [Phased implementation plan and release gates](docs/ARIOVELLE_IMPLEMENTATION_PLAN.md)
-- [Observed legacy repository baseline and migration cautions](docs/REPOSITORY_AUDIT.md)
+- [Observed legacy repository baseline and migration cautions](docs/REPOSITORY_AUDIT.md)\n- [Secure Firebase export and reconciliation runbook](docs/FIREBASE_EXPORT_AND_RECONCILIATION_RUNBOOK.md)
 
 **Approved identity:** Ariovelle — A product of Lucia LLC.  
 **Tagline:** Financial Intelligence. Without Limits.  
