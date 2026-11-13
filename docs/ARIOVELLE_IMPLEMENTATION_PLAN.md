@@ -298,3 +298,14 @@ No live auth, payments, market quotes or financial persistence should be implied
 - [ ] Validate `db/migrations/0001_foundation.sql` against a disposable PostgreSQL 15+ instance before any shared environment use.
 
 **Current boundary:** P2.2 is contract-only. There is no database connection, credential, driver, migration execution, auth provider, or financial route.
+
+### P2.3 — disposable PostgreSQL provision and schema validation
+- [x] Owner authorized a disposable development database.
+- [x] Provision Neon project `ariovelle-dev` in `aws-eu-central-1`, PostgreSQL 17.
+- [x] Create `ariovelle_dev` database and dedicated owner role.
+- [x] Execute the nine-table foundation schema on the development database.
+- [x] Verify PostgreSQL 17.12, nine public tables and 90 constraints.
+- [ ] Add a separate least-privilege runtime role and connection adapter when integration is approved.
+- [ ] Add automated migration smoke test against disposable database in CI without committing credentials.
+
+**Boundary:** this database is development-only, has no customer or beta data, is not connected to Vercel or API runtime, and has no authentication or financial routes. No connection string or password was committed.
