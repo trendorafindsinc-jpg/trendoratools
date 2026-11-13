@@ -4,7 +4,7 @@ import type { ApiResponse } from './http';
 
 function createResponse() {
   const state = {
-    headers: {} as Record<string, string>,
+    headers: {} as Record<string, string | string[]>,
     statusCode: 200,
     body: undefined as unknown,
   };

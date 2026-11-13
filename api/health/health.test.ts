@@ -4,7 +4,7 @@ import readyHandler from './ready';
 import type { ApiRequest, ApiResponse } from '../_lib/http';
 
 function createResponse() {
-  const headers = new Map<string, string>();
+  const headers = new Map<string, string | string[]>();
   const result: { statusCode?: number; body?: unknown } = {};
   const response: ApiResponse = {
     setHeader(name, value) {
