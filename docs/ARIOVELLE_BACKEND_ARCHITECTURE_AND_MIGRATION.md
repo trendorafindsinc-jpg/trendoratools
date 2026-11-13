@@ -854,7 +854,7 @@ Actual development-database tenant-isolation test:
 - Switching to tenant B context exposed only B.
 - A subsequent runtime query showed both transaction-local settings cleared (empty GUC values) after transaction completion.
 - All temporary test rows were deleted. A future-table probe was also dropped.
-- The owner-to-runtime role membership used only during an initial role-switch test was revoked; the owner remains separate from the runtime role.
+- Neon maintains an owner-to-runtime membership (grantor `cloud_admin`) for provider role administration. The runtime role is not a member of the owner role, has no inherited owner privileges and cannot escalate to owner; direct catalog inspection confirmed this directionality.
 
 Important limitations:
 - RLS context is trusted only because the database credential remains server-side. A holder of the runtime credential can set custom PostgreSQL GUCs; therefore the credential must never be exposed to browsers, mobile clients, logs or user-controlled SQL. The future API must derive the internal user ID exclusively from a verified Lucia ID token/session and set context in the same transaction as every tenant query.
