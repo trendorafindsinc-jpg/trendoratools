@@ -1,8 +1,8 @@
 /**
  * Driver-neutral PostgreSQL boundary.
  *
- * This is an interface only: it intentionally creates no connection, imports
- * no database driver, and cannot execute until an approved adapter is supplied.
+ * This is a driver-neutral contract. Concrete adapters implement it; importing
+ * this module creates no connection and performs no database I/O.
  * SQL must use positional parameters; never interpolate user input into SQL.
  */
 export type QueryResult<Row extends Record<string, unknown>> = {
