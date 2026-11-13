@@ -73,7 +73,7 @@ Checks using the separate `ariovelle_runtime` role confirmed:
 
 The disposable database currently contains two temporary identity/workspace fixtures, their session records, and one consumed OAuth transaction fixture from these manual checks. They contain synthetic test data only. Cleanup is pending owner authorization; no financial records were created.
 
-The automated opt-in PostgreSQL integration suite now covers OAuth one-time consumption, identity creation, session hash-at-rest, session resolution/revocation, authenticated workspace access and cross-workspace denial. The suite requires separate owner/runtime database URLs and is intentionally skipped in ordinary CI unless those variables are explicitly provided.
+The automated opt-in PostgreSQL integration suite now covers OAuth one-time consumption, identity creation, session hash-at-rest, session resolution/revocation, authenticated workspace access and cross-workspace denial. The suite requires separate owner/runtime database URLs and is intentionally skipped in ordinary CI unless those variables are explicitly provided. GitHub Actions run [43500425622](https://github.com/trendorafindsinc-jpg/trendoratools/actions/runs/43500425622) passed the production build and automated tests: 13 test files and 63 tests passed; the two opt-in real-PostgreSQL suites were skipped because CI does not receive development database credentials.
 
 ## 5. Runtime configuration and release gate
 

@@ -351,13 +351,22 @@ No live auth, payments, market quotes or financial persistence should be implied
 ## 20. P2.6 Lucia Core OAuth adapter and local application session — 2026-11-13
 
 Implemented on `feat/ariovelle-phase-1-design-system`:
-- `api/_lib/lucia-oauth.ts`: server-only discovery, PKCE, encrypted transaction cookie, confidential token exchange, RS256/JWKS validation, exact issuer/audience/expiry/nonce checks and UserInfo subject match.
+- `api/_lib/lucia-oauth.ts`: server-side discovery, PKCE, encrypted OAuth transaction payload, confidential token exchange, RS256/JWKS validation, exact issuer/audience/expiry/nonce checks and UserInfo subject match.
+- `api/_lib/lucia-oauth-store.ts`: hashes OAuth state and browser binding, stores encrypted nonce/verifier payload in PostgreSQL, and atomically consumes the transaction once.
 - `api/auth/lucia/start.ts` and `api/auth/lucia/callback.ts`: authorization redirect and callback. Both fail closed unless `LUCIA_AUTH_ENABLED=true`.
-- `api/_lib/lucia-session.ts` and `db/migrations/0004_lucia_identity_sessions.sql`: stable issuer+subject mapping, local personal workspace bootstrap, hashed opaque sessions, lookup and revocation.
-- `api/_lib/authenticated-workspace.ts`: local session resolution, workspace role check and RLS context in one transaction.
+- `api/_lib/lucia-session.ts` and migration 0004: stable issuer+subject mapping, local personal workspace bootstrap, hashed opaque sessions, lookup and revocation.
+- Migration 0005: one-time server-side OAuth transaction storage; runtime receives function EXECUTE only, not direct table access.
+- `api/_lib/authenticated-workspace.ts`: session resolution, transaction-local RLS context, membership and role checks, and protected queries run in one transaction.
 - `api/auth/logout.ts`: local session revocation.
-- Unit suites cover PKCE/config/cookie/JWKS/ID-token and workspace boundaries. An opt-in real-PostgreSQL integration suite covers identity creation, hash-at-rest, local session resolution and cross-workspace isolation.
+- Unit tests cover PKCE/config/cookie/JWKS/ID-token/OAuth transaction and workspace boundaries. Opt-in PostgreSQL integration tests cover OAuth one-time consumption, identity creation, hash-at-rest, session revocation and workspace isolation.
 
-**Verification blockers:** the Core source currently fails to pass the authorization-code nonce into ID-token issuance, so its ID token omits `nonce`; Ariovelle correctly rejects it. The linked Core Vercel project is reported not live and its inspected deployments are canceled. No live discovery/JWKS/token/UserInfo verification is possible yet. See `ARIOVELLE_LUCIA_CORE_RUNTIME_VERIFICATION.md`.
+**Verification completed:**
+- Neon migrations 0004 and 0005 applied to disposable development database `ariovelle_dev` only.
+- Actual database checks using `ariovelle_runtime` passed for identity mapping, session hash resolution/revocation, transaction-local RLS, cross-workspace denial, OAuth browser binding and one-time state consumption.
+- Verified the runtime role has no direct SELECT/INSERT privileges on `app_sessions` or `oauth_transactions`, but has EXECUTE on the narrow identity/session/OAuth functions.
+- GitHub Actions run [43500425622](https://github.com/trendorafindsinc-jpg/trendoratools/actions/runs/43500425622) passed production build and automated tests: 13 test files passed, 63 tests passed; two opt-in PostgreSQL suites were skipped because CI does not receive development database credentials.
+- Synthetic manual verification fixtures remain in the disposable database pending owner authorization for cleanup.
 
-**Not done:** migration 0004 has not been applied to Neon; no Ariovelle client registered; no Vercel secrets added; no login enabled; no Core changes; no production deployment. CI verification of these new files is pending.
+**Verification blockers:** the Core source currently fails to pass the authorization-code nonce into ID-token issuance, so its ID token omits `nonce`; Ariovelle correctly rejects it. The linked Core Vercel project reports `live: false`, its latest inspected deployments are canceled, and no custom identity domain is attached. No live discovery/JWKS/token/UserInfo verification is possible yet. See `ARIOVELLE_LUCIA_CORE_RUNTIME_VERIFICATION.md`.
+
+**Not done:** no Ariovelle client registered; no Vercel secrets added; no login enabled; no Core changes; no production database migration; no production deployment.
