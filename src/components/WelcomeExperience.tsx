@@ -46,7 +46,7 @@ export function WelcomeExperience({ onGetStarted, onGuest }: { onGetStarted: () 
             <img
               src="./brand/ariovelle-mark.svg"
               alt="Ariovelle"
-              className="w-12 h-12 drop-shadow-[0_0_28px_rgba(139,92,246,.35)]"
+              className="w-12 h-12 drop-shadow-[0_0_28px_rgba(194,165,111,.35)]"
             />
             <div>
               <div className="text-[10px] tracking-[0.38em] uppercase text-[var(--text-faint)]">LUCIA LLC</div>
@@ -62,8 +62,8 @@ export function WelcomeExperience({ onGetStarted, onGuest }: { onGetStarted: () 
             count.
           </h1>
           <p className="mt-6 max-w-xl text-base sm:text-lg text-[var(--text-muted)] leading-relaxed">
-            Simple tools to understand your money, plan your next step, and keep your progress moving forward —
-            privately, clearly, and on your terms.
+            A clearer workspace for personal finance, business tools, financial planning, and market intelligence —
+            built to help you make confident decisions with your money.
           </p>
           <div className="mt-9 flex flex-col sm:flex-row gap-3">
             <button type="button" onClick={onGetStarted} className="glass-button px-7 py-3.5">
