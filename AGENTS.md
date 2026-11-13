@@ -28,7 +28,7 @@ This file is the repository-level instruction contract for Codex and other codin
 - Work on a feature branch. Do not push to `main`, deploy production, change domains, or perform destructive migrations without explicit authorization.
 - Audit before replacing. Preserve validated financial business logic and user data; replace legacy UI deliberately.
 - Never silently discard, reset, or migrate user data. Any migration needs a versioned, tested, reversible plan and a backup/restore procedure.
-- Do not remove Firebase packages, auth flows, Firestore rules, cloud backup, or legacy data paths until the migration and reconciliation gates are met.
+- Owner decision (2026-11-13): legacy Firebase beta-tester records are out of scope and will not be migrated into Ariovelle. Build the new app as a clean start; do not import Firebase UIDs or link accounts by legacy email. Keep Firebase packages, auth flows, Firestore rules, cloud backup and the existing deployment intact during the rebuild. Remove/retire them only after replacement acceptance and separate explicit owner approval; the no-migration decision is not permission to delete the Firebase project.
 - Do not claim a provider, auth flow, market feed, payment flow, AI feature or integration is connected unless it is implemented and verified.
 - Never place secrets in source, docs, client-side environment variables, logs, fixtures or commits. Update `.env.example` with variable names and safe descriptions only.
 - Never fabricate balances, prices, market data, news, economic events, forecasts or investment returns. Clearly mark fixtures and demo data.
