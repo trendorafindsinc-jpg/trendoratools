@@ -725,3 +725,22 @@ Explicitly not implemented:
 - No Vercel deployment or production change.
 
 **Validation status:** GitHub Actions must verify `npm ci`, `npm test` and `npm run build` against the resulting feature-branch commit. No local commands are claimed as run in this environment.
+
+
+---
+
+## 15. P2.2 server configuration and database boundary
+
+Added contract-only server foundation files:
+- `api/_lib/config.ts`: parses `NODE_ENV` and optional server-only `DATABASE_URL`; accepts only PostgreSQL URL schemes and rejects malformed URLs without echoing credentials. It does not read process environment at import time and does not connect.
+- `api/_lib/database.ts`: defines a driver-neutral `SqlExecutor`, typed query result and transaction callback contract. All query parameters are passed separately from SQL text.
+- `api/_lib/config.test.ts`: tests defaults, valid PostgreSQL URL parsing, invalid environment, malformed URL, unsupported protocol and missing database name.
+
+Security and operational boundaries:
+- `DATABASE_URL` is optional until a development database is explicitly authorized.
+- Never use a `VITE_` prefix for server credentials; never serialize server configuration into client bundles or API responses.
+- No PostgreSQL driver, pool, ORM, connection, schema execution or database health probe has been added.
+- No identity-provider details or authentication implementation have been assumed.
+- The database interface is a seam for a later approved adapter, not a working persistence layer.
+
+Next gate: obtain explicit authorization for a disposable development PostgreSQL database, then test the foundation SQL against PostgreSQL 15+ and add the selected driver/adapter. Do not connect production or deploy as part of that work.
