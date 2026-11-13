@@ -247,3 +247,26 @@ No live auth, payments, market quotes or financial persistence should be implied
 - Security and tenant isolation checks completed for backend work.
 - Documentation/status updated.
 - No production deployment or merge without explicit approval.
+
+
+## 14. Backend Foundation progress — 2026-11-13
+
+### P2.0 — source dependency inventory
+- [x] Enumerate the complete feature-branch Git tree.
+- [x] Inventory Firebase initialization, auth, profile writes, Firestore sync and manual backup/restore call sites.
+- [x] Inventory Firestore paths, collections, rules and profile fields.
+- [x] Inventory Zustand persistence, local storage keys, JSON export/import and legacy record shapes.
+- [x] Document data-loss risk in legacy full-snapshot sync.
+- [ ] Obtain authorized remote Firebase Auth metadata and Firestore export.
+- [ ] Obtain any user-authorized local-only device exports and reconcile them.
+- [ ] Run local `npm ci`, `npm test` and `npm run build` (not available in the current repository inspection environment).
+
+### P2.1 — health-only API scaffold
+- [x] Add shared API response helpers, request IDs and no-store/security headers.
+- [x] Add GET-only `/api/health/live` and `/api/health/ready`.
+- [x] Add endpoint tests.
+- [x] Include API source in TypeScript project typechecking.
+- [ ] Verify Vercel function routing through CI/preview acceptance.
+- [ ] Add API client and domain routes only when a concrete caller/use case is approved.
+
+**Current boundary:** no live auth, session, database, financial read/write endpoint, Firebase removal, user data migration or deployment has been implemented. Readiness describes the health-only API scaffold and explicitly reports identity/database dependencies as not configured. See `docs/REPOSITORY_AUDIT.md` and `docs/ARIOVELLE_BACKEND_ARCHITECTURE_AND_MIGRATION.md`.
