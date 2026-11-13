@@ -55,6 +55,8 @@ Implemented on `feat/ariovelle-phase-1-design-system`:
 - Opaque local session tokens with SHA-256 hash-at-rest.
 - Database functions for stable external subject mapping, personal workspace bootstrap, session resolution and revocation.
 - Workspace permission checks inside transaction-local verified user/workspace RLS context.
+- Session resolution, transaction-local RLS setup, membership and role checks, and protected queries now share one PostgreSQL transaction, preventing a session-revocation race.
+- Fixed the migration's advisory-lock key so it does not call `chr(0)` (PostgreSQL text cannot contain a null character).
 - Unit tests and opt-in real PostgreSQL integration suites.
 
 The routes are guarded by `LUCIA_AUTH_ENABLED=true`; the default is disabled. No production secrets were read or changed. No Core consumer was provisioned. No Core changes or deployments were made. Migration 0004 has been added to source but must be applied to the disposable Ariovelle development database before the PostgreSQL integration suite can run.
