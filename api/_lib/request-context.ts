@@ -10,23 +10,26 @@ export class WorkspaceContextError extends Error {
   }
 }
 
-/**
- * Establish transaction-local identity and workspace context on an existing
- * transaction. This is exported so authentication, membership checks and
- * protected queries can share one transaction without a session-revocation
- * race between separate database transactions.
- */
-export async function setVerifiedRequestContext(
-  transaction: SqlExecutor,
-  userId: VerifiedInternalUserId,
-  workspaceId: string,
-): Promise<void> {
+function validateContextIds(userId: VerifiedInternalUserId, workspaceId: string): void {
   if (!UUID_PATTERN.test(userId)) {
     throw new WorkspaceContextError('Verified internal user ID must be a UUID.');
   }
   if (!UUID_PATTERN.test(workspaceId)) {
     throw new WorkspaceContextError('Workspace ID must be a UUID.');
   }
+}
+
+/**
+ * Establish transaction-local identity and workspace context on an existing
+ * transaction. This lets session resolution, authorization and protected
+ * queries share one transaction and prevents revocation races.
+ */
+export async function setVerifiedRequestContext(
+  transaction: SqlExecutor,
+  userId: VerifiedInternalUserId,
+  workspaceId: string,
+): Promise<void> {
+  validateContextIds(userId, workspaceId);
 
   await transaction.query(
     `SELECT
@@ -46,8 +49,7 @@ export async function setVerifiedRequestContext(
 
 /**
  * Runs work in one database transaction with transaction-local identity and
- * workspace GUCs. The workspace is revalidated by PostgreSQL before work.
- * set_config(..., true) clears the context automatically at COMMIT/ROLLBACK.
+ * workspace GUCs. set_config(..., true) clears context at COMMIT/ROLLBACK.
  */
 export async function withVerifiedRequestContext<Result>(
   db: DatabaseAdapter,
@@ -55,6 +57,7 @@ export async function withVerifiedRequestContext<Result>(
   workspaceId: string,
   work: (transaction: SqlExecutor) => Promise<Result>,
 ): Promise<Result> {
+  validateContextIds(userId, workspaceId);
   return db.transaction(async (transaction) => {
     await setVerifiedRequestContext(transaction, userId, workspaceId);
     return work(transaction);
