@@ -275,8 +275,7 @@ No live auth, payments, market quotes or financial persistence should be implied
 - [x] Inventory Firestore paths, collections, rules and profile fields.
 - [x] Inventory Zustand persistence, local storage keys, JSON export/import and legacy record shapes.
 - [x] Document data-loss risk in legacy full-snapshot sync.
-- [ ] Obtain authorized remote Firebase Auth metadata and Firestore export.
-- [ ] Obtain any user-authorized local-only device exports and reconcile them.
+- [x] Owner decision: no Firebase or local beta-tester data migration; remote exports and device reconciliation are not required for the clean-start build.
 - [ ] Run local `npm ci`, `npm test` and `npm run build` (not available in the current repository inspection environment).
 
 ### P2.1 — health-only API scaffold
@@ -288,3 +287,14 @@ No live auth, payments, market quotes or financial persistence should be implied
 - [ ] Add API client and domain routes only when a concrete caller/use case is approved.
 
 **Current boundary:** no live auth, session, database, financial read/write endpoint, Firebase removal, user data migration or deployment has been implemented. Readiness describes the health-only API scaffold and explicitly reports identity/database dependencies as not configured. See `docs/REPOSITORY_AUDIT.md` and `docs/ARIOVELLE_BACKEND_ARCHITECTURE_AND_MIGRATION.md`.
+
+
+### P2.2 — server configuration and persistence boundary
+- [x] Add explicit runtime environment parsing with safe validation.
+- [x] Make the PostgreSQL URL optional until database provisioning is approved.
+- [x] Add a driver-neutral, parameterized SQL executor and transaction contract.
+- [x] Add configuration unit tests; no connection or database driver is created.
+- [ ] Add an approved PostgreSQL adapter only after a disposable development database is authorized and available.
+- [ ] Validate `db/migrations/0001_foundation.sql` against a disposable PostgreSQL 15+ instance before any shared environment use.
+
+**Current boundary:** P2.2 is contract-only. There is no database connection, credential, driver, migration execution, auth provider, or financial route.
