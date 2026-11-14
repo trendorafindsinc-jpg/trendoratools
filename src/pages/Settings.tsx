@@ -19,9 +19,7 @@ import {
   Monitor,
   Palette
 } from 'lucide-react';
-import { auth } from '../lib/firebase';
-import { signOutLucia } from '../lib/lucia-auth';
-import { backupTrendoraToLuciaCloud, restoreTrendoraFromLuciaCloud } from '../lib/lucia-cloud';
+import { startLuciaSignIn, type AriovelleSession } from '../lib/ariovelle-session';
 import { applyTheme, getStoredPreference, type ThemePreference } from '../lib/theme';
 
 const legalLinks = [
@@ -35,15 +33,14 @@ const legalLinks = [
 
 const GUEST_KEY = 'trendora_tools_guest_mode';
 
-export default function Settings() {
+export default function Settings({ session, onSignOut }: { session: AriovelleSession | null; onSignOut: () => Promise<void> }) {
   const { exportData, importData } = useAppStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [msg, setMsg] = useState('');
   const [msgError, setMsgError] = useState(false);
-  const [cloudBusy, setCloudBusy] = useState(false);
   const [authBusy, setAuthBusy] = useState(false);
   const [theme, setTheme] = useState<ThemePreference>(() => getStoredPreference());
-  const isSignedIn = Boolean(auth?.currentUser);
+  const isSignedIn = Boolean(session);
   const isGuest = !isSignedIn && localStorage.getItem(GUEST_KEY) === 'true';
 
   const flash = (text: string, isError = false) => {
@@ -95,52 +92,11 @@ export default function Settings() {
     reader.readAsText(file);
   };
 
-  const cloudBackup = async () => {
-    if (!auth?.currentUser) {
-      flash('Sign in with your LUCIA ID to use Lucia Cloud backup.', true);
-      return;
-    }
-    setCloudBusy(true);
-    flash('');
-    try {
-      await backupTrendoraToLuciaCloud(exportData());
-      flash('Backup saved to Lucia Cloud. You can restore it on any device after signing in.');
-    } catch (err) {
-      flash(err instanceof Error ? err.message : 'Cloud backup failed.', true);
-    } finally {
-      setCloudBusy(false);
-    }
-  };
-
-  const cloudRestore = async () => {
-    if (!auth?.currentUser) {
-      flash('Sign in with your LUCIA ID to restore from Lucia Cloud.', true);
-      return;
-    }
-    const ok = window.confirm(
-      'Restore will replace the data currently on this device with your Lucia Cloud backup. Continue?'
-    );
-    if (!ok) return;
-
-    setCloudBusy(true);
-    flash('');
-    try {
-      const data = await restoreTrendoraFromLuciaCloud();
-      importData(data);
-      flash('Lucia Cloud backup restored. Refreshing…');
-      setTimeout(() => window.location.reload(), 800);
-    } catch (err) {
-      flash(err instanceof Error ? err.message : 'Cloud restore failed.', true);
-    } finally {
-      setCloudBusy(false);
-    }
-  };
-
   const handleSignOut = async () => {
     setAuthBusy(true);
     flash('');
     try {
-      await signOutLucia();
+      await onSignOut();
       localStorage.removeItem(GUEST_KEY);
       flash('Signed out. Redirecting…');
       setTimeout(() => window.location.reload(), 600);
@@ -153,8 +109,7 @@ export default function Settings() {
 
   const handleSignIn = () => {
     localStorage.removeItem(GUEST_KEY);
-    flash('Opening sign in…');
-    setTimeout(() => window.location.reload(), 300);
+    startLuciaSignIn();
   };
 
   const themeBtn = (mode: ThemePreference, active: boolean) =>
@@ -224,7 +179,7 @@ export default function Settings() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold text-[var(--text-primary)]">Signed in</h3>
-                  <p className="text-sm text-[var(--text-muted)] mt-1 truncate">{auth?.currentUser?.email || 'LUCIA ID'}</p>
+                  <p className="text-sm text-[var(--text-muted)] mt-1 truncate">{session?.user.email || session?.user.displayName || 'LUCIA ID'}</p>
                   <p className="text-xs text-[var(--text-faint)] mt-1">Sign out to switch accounts or continue as guest later.</p>
                 </div>
               </div>
@@ -247,7 +202,7 @@ export default function Settings() {
                 <div>
                   <h3 className="font-semibold text-[var(--text-primary)]">Guest mode</h3>
                   <p className="text-sm text-[var(--text-muted)] mt-1">
-                    You are using Ariovelle without a LUCIA ID. Sign in to enable Lucia Cloud backup and sync.
+                    You are using Ariovelle without a Lucia session. Sign in to connect your identity and personal workspace.
                   </p>
                 </div>
               </div>
@@ -281,18 +236,9 @@ export default function Settings() {
               </p>
             </div>
           </div>
-          {auth?.currentUser ? (
-            <div className="flex flex-col sm:flex-row gap-3">
-              <button disabled={cloudBusy} onClick={cloudBackup} className="btn-primary flex-1">
-                {cloudBusy ? 'Working…' : 'Back up to Lucia Cloud'}
-              </button>
-              <button disabled={cloudBusy} onClick={cloudRestore} className="btn-secondary flex-1">
-                Restore from Cloud
-              </button>
-            </div>
-          ) : (
-            <p className="text-xs text-[var(--text-faint)]">Sign in with your LUCIA ID to enable Lucia Cloud backup.</p>
-          )}
+          <p className="text-sm text-[var(--text-muted)]">
+            Secure cloud storage and cross-device sync are not enabled yet. Your existing records remain on this device; use Local export &amp; import below to keep a backup.
+          </p>
         </Card>
         <Card title="Local export & import">
           <p className="text-sm text-[var(--text-muted)] mb-6">
