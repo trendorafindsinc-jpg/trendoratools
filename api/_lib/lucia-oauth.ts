@@ -56,7 +56,7 @@ export function createPkcePair() {
   const verifier = b64url(randomBytes(32));
   return { verifier, challenge: b64url(createHash('sha256').update(verifier).digest()) };
 }
-export type OAuthTransaction = { state:string; verifier:string; createdAt:number };
+export type OAuthTransaction = { state:string; nonce:string; verifier:string; createdAt:number };
 const TX_COOKIE = 'ariovelle_oauth_tx';
 const SESSION_COOKIE = 'ariovelle_session';
 export const luciaCookieNames = { transaction: TX_COOKIE, session: SESSION_COOKIE };
@@ -74,7 +74,7 @@ export function openOAuthTransaction(value:string,secret:string,now=Date.now()):
     const decipher=createDecipheriv('aes-256-gcm',encryptionKey(secret),Buffer.from(iv,'base64url'));
     decipher.setAAD(Buffer.from('ariovelle-oauth-transaction-v1')); decipher.setAuthTag(Buffer.from(tag,'base64url'));
     const tx=JSON.parse(Buffer.concat([decipher.update(Buffer.from(data,'base64url')),decipher.final()]).toString('utf8')) as OAuthTransaction;
-    if(!tx.state||!tx.verifier||!Number.isSafeInteger(tx.createdAt)||now-tx.createdAt>10*60_000||tx.createdAt>now+30_000) throw new Error();
+    if(!tx.state||!tx.nonce||!tx.verifier||!Number.isSafeInteger(tx.createdAt)||now-tx.createdAt>10*60_000||tx.createdAt>now+30_000) throw new Error();
     return tx;
   } catch { throw new LuciaAuthError('INVALID_OAUTH_TRANSACTION','OAuth transaction is invalid, expired or has been tampered with.'); }
 }
@@ -102,7 +102,7 @@ export async function fetchOidcDiscovery(config:LuciaConfig,fetcher:typeof fetch
     const u=new URL(doc[key]);
     if(u.origin!==config.issuer || u.pathname!==path || u.search || u.hash) throw new LuciaAuthError('OIDC_ENDPOINT_MISMATCH','Lucia Core advertised an unexpected OIDC endpoint.');
   }
-  if(!doc.response_types_supported.includes('code')||!doc.code_challenge_methods_supported.includes('S256')) throw new LuciaAuthError('IDENTITY_API_CAPABILITY_MISMATCH','Lucia Core does not advertise the required authorization-code and S256 PKCE capabilities.');
+  if(!doc.response_types_supported.includes('code')||!doc.id_token_signing_alg_values_supported.includes('RS256')||!doc.code_challenge_methods_supported.includes('S256')) throw new LuciaAuthError('OIDC_CAPABILITY_MISMATCH','Lucia Core does not advertise the required authorization-code, RS256 and S256 capabilities.');
   return doc;
 }
 export async function exchangeLuciaCode(input:{config:LuciaConfig;discovery:OidcDiscovery;code:string;verifier:string;fetcher?:typeof fetch}) {
