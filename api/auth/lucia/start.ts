@@ -6,6 +6,7 @@ import {
   buildCookie,
   fetchOidcDiscovery,
   luciaCookieNames,
+  LuciaAuthError,
 } from '../../_lib/lucia-oauth.js';
 import { createRuntimePostgres } from '../../_lib/postgres-pool.js';
 import { storeOAuthTransaction } from '../../_lib/lucia-oauth-store.js';
@@ -66,7 +67,12 @@ export default async function startLuciaAuth(request: ApiRequest, response: ApiR
     );
     response.setHeader('Location', url.toString());
     response.status(302).json({ redirecting: true });
-  } catch {
+  } catch (error) {
+    // Log only a stable error code/type; never log credentials, tokens, URLs or user data.
+    console.error('[ariovelle][lucia-start] failed', {
+      code: error instanceof LuciaAuthError ? error.code : 'UNEXPECTED_ERROR',
+      errorType: error instanceof Error ? error.name : 'unknown',
+    });
     sendError(response, 503, 'AUTH_UNAVAILABLE', 'Lucia sign-in is temporarily unavailable.');
   }
 }
