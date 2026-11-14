@@ -1,7 +1,7 @@
-import { createRuntimePostgres } from '../_lib/postgres-pool';
-import { revokeLocalSession } from '../_lib/lucia-session';
-import { clearCookie,luciaCookieNames,parseCookies } from '../_lib/lucia-oauth';
-import { sendError,sendMethodNotAllowed,type ApiRequest,type ApiResponse } from '../_lib/http';
+import { createRuntimePostgres } from '../_lib/postgres-pool.js';
+import { revokeLocalSession } from '../_lib/lucia-session.js';
+import { clearCookie,luciaCookieNames,parseCookies } from '../_lib/lucia-oauth.js';
+import { sendError,sendMethodNotAllowed,type ApiRequest,type ApiResponse } from '../_lib/http.js';
 
 export default async function logout(request:ApiRequest,response:ApiResponse){
  if(request.method!=='POST') return sendMethodNotAllowed(response,['POST']);
