@@ -1,10 +1,10 @@
-import { meResponseSchema } from '../_lib/contracts';
-import { hashSessionToken } from '../_lib/lucia-session';
-import { setVerifiedRequestContext, WorkspaceContextError } from '../_lib/request-context';
-import type { VerifiedInternalUserId } from '../_lib/workspace-access';
-import { createRuntimePostgres } from '../_lib/postgres-pool';
-import { luciaCookieNames, parseCookies } from '../_lib/lucia-oauth';
-import { sendError, sendJson, sendMethodNotAllowed, type ApiRequest, type ApiResponse } from '../_lib/http';
+import { meResponseSchema } from '../_lib/contracts.js';
+import { hashSessionToken } from '../_lib/lucia-session.js';
+import { setVerifiedRequestContext, WorkspaceContextError } from '../_lib/request-context.js';
+import type { VerifiedInternalUserId } from '../_lib/workspace-access.js';
+import { createRuntimePostgres } from '../_lib/postgres-pool.js';
+import { luciaCookieNames, parseCookies } from '../_lib/lucia-oauth.js';
+import { sendError, sendJson, sendMethodNotAllowed, type ApiRequest, type ApiResponse } from '../_lib/http.js';
 
 function header(request: ApiRequest, name: string): string | undefined {
   const value = request.headers?.[name] ?? request.headers?.[name.toLowerCase()];
