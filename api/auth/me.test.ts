@@ -69,6 +69,7 @@ describe('GET /api/auth/me', () => {
         created_at: new Date('2026-11-14T12:00:00.000Z'),
       }], rowCount: 1 };
       if (sql.includes('FROM public.workspace_memberships')) return { rows: [{ workspace_id: workspaceId, role: 'owner' }], rowCount: 1 };
+      if (sql.includes('is_active_workspace_member')) return { rows: [{ allowed: true }], rowCount: 1 };
       if (sql.includes('FROM public.workspaces')) return { rows: [{ id: workspaceId, name: 'Test workspace', type: 'personal' }], rowCount: 1 };
       return { rows: [], rowCount: 1 };
     });
