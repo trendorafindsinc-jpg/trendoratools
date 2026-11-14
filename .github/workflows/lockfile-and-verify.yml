@@ -31,7 +31,9 @@ jobs:
           --health-timeout 5s
           --health-retries 10
     env:
-      ARIOVELLE_MIGRATION_DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/ariovelle_test
+      ARIOVELLE_MIGRATION_DATABASE_URL: postgres://ariovelle_owner:owner-test-password@127.0.0.1:5432/ariovelle_test
+      ARIOVELLE_RLS_TEST_OWNER_DATABASE_URL: postgres://ariovelle_owner:owner-test-password@127.0.0.1:5432/ariovelle_test
+      ARIOVELLE_RLS_TEST_RUNTIME_DATABASE_URL: postgres://ariovelle_runtime:runtime-test-password@127.0.0.1:5432/ariovelle_test
     steps:
       - name: Check out branch
         uses: actions/checkout@v4
@@ -58,10 +60,17 @@ jobs:
       - name: Prepare isolated migration roles
         run: |
           PGPASSWORD=postgres psql -h 127.0.0.1 -U postgres -d ariovelle_test -v ON_ERROR_STOP=1 \
-            -c "CREATE ROLE ariovelle_owner NOLOGIN" \
-            -c "CREATE ROLE ariovelle_runtime LOGIN PASSWORD 'runtime-test-password'"
+            -c "CREATE ROLE ariovelle_owner LOGIN PASSWORD 'owner-test-password' CREATEROLE CREATEDB BYPASSRLS" \
+            -c "CREATE ROLE ariovelle_runtime LOGIN PASSWORD 'runtime-test-password' NOBYPASSRLS" \
+            -c "CREATE ROLE ariovelle_read_only NOLOGIN" \
+            -c "GRANT ariovelle_read_only TO ariovelle_runtime" \
+            -c "ALTER DATABASE ariovelle_test OWNER TO ariovelle_owner"
       - name: Apply all schema migrations to an empty PostgreSQL 17 database
         run: npm run db:migrate:apply
+      - name: Provision CI-only read access for the RLS integration role
+        run: |
+          PGPASSWORD=postgres psql -h 127.0.0.1 -U postgres -d ariovelle_test -v ON_ERROR_STOP=1 \
+            -c "GRANT SELECT ON TABLE public.users, public.external_identities, public.user_profiles, public.user_preferences, public.workspaces, public.workspace_memberships, public.audit_events TO ariovelle_read_only"
       - name: Verify checksums and idempotent migration rerun
         run: |
           npm run db:migrate:apply
