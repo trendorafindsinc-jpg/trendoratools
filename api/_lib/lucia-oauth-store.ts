@@ -9,7 +9,7 @@ export type StoredOAuthTransaction = {
 };
 
 /** Store a short-lived, one-time OAuth transaction server-side. Only hashes of
- * state and browser binding are indexed; nonce/verifier remain encrypted. */
+ * state and browser binding are indexed; the PKCE verifier remains encrypted. */
 export async function storeOAuthTransaction(
   db: DatabaseAdapter,
   input: StoredOAuthTransaction,
