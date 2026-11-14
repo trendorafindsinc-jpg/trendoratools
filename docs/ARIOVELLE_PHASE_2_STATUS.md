@@ -5,7 +5,7 @@
 **Last reconciled:** 2026-11-14 (post issuer handover and preview OIDC activation)  
 **Repository:** `trendorafindsinc-jpg/trendoratools`  
 **Branch:** `feat/ariovelle-phase-1-design-system`  
-**Current documentation head:** `301d03c8dc5b33d6385588a8f0c51a60bbe22b64`; **runtime code snapshot:** `4340226f5753e2a9cd671ab20ff3b3c46491e4e0`.  
+**Current documentation head:** `8a1cde26a02539f6b81840c4060e5b849ce37474`; **runtime code snapshot:** `4340226f5753e2a9cd671ab20ff3b3c46491e4e0`.  
 **Latest runtime-code CI:** [run 43635149009](https://github.com/trendorafindsinc-jpg/trendoratools/actions/runs/43635149009) passed the production build and all 82 tests (18 test files).  
 **Latest manual Preview deployment:** `dpl_GRTjJySGXxjW4p32igH8BaoBsBVC` is READY from runtime code commit `4340226` and carries the `ariovelle.lucia.name.ng` alias. Git auto-deploy remains disabled.  
 **Documentation reconciliation verification:** [run 43576548363](https://github.com/trendorafindsinc-jpg/trendoratools/actions/runs/43576548363) — completed successfully on `4f0fa8ae9c54335a7fd43470e930e3756e79d188`.  
@@ -138,11 +138,11 @@ Do not point the migration runner at the preview runtime `DATABASE_URL`, product
 
 ## 7. Next sequence after P2.1/P2.2 verification
 
-1. Confirm the latest feature-branch CI run is green; fix any API, migration, TypeScript or PostgreSQL test failures before proceeding.
-2. Run the read-only catalog preflight against the disposable Neon development database. If it matches the baseline assertions, execute the explicit `db:migrate:baseline-existing` command using a direct migration-owner URL. Do not use the runtime URL.
-3. Confirm the DDL ledger contains checksums for 0000–0005 and verify a no-op rerun.
-4. Complete the scoped Core preview issuer/domain mapping and confirm the existing client registration and allowed scopes. The Core `lucia-secure` project has a READY preview deployment on `fix/oidc-discovery-auth-methods`; its preview `APPLICATION_URL` and `OIDC_ISSUER` are set to `https://auth.lucia.name.ng`. That custom domain is verified on the project but currently has no branch pin (`gitBranch=null`), while the project's production `APPLICATION_URL` is `https://lucia-secure.vercel.app` and production `OIDC_ISSUER` is absent. The production deployment URL is SSO-protected. This mismatch means the public issuer/domain cannot yet be treated as confirmed for Ariovelle. No Core project settings, domains, deployments, secrets or databases were changed.
-5. Complete P2.4 authenticated user/workspace APIs and security tests.
+1. CI run 43635149009 passed on runtime code commit 4340226: production build and 82 tests across 18 files.
+2. Obtain explicit owner approval to baseline the disposable Ariovelle development schema. Execute `db:migrate:baseline-existing` to record 0000–0005, then `db:migrate:apply` to apply 0006; use the direct migration-owner URL, never the runtime URL.
+3. Re-enable Preview login and manually deploy after the shared dev migration. Perform one real browser sign-in, callback, `/api/auth/me`, workspace resolution and logout.
+4. Complete remaining workspace APIs and two-user/two-workspace IDOR and privilege tests.
+5. Review the Core signing-key recovery gap with the Core agent. Production issuer/domain and active client registration are already verified; do not repeat or change that work.
 6. Close Phase 2 with a security review, clean build/CI, reproducible database setup, documentation reconciliation and explicit owner acceptance.
 
 P2.5/P2.6 remain excluded unless the clean-start decision changes.
