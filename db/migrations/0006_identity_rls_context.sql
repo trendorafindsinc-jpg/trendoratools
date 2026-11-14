@@ -4,6 +4,85 @@
 -- This preserves RLS; it does not grant runtime direct table privileges.
 BEGIN;
 
+-- These helpers read transaction-local GUCs that the trusted server may set
+-- during a transaction. VOLATILE prevents a value observed earlier in the
+-- same top-level statement from being reused after set_config changes context.
+CREATE OR REPLACE FUNCTION app_private.current_user_id()
+RETURNS UUID
+LANGUAGE sql
+VOLATILE
+SET search_path = pg_catalog
+AS $function$
+  SELECT NULLIF(current_setting('app.user_id', true), '')::uuid
+$function$;
+
+CREATE OR REPLACE FUNCTION app_private.current_workspace_id()
+RETURNS UUID
+LANGUAGE sql
+VOLATILE
+SET search_path = pg_catalog
+AS $function$
+  SELECT NULLIF(current_setting('app.workspace_id', true), '')::uuid
+$function$;
+
+CREATE OR REPLACE FUNCTION app_private.is_active_workspace_member(target_workspace_id UUID)
+RETURNS BOOLEAN
+LANGUAGE sql
+VOLATILE
+SECURITY DEFINER
+SET search_path = pg_catalog
+AS $function$
+  SELECT EXISTS (
+    SELECT 1
+      FROM public.workspace_memberships AS wm
+      JOIN public.workspaces AS w ON w.id = wm.workspace_id
+      JOIN public.users AS u ON u.id = wm.user_id
+     WHERE wm.workspace_id = target_workspace_id
+       AND wm.user_id = app_private.current_user_id()
+       AND wm.status = 'active'
+       AND w.status = 'active'
+       AND u.status = 'active'
+  )
+$function$;
+
+CREATE OR REPLACE FUNCTION app_private.is_workspace_owner(target_workspace_id UUID)
+RETURNS BOOLEAN
+LANGUAGE sql
+VOLATILE
+SECURITY DEFINER
+SET search_path = pg_catalog
+AS $function$
+  SELECT EXISTS (
+    SELECT 1
+      FROM public.workspace_memberships AS wm
+      JOIN public.workspaces AS w ON w.id = wm.workspace_id
+     WHERE wm.workspace_id = target_workspace_id
+       AND wm.user_id = app_private.current_user_id()
+       AND wm.role = 'owner'
+       AND wm.status = 'active'
+       AND w.status = 'active'
+  )
+$function$;
+
+CREATE OR REPLACE FUNCTION app_private.is_workspace_admin(target_workspace_id UUID)
+RETURNS BOOLEAN
+LANGUAGE sql
+VOLATILE
+SECURITY DEFINER
+SET search_path = pg_catalog
+AS $function$
+  SELECT EXISTS (
+    SELECT 1
+      FROM public.workspace_memberships AS wm
+      JOIN public.workspaces AS w ON w.id = wm.workspace_id
+     WHERE wm.workspace_id = target_workspace_id
+       AND wm.user_id = app_private.current_user_id()
+       AND wm.role IN ('owner', 'admin')
+       AND wm.status = 'active'
+       AND w.status = 'active'
+  )
+$function$;
+
 CREATE OR REPLACE FUNCTION app_private.establish_lucia_identity(
   p_issuer TEXT,p_subject TEXT,p_email TEXT,p_email_verified BOOLEAN,p_display_name TEXT,
   p_session_hash CHAR(64),p_expires_at TIMESTAMPTZ
