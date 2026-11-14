@@ -71,8 +71,8 @@ export async function discoverMigrations(directory = MIGRATIONS_DIR) {
       throw new Error(`Migration sequence gap: expected ${expected}, found ${migrations[index].version}.`);
     }
   }
-  if (migrations.length < 7 || migrations[0]?.version !== '0000') {
-    throw new Error('Expected bootstrap migration 0000 and existing migrations 0001–0006.');
+  if (migrations.length < 8 || migrations[0]?.version !== '0000') {
+    throw new Error('Expected bootstrap migration 0000 and migrations 0001–0007.');
   }
   return migrations;
 }
