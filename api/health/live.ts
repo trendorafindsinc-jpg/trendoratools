@@ -1,5 +1,5 @@
-import { liveHealthResponseSchema } from '../_lib/contracts';
-import { createApiHandler } from '../_lib/route';
+import { liveHealthResponseSchema } from '../_lib/contracts.js';
+import { createApiHandler } from '../_lib/route.js';
 
 /** Liveness probe only; it does not authenticate callers or access product data. */
 const liveHandler = createApiHandler({
