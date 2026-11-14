@@ -30,7 +30,7 @@ The following configuration was set on the Vercel project `trendoratools` for th
 
 **Important distinction:** the preview database URL is configured, but the PostgreSQL pool is not yet wired into HTTP route composition. This does not mean database-backed application APIs or financial writes are enabled. A configured variable alone is not a verified connection.
 
-`LUCIA_ISSUER` is not configured because the canonical deployed Lucia ID issuer has not been handed over and verified. Do not guess it.
+`LUCIA_ISSUER` remains unset in Ariovelle preview. Read-only Vercel inspection found the Core project `lucia-secure` has a READY preview deployment on `fix/oidc-discovery-auth-methods`, with preview-only `APPLICATION_URL` and `OIDC_ISSUER` set to `https://auth.lucia.name.ng`. The custom domain is verified and assigned to the Core project, but its Vercel domain record has `gitBranch=null`; the project's production `APPLICATION_URL` is `https://lucia-secure.vercel.app` and production `OIDC_ISSUER` is absent. The production deployment URL is SSO-protected. Therefore the preview issuer's live routing is not yet confirmed, and Ariovelle must not be pointed at it until the Core domain is pinned to the intended preview deployment or Core provides a verified canonical production issuer.
 
 Vercel Git automatic deployments remain disabled by owner instruction. Do not change that setting or trigger a deployment without explicit approval. No production deployment is authorized.
 
@@ -53,7 +53,7 @@ Wait for the Core agent's explicit confirmation of:
 
 Do not change `LUCIA_ISSUER` or set `LUCIA_AUTH_ENABLED=true` until these details are verified and Ariovelle end-to-end tests pass.
 
-## 4. OIDC and session security contract
+## 4. Lucia identity API and Ariovelle session security contract
 
 - First-party confidential client; Authorization Code flow with PKCE S256.
 - Exact callback only: `https://ariovelle.lucia.name.ng/api/auth/lucia/callback`.
