@@ -1,4 +1,4 @@
-import type { SqlExecutor } from './database';
+import type { SqlExecutor } from './database.js';
 
 export type WorkspaceRole = 'owner' | 'admin' | 'member' | 'viewer';
 export type WorkspacePermission =
