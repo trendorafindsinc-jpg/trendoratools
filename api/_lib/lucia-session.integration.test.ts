@@ -9,8 +9,17 @@ import { openOAuthTransaction, sealOAuthTransaction } from './lucia-oauth';
 
 const ownerUrl = process.env.ARIOVELLE_RLS_TEST_OWNER_DATABASE_URL;
 const runtimeUrl = process.env.ARIOVELLE_RLS_TEST_RUNTIME_DATABASE_URL;
-const ownerPool = ownerUrl ? new Pool({ connectionString: ownerUrl, max: 1, ssl: { rejectUnauthorized: true } }) : null;
-const runtimePool = runtimeUrl ? new Pool({ connectionString: runtimeUrl, max: 1, ssl: { rejectUnauthorized: true } }) : null;
+function poolFor(connectionString: string) {
+  const host = new URL(connectionString).hostname;
+  return new Pool({
+    connectionString,
+    max: 1,
+    connectionTimeoutMillis: 5_000,
+    ssl: host === 'localhost' || host === '127.0.0.1' ? false : { rejectUnauthorized: true },
+  });
+}
+const ownerPool = ownerUrl ? poolFor(ownerUrl) : null;
+const runtimePool = runtimeUrl ? poolFor(runtimeUrl) : null;
 const runtimeDb = runtimePool ? createPostgresAdapter(runtimePool as never) : null;
 const transactionSecret = 'integration-transaction-secret-'.padEnd(48, 'x');
 
