@@ -1,5 +1,5 @@
 import { Pool, type PoolConfig } from 'pg';
-import { createPostgresAdapter, type PgPool } from './postgres-adapter';
+import { createPostgresAdapter, type PgPool } from './postgres-adapter.js';
 
 /**
  * Vercel Node.js / Fluid Compute pool configuration. A single connection per
