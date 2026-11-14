@@ -1,5 +1,5 @@
-import type { DatabaseAdapter } from './database';
-import { hashSessionToken } from './lucia-session';
+import type { DatabaseAdapter } from './database.js';
+import { hashSessionToken } from './lucia-session.js';
 
 export type StoredOAuthTransaction = {
   state: string;
