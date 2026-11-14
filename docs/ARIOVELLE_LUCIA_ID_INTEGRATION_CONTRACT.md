@@ -32,7 +32,7 @@ At runtime, Ariovelle must fetch and validate the discovery document from the op
 - JWKS: `{issuer}/.well-known/jwks.json`
 - UserInfo: `{issuer}/api/v1/oidc/userinfo`
 
-Never hardcode a guessed production Lucia hostname. Configure the issuer as a server-side environment variable only after confirming the deployed Core value. Require HTTPS outside local development. Discovery/JWKS are public documents; cache briefly and refresh JWKS on unknown `kid`.
+Never hardcode a guessed production Lucia hostname. Configure the issuer as a server-side environment variable only after confirming the deployed Core value. Require HTTPS outside local development. Discovery is a public document; cache briefly. The selected identity-API path does not fetch JWKS.
 
 ## 3. Client registration
 
