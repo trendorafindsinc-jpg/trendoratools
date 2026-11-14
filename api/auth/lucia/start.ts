@@ -26,7 +26,6 @@ export default async function startLuciaAuth(request: ApiRequest, response: ApiR
     const { verifier, challenge } = createPkcePair();
     const tx = {
       state: randomBytes(32).toString('base64url'),
-      nonce: randomBytes(32).toString('base64url'),
       verifier,
       createdAt: Date.now(),
     };
