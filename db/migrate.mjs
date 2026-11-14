@@ -253,15 +253,18 @@ async function baselineExisting(client, migrations, existingLedger) {
 }
 
 function parseMode(args) {
+  const supported = ['--plan', '--apply', '--verify', '--baseline-existing'];
+  const unknown = args.filter((argument) => !supported.includes(argument));
+  if (unknown.length) throw new Error(`Unsupported migration option(s): ${unknown.join(', ')}.`);
   if (args.includes('--baseline-existing')) {
-    if (!args.includes('--apply')) {
-      throw new Error('Existing-schema reconciliation requires both --baseline-existing and --apply.');
+    if (!args.includes('--apply') || args.some((argument) => !['--baseline-existing', '--apply'].includes(argument))) {
+      throw new Error('Existing-schema reconciliation requires exactly --baseline-existing --apply.');
     }
     return '--baseline-existing';
   }
   const modes = ['--plan', '--apply', '--verify'];
   const selected = modes.filter((mode) => args.includes(mode));
-  if (selected.length !== 1) {
+  if (selected.length !== 1 || args.length !== 1) {
     throw new Error('Choose exactly one mode: --plan, --apply, --verify, or --baseline-existing --apply.');
   }
   return selected[0];
@@ -269,10 +272,23 @@ function parseMode(args) {
 
 export async function runMigrationCommand({ mode, connectionString, migrations }) {
   const parsed = new URL(connectionString);
+  if (
+    (parsed.protocol !== 'postgres:' && parsed.protocol !== 'postgresql:') ||
+    !parsed.hostname ||
+    !parsed.pathname ||
+    parsed.pathname === '/'
+  ) {
+    throw new Error('ARIOVELLE_MIGRATION_DATABASE_URL must be a PostgreSQL URL with a host and database name.');
+  }
   if (parsed.hostname.includes('-pooler')) {
     throw new Error('Schema migrations require a direct, non-pooled PostgreSQL connection.');
   }
-  const client = new Client({ connectionString, connectionTimeoutMillis: 5000, ssl: parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1' ? false : { rejectUnauthorized: true } });
+  const client = new Client({
+    connectionString,
+    connectionTimeoutMillis: 5000,
+    application_name: 'ariovelle-schema-migrator',
+    ssl: parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1' ? false : { rejectUnauthorized: true },
+  });
   await client.connect();
   try {
     await client.query('SELECT pg_advisory_lock(hashtext($1))', [LOCK_KEY]);
