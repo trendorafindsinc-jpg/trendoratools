@@ -4,9 +4,11 @@ import { ArrowLeft, AlertCircle, ShieldCheck, LockKeyhole, LogIn } from 'lucide-
 export function LuciaAuth({
   onGuest,
   authError,
+  signInDisabled = false,
 }: {
   onGuest: () => void;
   authError?: string | null;
+  signInDisabled?: boolean;
 }) {
   const [busy, setBusy] = useState(false);
 
@@ -67,12 +69,12 @@ export function LuciaAuth({
 
           <button
             type="button"
-            disabled={busy}
+            disabled={busy || signInDisabled}
             onClick={beginSignIn}
             className="btn-primary w-full disabled:opacity-50 flex items-center justify-center gap-2"
           >
             <LockKeyhole size={18} />
-            {busy ? 'Opening Lucia…' : 'Continue with Lucia'}
+            {busy ? 'Opening Lucia…' : signInDisabled ? 'Sign-in temporarily unavailable' : 'Continue with Lucia'}
           </button>
 
           <div className="mt-6 text-center text-sm text-[var(--text-faint)]">
