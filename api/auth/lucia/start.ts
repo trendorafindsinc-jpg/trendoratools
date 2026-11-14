@@ -6,10 +6,10 @@ import {
   buildCookie,
   fetchOidcDiscovery,
   luciaCookieNames,
-} from '../../_lib/lucia-oauth';
-import { createRuntimePostgres } from '../../_lib/postgres-pool';
-import { storeOAuthTransaction } from '../../_lib/lucia-oauth-store';
-import { sendError, sendMethodNotAllowed, type ApiRequest, type ApiResponse } from '../../_lib/http';
+} from '../../_lib/lucia-oauth.js';
+import { createRuntimePostgres } from '../../_lib/postgres-pool.js';
+import { storeOAuthTransaction } from '../../_lib/lucia-oauth-store.js';
+import { sendError, sendMethodNotAllowed, type ApiRequest, type ApiResponse } from '../../_lib/http.js';
 
 export default async function startLuciaAuth(request: ApiRequest, response: ApiResponse) {
   if (request.method !== 'GET') return sendMethodNotAllowed(response, ['GET']);
