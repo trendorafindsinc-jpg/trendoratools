@@ -3,6 +3,7 @@ import { z } from 'zod';
 import liveHandler from './live';
 import readyHandler from './ready';
 import { createApiHandler } from '../_lib/route';
+import { isIdentityProviderConfigured } from '../_lib/health-config';
 import {
   liveHealthResponseSchema,
   meResponseSchema,
@@ -113,6 +114,20 @@ describe('Ariovelle API health endpoints', () => {
     expect(invalid.result.statusCode).toBe(500);
     expect(invalid.result.body).toMatchObject({ error: { code: 'INTERNAL_ERROR' } });
     expectSecurityHeaders(invalid.headers, invalid.result.body);
+  });
+
+  it('requires the complete server-only identity configuration without implying connectivity', () => {
+    const complete = {
+      LUCIA_ISSUER: 'https://identity.example.test',
+      LUCIA_CLIENT_ID: 'client-id',
+      LUCIA_CLIENT_SECRET: 'server-only-secret',
+      LUCIA_AUDIENCE: 'ariovelle',
+      LUCIA_REDIRECT_URI: 'https://ariovelle.example.test/api/auth/lucia/callback',
+      ARIOVELLE_SESSION_SECRET: 'session-secret',
+    };
+    expect(isIdentityProviderConfigured(complete)).toBe(true);
+    expect(isIdentityProviderConfigured({ ...complete, LUCIA_ISSUER: '' })).toBe(false);
+    expect(isIdentityProviderConfigured({ ...complete, ARIOVELLE_SESSION_SECRET: undefined })).toBe(false);
   });
 
   it('validates future /me and workspace DTOs strictly', () => {
