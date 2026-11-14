@@ -49,9 +49,8 @@ export default async function startLuciaAuth(request: ApiRequest, response: ApiR
     url.searchParams.set('client_id', config.clientId);
     url.searchParams.set('redirect_uri', config.redirectUri);
     url.searchParams.set('audience', config.audience);
-    url.searchParams.set('scope', 'openid email profile');
+    url.searchParams.set('scope', 'profile email');
     url.searchParams.set('state', tx.state);
-    url.searchParams.set('nonce', tx.nonce);
     url.searchParams.set('code_challenge', challenge);
     url.searchParams.set('code_challenge_method', 'S256');
 
