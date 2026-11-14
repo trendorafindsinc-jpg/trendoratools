@@ -77,4 +77,9 @@ BEGIN
   RETURN QUERY SELECT v_user,v_workspace;
 END $$;
 
+-- Keep the trusted bootstrap routine owned by the dedicated BYPASSRLS migration role;
+-- the application runtime can only EXECUTE it and never inherits this role.
+ALTER FUNCTION app_private.establish_lucia_identity(TEXT,TEXT,TEXT,BOOLEAN,TEXT,CHAR,TIMESTAMPTZ)
+  OWNER TO ariovelle_owner;
+
 COMMIT;
