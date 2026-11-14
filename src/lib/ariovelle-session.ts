@@ -13,12 +13,12 @@ export type AriovelleSession = {
   };
 };
 
-async function parseError(response: Response): Promise<string> {
+async function parseError(response: Response): Promise<{ code?: string; message: string }> {
   try {
-    const body = await response.json() as { error?: { message?: string } };
-    return body.error?.message || 'The request could not be completed.';
+    const body = await response.json() as { error?: { code?: string; message?: string } };
+    return { code: body.error?.code, message: body.error?.message || 'The request could not be completed.' };
   } catch {
-    return 'The request could not be completed.';
+    return { message: 'The request could not be completed.' };
   }
 }
 
@@ -37,8 +37,12 @@ export async function getCurrentAriovelleSession(signal?: AbortSignal): Promise<
     throw new Error('Ariovelle could not reach the session service. Check your connection and retry.');
   }
 
-  if (response.status === 401) return null;
-  if (!response.ok) throw new Error(await parseError(response));
+  if (response.status === 401) {
+    const error = await parseError(response);
+    if (error.code === 'AUTH_DISABLED') throw new Error(error.message);
+    return null;
+  }
+  if (!response.ok) throw new Error((await parseError(response)).message);
 
   const payload = await response.json() as AriovelleSession;
   if (
@@ -65,7 +69,7 @@ export async function signOutAriovelle(): Promise<void> {
   } catch {
     throw new Error('Ariovelle could not reach the sign-out service. Please retry.');
   }
-  if (!response.ok) throw new Error(await parseError(response));
+  if (!response.ok) throw new Error((await parseError(response)).message);
 }
 
 export function startLuciaSignIn(): void {
