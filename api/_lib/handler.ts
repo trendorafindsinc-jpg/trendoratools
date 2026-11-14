@@ -2,7 +2,7 @@ import {
   sendError,
   type ApiRequest,
   type ApiResponse,
-} from './http';
+} from './http.js';
 
 export type ApiHandler = (
   request: ApiRequest,
