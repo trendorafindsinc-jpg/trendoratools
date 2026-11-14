@@ -68,7 +68,7 @@ describe.skipIf(!ownerPool || !runtimePool || !runtimeDb)('Lucia identity, OAuth
       expect(openOAuthTransaction(consumed!, transactionSecret)).toEqual(oauthPayload);
       await expect(consumeOAuthTransaction(runtimeDb, oauthState, browserBinding)).resolves.toBeNull();
 
-      const bootstrapMetadata = await runtime.query<{
+      const bootstrapMetadata = await runtimeDb.query<{
         security_definer: boolean;
         function_owner: string;
         owner_bypasses_rls: boolean;
@@ -96,11 +96,11 @@ describe.skipIf(!ownerPool || !runtimePool || !runtimeDb)('Lucia identity, OAuth
         expect(contextResult.rows[0]?.current_user_id).toBe(contextProbe);
       });
 
-      const a = await runtimeDb.query(
+      const a = await runtimeDb.query<{ user_id: string; personal_workspace_id: string }>(
         'SELECT * FROM app_private.establish_lucia_identity($1,$2,$3,$4,$5,$6,$7)',
         ['https://identity.integration.test', subjectA, 'a@example.test', true, 'Integration A', hashA, expires],
       );
-      const b = await runtimeDb.query(
+      const b = await runtimeDb.query<{ user_id: string; personal_workspace_id: string }>(
         'SELECT * FROM app_private.establish_lucia_identity($1,$2,$3,$4,$5,$6,$7)',
         ['https://identity.integration.test', subjectB, 'b@example.test', true, 'Integration B', hashB, expires],
       );
