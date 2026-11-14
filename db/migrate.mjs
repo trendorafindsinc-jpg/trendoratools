@@ -29,7 +29,7 @@ export function stripTransactionWrapper(sql) {
     /^(\s*(?:(?:--[^\n]*\n)|\s)*)BEGIN\s*;\s*/i,
     '$1',
   );
-  const withoutCommit = withoutBegin.replace(/\s*COMMIT\s*;\s*$/i, '\n');
+  const withoutCommit = withoutBegin.replace(/\s*COMMIT\s*;\s*(?:(?:--[^\n]*\n)|\s)*$/i, '\n');
   if (/^\s*BEGIN\s*;/im.test(withoutCommit) || /\bCOMMIT\s*;\s*$/im.test(withoutCommit)) {
     throw new Error('Migration contains an unsupported nested transaction wrapper.');
   }
