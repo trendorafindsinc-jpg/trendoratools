@@ -1,6 +1,6 @@
 # Ariovelle ↔ Lucia Core Identity Integration Contract
 
-Status: implementation contract; authentication remains disabled. See [runtime verification findings](ARIOVELLE_LUCIA_CORE_RUNTIME_VERIFICATION.md) for blockers discovered in the current Core source and linked Vercel project.
+Status: Ariovelle API adapter implemented; live provider verification and login activation remain gated. See [runtime verification findings](ARIOVELLE_LUCIA_CORE_RUNTIME_VERIFICATION.md) for deployment and registration checks.
 
 Source of truth inspected read-only:
 - Repository: https://github.com/trendorafindsinc-jpg/lucia-core
@@ -10,7 +10,7 @@ Source of truth inspected read-only:
 
 ## 1. Responsibility boundary
 
-Lucia Core is the identity provider. Ariovelle is an OAuth/OIDC relying party and owns its own application users, sessions, workspaces, memberships, roles, entitlements, financial records, audit trail and database.
+Lucia Core is the identity provider. Ariovelle uses Core's confidential OAuth authorization-code flow to obtain a short-lived bearer credential, then calls Core's protected identity verification (UserInfo) API. Ariovelle owns its own application users, sessions, workspaces, memberships, roles, entitlements, financial records, audit trail and database. Ariovelle does not require an OIDC ID token or local JWKS signature validation for this selected integration path.
 
 Ariovelle must not connect to Lucia Core's database, import Lucia Core's internal user UUID as its durable identity key, or treat client-supplied identity fields as proof of authentication.
 
@@ -48,7 +48,7 @@ Provisioning inputs supported by Core include:
 
 Use a dedicated audience for Ariovelle, agreed during provisioning. Register only the exact callback URI(s), including scheme, host, path and any required port. Production callback must use HTTPS. Keep client secret in server-side secret storage; never expose it in Vite variables, browser bundles, source control, logs or client responses.
 
-No client has been registered as part of this implementation work. The linked Core Vercel project is currently reported as not live, with its latest deployment canceled and no Ariovelle consumer variables present. See the runtime verification report.
+The owner supplied client ID `lucia_4d08f98c2e1fe8335403d916`; Ariovelle has the ID and secret configured server-side on its preview environment. The Core-side database registration and exact granted-scope rows have not yet been independently confirmed. Do not treat the presence of an Ariovelle environment variable as proof that Core has an active registered client.
 
 ## 4. Authorization-code flow
 
@@ -75,9 +75,9 @@ No client has been registered as part of this implementation work. The linked Co
    - `code_verifier`.
 7. Do not log authorization codes, verifier, client secret, access token or ID token.
 
-## 5. Token response: two distinct JWTs
+## 5. Token response and identity verification credential
 
-The inspected Core token route returns an access assertion and, when the granted scope contains `openid`, attempts to issue an OIDC ID token. They are not interchangeable. **Current Core main has a nonce propagation defect:** `exchangeAuthorizationCode()` does not return the nonce stored on the consumed authorization-code row, so the token route passes `null` to `maybeIssueIdToken()` and the ID token omits `nonce`. Ariovelle rejects that token by design. Do not weaken nonce validation; Core must be corrected and redeployed first.
+The inspected Core token route returns a short-lived consumer bearer assertion. It may also issue an OIDC ID token if the granted scope contains `openid`; Ariovelle deliberately requests only `profile email` and does not require or consume an ID token.
 
 ### Consumer access assertion
 
@@ -85,34 +85,20 @@ The inspected Core token route returns an access assertion and, when the granted
 - Signed HS256 using Core's private `CONSUMER_ASSERTION_SECRET`.
 - Claims include `iss=lucia-core`, `aud`, Core internal `sub`, `client_id`, `scope`, `iat`, `exp`, `jti`.
 - Lifetime is 300 seconds.
-- This signing secret is not published in JWKS. Ariovelle must not attempt to verify this assertion as an RS256 OIDC token or copy the Core secret into Ariovelle.
+- The signing secret is not published in JWKS. Ariovelle must not attempt to validate or decode this credential, must not copy Core's signing secret, and must not use the token response's `user.id` as the durable Ariovelle identity.
+- Ariovelle exchanges the authorization code server-side using HTTP Basic confidential-client authentication and the PKCE verifier. It accepts only a Bearer token with a positive lifetime no greater than 300 seconds and immediately calls the protected identity endpoint.
 
-Use this access token as a bearer credential only when calling Core's protected consumer endpoints, notably UserInfo. Core verifies it internally and checks client status, audience and active Core user.
+### Protected identity verification API
 
-### OIDC ID token
-
-- Present as `id_token` when the granted scope includes `openid`.
-- Signed RS256 with Core-managed RSA key material; JWT header contains `kid`.
-- Public keys are published through JWKS.
-- Claims include `iss`, `sub` (the stable OIDC subject), `aud` (client ID), `exp`, `iat`, `auth_time`, `jti`, and `nonce` when provided.
-- Lifetime is 300 seconds.
-- Email/name claims are scope-dependent.
-
-Ariovelle must validate the ID token signature using the discovered JWKS and a maintained JOSE library; enforce exact issuer, audience equal to Ariovelle client ID, expiry, issued-at sanity, allowed algorithm RS256, non-empty subject, and exact nonce match. Reject missing/incorrect nonce. Do not accept `alg=none`, HS256, an untrusted key URL, or a key supplied by the token. Handle key rotation by refreshing JWKS once for an unknown `kid`, then fail closed.
-
-The token route returns a `user` object with Core's internal UUID/email/displayName for compatibility. Do not use that object as the durable Ariovelle identity. The validated ID token's `sub` is the identity contract.
-
-## 6. UserInfo
-
-Call the discovered UserInfo endpoint from the server using:
+Call the discovered UserInfo endpoint from the Ariovelle server using:
 
 `Authorization: Bearer {access_token}`
 
-Core's UserInfo handler authenticates the HS256 consumer assertion internally and returns claims according to granted scopes. The response includes `sub`; optional claims include `name`, `email`, `email_verified`, and selected `lucia.profile` claims.
+Core's handler calls `authenticateConsumerRequest()`, which verifies the HMAC signature using Core's private assertion secret and checks that the consumer client is active, the audience matches, and the Core user is active. It then returns claims from the Core user record.
 
-Require UserInfo `sub` to exactly equal the validated ID token `sub`. Treat a mismatch as a hard authentication failure. UserInfo is supplemental profile data, not a substitute for ID-token validation.
+The response's `sub` is `users.oidcSubject`, Lucia's stable cross-product subject. This is the only external identity key Ariovelle accepts. Optional `email`, `email_verified` and `name` claims are profile attributes and are validated before use. Core's internal user UUID is not used.
 
-The Core code deliberately excludes date of birth and phone from the general profile scope. Ariovelle should request no unnecessary personal information.
+The UserInfo implementation always includes `sub` and only returns optional claims for explicitly granted scopes. Date of birth and phone are deliberately excluded from the general profile scope. Treat a missing/empty subject, malformed response, non-success HTTP response, or network error as an authentication failure. Never cache the bearer credential or identity response in the browser.
 
 ## 7. Ariovelle session and database mapping
 
