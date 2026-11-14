@@ -2,6 +2,7 @@ export type ApiRequest = {
   method?: string;
   url?: string;
   headers?: Record<string, string | string[] | undefined>;
+  body?: unknown;
 };
 
 export type ApiResponse = {
