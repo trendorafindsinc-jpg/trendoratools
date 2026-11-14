@@ -81,6 +81,11 @@ export function pendingMigrations(migrations, ledgerRows) {
   const knownVersions = new Set(migrations.map((migration) => migration.version));
   const unknown = ledgerRows.find((row) => !knownVersions.has(row.version));
   if (unknown) throw new Error(`Unknown migration version ${unknown.version} is recorded in the DDL ledger.`);
+  for (let index = 0; index < ledgerRows.length; index += 1) {
+    if (ledgerRows[index].version !== migrations[index]?.version) {
+      throw new Error('DDL ledger is not a contiguous prefix of the checked-in migration sequence.');
+    }
+  }
   const applied = new Map(ledgerRows.map((row) => [row.version, row]));
   for (const migration of migrations) {
     const row = applied.get(migration.version);
@@ -270,7 +275,7 @@ export async function runMigrationCommand({ mode, connectionString, migrations }
     const schema = await client.query("SELECT to_regclass('public.users') AS users");
     const hasApplicationSchema = Boolean(schema.rows[0]?.users);
     const bootstrapOnly = ledger.length === 1 && ledger[0].version === '0000';
-    if (hasApplicationSchema && (!hasLedger || bootstrapOnly)) {
+    if (hasApplicationSchema && (!hasLedger || ledger.length === 0 || bootstrapOnly)) {
       if (mode === '--plan') return { mode, baselineRequired: true, pending: migrations.map(({ version, name }) => ({ version, name })) };
       throw new Error('Existing Ariovelle schema has no complete DDL ledger. Review the catalog, then use --baseline-existing --apply; do not replay migrations.');
     }
