@@ -1,6 +1,6 @@
-import { readyHealthResponseSchema } from '../_lib/contracts';
-import { createApiHandler } from '../_lib/route';
-import { isIdentityProviderConfigured } from '../_lib/health-config';
+import { readyHealthResponseSchema } from '../_lib/contracts.js';
+import { createApiHandler } from '../_lib/route.js';
+import { isIdentityProviderConfigured } from '../_lib/health-config.js';
 
 /**
  * Reports API scaffold readiness and configuration presence only.
