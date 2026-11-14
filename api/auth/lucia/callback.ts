@@ -3,15 +3,14 @@ import {
   constantTimeEqual,
   fetchOidcDiscovery,
   openOAuthTransaction,
+  validateLuciaIdToken,
+  exchangeLuciaCode,
+  fetchLuciaUserInfo,
   parseCookies,
   buildCookie,
   clearCookie,
   luciaCookieNames,
 } from '../../_lib/lucia-oauth';
-import {
-  exchangeLuciaAuthorizationCode,
-  verifyLuciaIdentity,
-} from '../../_lib/lucia-identity';
 import { consumeOAuthTransaction } from '../../_lib/lucia-oauth-store';
 import { establishLuciaSession } from '../../_lib/lucia-session';
 import { createRuntimePostgres } from '../../_lib/postgres-pool';
@@ -52,8 +51,7 @@ export default async function luciaCallback(request: ApiRequest, response: ApiRe
     const runtime = createRuntimePostgres(databaseUrl);
     closePool = () => runtime.pool.end();
 
-    // Consume before processing provider errors or exchanging the code. A
-    // callback can only consume this state/browser pair once.
+    // Atomically consume before provider error handling or code exchange.
     const encryptedTransaction = await consumeOAuthTransaction(
       runtime.database,
       returnedState,
@@ -66,27 +64,40 @@ export default async function luciaCallback(request: ApiRequest, response: ApiRe
     if (!code) throw new Error('Authorization code is missing.');
 
     const discovery = await fetchOidcDiscovery(config);
-    const tokens = await exchangeLuciaAuthorizationCode({
+    const tokens = await exchangeLuciaCode({
       config,
       discovery,
       code,
       verifier: tx.verifier,
     });
+    if (!tokens.id_token) throw new Error('Lucia Core did not return an OIDC ID token.');
 
-    // The bearer credential is opaque to Ariovelle. Lucia Core validates it
-    // and returns the stable identity subject through its protected UserInfo
-    // endpoint. Never use token-response user.id as the Ariovelle identity.
-    const identity = await verifyLuciaIdentity({
+    // Validate the signed identity assertion locally against Core's published
+    // RS256 keys. The nonce binds it to this one-time browser transaction.
+    const idClaims = await validateLuciaIdToken({
+      token: tokens.id_token,
+      config,
       discovery,
-      accessToken: tokens.accessToken,
+      nonce: tx.nonce,
+    });
+    if (typeof idClaims.sub !== 'string' || !idClaims.sub) {
+      throw new Error('Validated ID token has no stable subject.');
+    }
+
+    // UserInfo is an additional Core-side identity/account verification.
+    // Its subject must match the locally validated ID token subject.
+    const profile = await fetchLuciaUserInfo({
+      discovery,
+      accessToken: tokens.access_token,
+      expectedSubject: idClaims.sub,
     });
 
     const established = await establishLuciaSession(runtime.database, {
       issuer: config.issuer,
-      subject: identity.subject,
-      email: identity.email,
-      emailVerified: identity.emailVerified,
-      displayName: identity.displayName,
+      subject: idClaims.sub,
+      email: profile.email,
+      emailVerified: profile.email_verified === true,
+      displayName: profile.name,
       ttlSeconds: 60 * 60 * 24 * 14,
     });
     response.setHeader('Cache-Control', 'no-store');
