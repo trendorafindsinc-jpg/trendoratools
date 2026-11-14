@@ -186,13 +186,16 @@ async function baselineExisting(client, migrations) {
 }
 
 function parseMode(args) {
-  const modes = ['--plan', '--apply', '--verify', '--baseline-existing'];
+  if (args.includes('--baseline-existing')) {
+    if (!args.includes('--apply')) {
+      throw new Error('Existing-schema reconciliation requires both --baseline-existing and --apply.');
+    }
+    return '--baseline-existing';
+  }
+  const modes = ['--plan', '--apply', '--verify'];
   const selected = modes.filter((mode) => args.includes(mode));
   if (selected.length !== 1) {
     throw new Error('Choose exactly one mode: --plan, --apply, --verify, or --baseline-existing --apply.');
-  }
-  if (selected[0] === '--baseline-existing' && !args.includes('--apply')) {
-    throw new Error('Existing-schema reconciliation requires both --baseline-existing and --apply.');
   }
   return selected[0];
 }
