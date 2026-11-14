@@ -112,7 +112,7 @@ Implemented on the Ariovelle feature branch:
 1. Shared Vercel Node-function composition in `api/_lib/route.ts`: server-generated request ID, method/Allow handling, request Zod validation, response Zod validation, generic safe errors, and no-store/security headers on every response.
 2. Strict health/readiness response schemas and future `/me`/workspace DTO schemas in `api/_lib/contracts.ts`.
 3. Existing `/api/health/live` and `/api/health/ready` route modules now use the shared composition boundary.
-4. Readiness reports whether database/identity configuration is present separately from connectivity, which remains `not_checked`. It never returns secret values or claims a connection was verified.
+4. Readiness reports whether database/complete identity configuration is present separately from connectivity, which remains `not_checked`. Identity configuration checks all six required server-only variables; it never returns secret values or claims a connection was verified.
 5. Tests cover health contracts, malformed/unknown request input, unsupported methods, thrown exceptions, response-schema failures, request-ID/header consistency, no detail leakage and filesystem route conventions.
 
 **Verification status:** implementation is committed, but the current CI result has not yet been confirmed. The routing test validates Vercel's filesystem function convention; a real preview HTTP request remains unverified because no deployment was authorized or triggered. Vercel Git auto-deploy remains disabled.
@@ -123,7 +123,7 @@ P2.1 acceptance still requires a confirmed green `npm ci`, `npm test`, and `npm 
 
 Implemented:
 - `db/migrations/0000_schema_migrations.sql` adds the DDL ledger, distinct from data-import provenance.
-- `db/migrate.mjs` discovers contiguous migration files, hashes exact UTF-8 contents with SHA-256, rejects unknown/out-of-order/drifted ledger entries, serializes runners with a PostgreSQL advisory lock, and commits each migration plus its ledger row atomically.
+- `db/migrate.mjs` discovers contiguous migration files, hashes exact UTF-8 contents with SHA-256, rejects unknown/out-of-order/drifted ledger entries, serializes runners with a PostgreSQL advisory lock, and commits each migration plus its ledger row atomically. The ledger itself has RLS enabled and no PUBLIC/runtime table grants.
 - `--plan`, `--apply`, `--verify` and explicit `--baseline-existing --apply` modes are available through the npm scripts. Only `ARIOVELLE_MIGRATION_DATABASE_URL` is read; pooled Neon URLs are rejected.
 - Existing-schema baseline mode checks the 11 expected tables and columns, RLS, 17 policies, 10 private functions, role flags/timeouts, protected-table ACLs and runtime function execution before recording 0000–0005. It never replays 0001–0005.
 - CI now creates an ephemeral PostgreSQL 17 service with separate migration-owner/runtime roles, applies all six migrations from empty, reruns and verifies the ledger, and runs the RLS integration suite. A second ephemeral database exercises the no-ledger baseline path, then verifies the ledger and no-op rerun. There is no destructive reset command; each CI run starts with a fresh service.
