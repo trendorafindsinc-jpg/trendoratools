@@ -59,3 +59,18 @@ This Production setup enables Lucia identity, Ariovelle account/session bootstra
 ## Lucia Core boundary
 
 No Lucia Core source, database, environment variables, signing keys, client registration, domain, or deployment was modified. The active Core signing key was not rotated. The outstanding legacy plaintext-key and recovery-evidence audit remains with the Core owner/agent.
+
+
+## Manual Production deployment
+
+- Deployment ID: `dpl_3djYUPrhdGw8qn1mXcPxNRJeHZ6q`
+- State: **READY**
+- Deployment URL: `https://trendoratools-ejfks2cyi-trendoraplc-5738.vercel.app`
+- Target: Production
+- Source branch: `feat/ariovelle-phase-1-design-system`
+- Source commit: `114f655b32e6870e1e5475a76137de05edc91958`
+- Build: TypeScript and Vite production build completed; PWA assets generated.
+- Git auto-deploy remains disabled.
+- The production deployment was created with `LUCIA_AUTH_ENABLED=false`; no login traffic is accepted until the domain assignment is corrected.
+
+The Vercel default deployment aliases are live, but the registered custom callback domain remains branch-bound to Preview. Do not mistake the READY deployment for completed Production Lucia login.
