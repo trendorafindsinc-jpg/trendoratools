@@ -1,6 +1,6 @@
 import { describe,expect,it,vi } from 'vitest';
 import { generateKeyPairSync,sign } from 'node:crypto';
-import { buildCookie,constantTimeEqual,createPkcePair,fetchOidcDiscovery,openOAuthTransaction,readLuciaConfig,sealOAuthTransaction,validateLuciaIdToken,type OidcDiscovery } from './lucia-oauth';
+import { buildCookie,constantTimeEqual,createPkcePair,fetchOidcDiscovery,fetchLuciaUserInfo,openOAuthTransaction,readLuciaConfig,sealOAuthTransaction,validateLuciaIdToken,type OidcDiscovery } from './lucia-oauth';
 
 const env={NODE_ENV:'test',LUCIA_AUTH_ENABLED:'true',LUCIA_ISSUER:'https://identity.example.test',LUCIA_CLIENT_ID:'ariovelle-client',LUCIA_CLIENT_SECRET:'x'.repeat(40),LUCIA_AUDIENCE:'ariovelle',LUCIA_REDIRECT_URI:'https://ariovelle.example.test/api/auth/lucia/callback',ARIOVELLE_SESSION_SECRET:'s'.repeat(48)};
 const config=readLuciaConfig(env);
@@ -67,6 +67,31 @@ describe('Lucia OIDC adapter',()=>{
   const wrongAlg=token({iss:config.issuer,sub:'subject',aud:config.clientId,iat:now,exp:now+300,nonce:'required'},'HS256');
   await expect(validateLuciaIdToken({token:wrongAlg,config,discovery,nonce:'required',fetcher:fetchJwks})).rejects.toMatchObject({code:'INVALID_ID_TOKEN'});
  });
+ it('rejects invalid signatures, wrong issuers, expired tokens and unknown key IDs',async()=>{
+  const now=Math.floor(Date.now()/1000);
+  const validClaims={iss:config.issuer,sub:'stable-subject',aud:config.clientId,iat:now,exp:now+240,nonce:'nonce-value'};
+  const valid=token(validClaims);
+  const [headerB64,payloadB64]=valid.split('.');
+  const tampered=headerB64+'.'+payloadB64+'.'+Buffer.alloc(256,7).toString('base64url');
+  await expect(validateLuciaIdToken({token:tampered,config,discovery,nonce:'nonce-value',fetcher:fetchJwks})).rejects.toMatchObject({code:'INVALID_ID_TOKEN'});
+  const wrongIssuer=token({...validClaims,iss:'https://wrong.example'});
+  await expect(validateLuciaIdToken({token:wrongIssuer,config,discovery,nonce:'nonce-value',fetcher:fetchJwks})).rejects.toMatchObject({code:'INVALID_ID_TOKEN'});
+  const expired=token({...validClaims,iat:now-900,exp:now-600});
+  await expect(validateLuciaIdToken({token:expired,config,discovery,nonce:'nonce-value',fetcher:fetchJwks})).rejects.toMatchObject({code:'INVALID_ID_TOKEN'});
+  const unknownKid=token(validClaims,'RS256','unpublished-key');
+  const unknownFetcher=vi.fn(async()=>new Response(JSON.stringify({keys:[jwk]}),{status:200})) as unknown as typeof fetch;
+  await expect(validateLuciaIdToken({token:unknownKid,config,discovery,nonce:'nonce-value',fetcher:unknownFetcher})).rejects.toMatchObject({code:'UNKNOWN_SIGNING_KEY'});
+  expect(unknownFetcher).toHaveBeenCalledTimes(2);
+ });
+ it('requires UserInfo subject to match the validated ID-token subject',async()=>{
+  const fetcher=vi.fn(async(_url:string|URL|Request,init?:RequestInit)=>{
+   expect((init?.headers as Record<string,string>).Authorization).toBe('Bearer short-lived-core-assertion');
+   return new Response(JSON.stringify({sub:'stable-subject',email:'user@example.test',email_verified:true,name:'User'}),{status:200});
+  }) as unknown as typeof fetch;
+  await expect(fetchLuciaUserInfo({discovery,accessToken:'short-lived-core-assertion',expectedSubject:'stable-subject',fetcher})).resolves.toMatchObject({sub:'stable-subject',email_verified:true});
+  await expect(fetchLuciaUserInfo({discovery,accessToken:'short-lived-core-assertion',expectedSubject:'different-subject',fetcher})).rejects.toMatchObject({code:'USERINFO_SUBJECT_MISMATCH'});
+ });
+
  it('compares state safely and builds HttpOnly SameSite cookies',()=>{
   expect(constantTimeEqual('abc','abc')).toBe(true);
   expect(constantTimeEqual('abc','abd')).toBe(false);
