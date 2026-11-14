@@ -118,7 +118,6 @@ BEGIN
       VALUES(v_user,'active',NULLIF(trim(p_display_name),''),NULLIF(lower(trim(p_email)),''));
     INSERT INTO public.external_identities(id,user_id,provider,issuer,subject,email_snapshot,email_verified,last_authenticated_at)
       VALUES(gen_random_uuid(),v_user,'lucia',p_issuer,p_subject,NULLIF(lower(trim(p_email)),''),p_email_verified,now());
-    RAISE NOTICE 'bootstrap diagnostic: current_user=%, session_user=%, app_user_id=%, helper_user_id=%, row_security=%', current_user, session_user, current_setting('app.user_id', true), app_private.current_user_id(), current_setting('row_security', true);
     INSERT INTO public.user_profiles(user_id,first_name)
       VALUES(v_user,NULLIF(trim(p_display_name),''));
     INSERT INTO public.user_preferences(user_id) VALUES(v_user);
