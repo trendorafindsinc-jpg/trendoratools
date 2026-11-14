@@ -216,7 +216,7 @@ async function applyOne(client, migration) {
     await recordMigration(client, migration, Date.now() - started);
     await client.query('COMMIT');
   } catch (error) {
-    await client.query('ROLLBACK');
+    try { await client.query('ROLLBACK'); } catch { /* preserve the original migration failure */ }
     throw error;
   }
 }
@@ -241,7 +241,7 @@ async function baselineExisting(client, migrations, existingLedger) {
     }
     await client.query('COMMIT');
   } catch (error) {
-    await client.query('ROLLBACK');
+    try { await client.query('ROLLBACK'); } catch { /* preserve the original baseline failure */ }
     throw error;
   }
 }
@@ -298,7 +298,8 @@ export async function runMigrationCommand({ mode, connectionString, migrations }
     if (verified.length) throw new Error('Migration runner post-apply verification failed.');
     return { mode, applied: pending.length, pending: 0 };
   } finally {
-    try { await client.query('SELECT pg_advisory_unlock(hashtext($1))', [LOCK_KEY]); } finally { await client.end(); }
+    try { await client.query('SELECT pg_advisory_unlock(hashtext($1))', [LOCK_KEY]); } catch { /* ending the session releases the lock */ }
+    await client.end();
   }
 }
 
