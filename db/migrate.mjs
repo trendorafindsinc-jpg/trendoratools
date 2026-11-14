@@ -72,7 +72,7 @@ export async function discoverMigrations(directory = MIGRATIONS_DIR) {
     }
   }
   if (migrations.length < 6 || migrations[0]?.version !== '0000') {
-    throw new Error('Expected bootstrap migration 0000 and existing migrations 0001–0005.');
+    throw new Error('Expected bootstrap migration 0000 and existing migrations 0001–0006.');
   }
   return migrations;
 }
