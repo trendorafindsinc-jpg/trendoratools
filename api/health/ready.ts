@@ -1,5 +1,6 @@
 import { readyHealthResponseSchema } from '../_lib/contracts';
 import { createApiHandler } from '../_lib/route';
+import { isIdentityProviderConfigured } from '../_lib/health-config';
 
 /**
  * Reports API scaffold readiness and configuration presence only.
@@ -21,12 +22,7 @@ const readyHandler = createApiHandler({
           connectivity: 'not_checked',
         },
         identityProvider: {
-          configuration:
-            process.env.LUCIA_ISSUER?.trim() &&
-            process.env.LUCIA_CLIENT_ID?.trim() &&
-            process.env.LUCIA_CLIENT_SECRET?.trim()
-              ? 'configured'
-              : 'not_configured',
+          configuration: isIdentityProviderConfigured(process.env) ? 'configured' : 'not_configured',
           connectivity: 'not_checked',
         },
       },
