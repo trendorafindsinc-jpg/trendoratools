@@ -2,15 +2,16 @@ import {
   readLuciaConfig,
   constantTimeEqual,
   fetchOidcDiscovery,
-  exchangeLuciaCode,
-  validateLuciaIdToken,
-  fetchLuciaUserInfo,
   openOAuthTransaction,
   parseCookies,
   buildCookie,
   clearCookie,
   luciaCookieNames,
 } from '../../_lib/lucia-oauth';
+import {
+  exchangeLuciaAuthorizationCode,
+  verifyLuciaIdentity,
+} from '../../_lib/lucia-identity';
 import { consumeOAuthTransaction } from '../../_lib/lucia-oauth-store';
 import { establishLuciaSession } from '../../_lib/lucia-session';
 import { createRuntimePostgres } from '../../_lib/postgres-pool';
@@ -65,30 +66,27 @@ export default async function luciaCallback(request: ApiRequest, response: ApiRe
     if (!code) throw new Error('Authorization code is missing.');
 
     const discovery = await fetchOidcDiscovery(config);
-    const tokens = await exchangeLuciaCode({
+    const tokens = await exchangeLuciaAuthorizationCode({
       config,
       discovery,
       code,
       verifier: tx.verifier,
     });
-    const claims = await validateLuciaIdToken({
-      token: tokens.id_token!,
-      config,
+
+    // The bearer credential is opaque to Ariovelle. Lucia Core validates it
+    // and returns the stable identity subject through its protected UserInfo
+    // endpoint. Never use token-response user.id as the Ariovelle identity.
+    const identity = await verifyLuciaIdentity({
       discovery,
-      nonce: tx.nonce,
-    });
-    const profile = await fetchLuciaUserInfo({
-      discovery,
-      accessToken: tokens.access_token!,
-      expectedSubject: claims.sub!,
+      accessToken: tokens.accessToken,
     });
 
     const established = await establishLuciaSession(runtime.database, {
       issuer: config.issuer,
-      subject: claims.sub!,
-      email: typeof profile.email === 'string' ? profile.email : undefined,
-      emailVerified: profile.email_verified === true,
-      displayName: typeof profile.name === 'string' ? profile.name : undefined,
+      subject: identity.subject,
+      email: identity.email,
+      emailVerified: identity.emailVerified,
+      displayName: identity.displayName,
       ttlSeconds: 60 * 60 * 24 * 14,
     });
     response.setHeader('Cache-Control', 'no-store');
