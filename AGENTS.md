@@ -129,4 +129,4 @@ Important observed details and migration cautions:
 - Firebase-generated `LUCIA-...` IDs are legacy labels derived from Firebase UID, not verified global Lucia ID subjects.
 - See [docs/ARIOVELLE_BACKEND_ARCHITECTURE_AND_MIGRATION.md](docs/ARIOVELLE_BACKEND_ARCHITECTURE_AND_MIGRATION.md) for the authoritative architecture, schema, API, security and migration requirements.
 
-The documents are a decision/specification baseline, not evidence that the target architecture has been implemented. Update status honestly as work proceeds.
+The documents are a decision/specification baseline, not evidence that the target architecture has been implemented. Update status honestly as work proceeds. Read [db/README.md](db/README.md) before running schema migrations; the DDL runner uses only `ARIOVELLE_MIGRATION_DATABASE_URL`, requires a direct migration-owner connection, and refuses to replay 0001–0005 against the existing development schema.
