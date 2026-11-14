@@ -180,3 +180,8 @@ Vercel Production now has the separate runtime-role `DATABASE_URL`, a new sensit
 **Outstanding Production activation gate:** `ariovelle.lucia.name.ng` is currently assigned to the Preview feature branch in Vercel. It must be reassigned to the Production deployment before the existing exact OIDC callback can safely establish a Production session. The available Vercel project connector does not expose a domain-branch reassignment/removal action. Do not change DNS or parent nameservers. After the domain is assigned to Production, create a manual Production deployment, enable Production Lucia auth, and perform real browser acceptance. Git auto-deploy remains disabled.
 
 The Production identity setup does not activate cloud financial synchronization or change the offline-first local persistence design. See [Production Lucia readiness](./ARIOVELLE_PRODUCTION_LUCIA_READINESS.md) for the full configuration and activation record.
+
+
+### Production deployment status update
+
+Manual Production deployment `dpl_3djYUPrhdGw8qn1mXcPxNRJeHZ6q` is now **READY** from commit `114f655b32e6870e1e5475a76137de05edc91958`. The deployment uses the new Production identity database and sensitive Production-only session secret. Lucia auth remains deliberately disabled because the registered custom callback domain is still assigned to the Preview feature branch. Do not enable it until Vercel assigns `ariovelle.lucia.name.ng` to Production. Full record: [ARIOVELLE_PRODUCTION_LUCIA_READINESS.md](./ARIOVELLE_PRODUCTION_LUCIA_READINESS.md).
