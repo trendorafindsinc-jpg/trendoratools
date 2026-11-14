@@ -1,28 +1,13 @@
 # Ariovelle Implementation Plan
 
-**Status:** Phase 1 engineering foundation is implemented and CI-verified on `feat/ariovelle-phase-1-design-system`. A manual Vercel preview is ready. Responsive screenshot captures exist, but pixel-level visual acceptance remains open; see the conditional sign-off record below.
+**Status:** Phase 1 remains conditionally accepted. Current execution is Phase 2 — Backend Foundation. The authoritative, live Phase 2 ledger is [ARIOVELLE_PHASE_2_STATUS.md](ARIOVELLE_PHASE_2_STATUS.md); do not maintain or infer Phase 2 progress from historical checklists in this document.
 
-> **Phase sequencing authority (2026-11-13):** The approved implementation sequence is **Phase 2 — Backend Foundation**, governed by [ARIOVELLE_BACKEND_ARCHITECTURE_AND_MIGRATION.md](ARIOVELLE_BACKEND_ARCHITECTURE_AND_MIGRATION.md). Earlier numbered screen-scaffolding/backend sections in this plan predate the agreed execution sequence and are retained as historical planning material; do not use their old phase numbers to override the new specification. The disposable development Neon project is already authorized and provisioned. Do not provision production infrastructure or enable live authentication until the Lucia Core nonce defect and runtime verification gates documented in that specification are resolved.
-
-
-### Phase 2.0 / legacy data preservation — contingency only
-- [x] Added `docs/FIREBASE_EXPORT_AND_RECONCILIATION_RUNBOOK.md` as a least-privilege recovery/export procedure.
-- [x] Linked the runbook from the repository README.
-- [x] Owner confirmed legacy Firebase beta-tester data is out of scope for Ariovelle's clean start; no export or migration is required for the approved path.
-- [ ] Reopen the export/reconciliation process only if the owner explicitly changes the clean-start decision.
-- **Important:** Firebase Auth/Firestore and local-device contents remain uninspected and unchanged. This is not a migration blocker under the approved clean-start decision.
+ > **Phase authority:** [ARIOVELLE_PHASE_2_STATUS.md](ARIOVELLE_PHASE_2_STATUS.md) is the single source of truth for Phase 2 status, actual database reconciliation, blockers, remaining work and acceptance tests. [ARIOVELLE_BACKEND_ARCHITECTURE_AND_MIGRATION.md](ARIOVELLE_BACKEND_ARCHITECTURE_AND_MIGRATION.md) remains the technical requirements specification. Historical checklists below are not progress ledgers.
 
 
-### Phase 2.0 / clean-start backend foundation
-- [x] Owner confirmed legacy Firebase data belongs to beta testers and is out of scope for migration. Ariovelle starts with a clean application dataset; no Firebase export is required.
-- [x] Added `db/migrations/0001_foundation.sql` and executed the nine-table foundation schema on the disposable Neon development database.
-- [x] Added and applied `0002_request_context_and_rls.sql` and `0003_runtime_role_grants.sql` on the disposable development database.
-- [x] Implemented PostgreSQL adapter, transaction-local request context, workspace authorization primitives, runtime pool factory and direct tenant-isolation tests.
-- [x] Read-only Neon inspection confirmed nine empty foundation tables, RLS policies, helper functions and runtime grants match the checked-in migrations.
-- [x] Inspect the Lucia Core repository and document the actual OIDC endpoints, token types, claims, UserInfo and consumer provisioning contract.
-- [x] Implement the fail-closed server adapter, callback, local session persistence/revocation and workspace authorization boundary.
-- [ ] Fix Core's nonce propagation defect and verify a live deployed Core issuer before enabling login.
-- **Scope:** development-only. No production database, live auth, financial records, Vercel database secret, production deployment or Firebase retirement.
+### Phase 2 clean-start decision
+
+The owner approved a clean Ariovelle dataset. Legacy Firebase beta-tester records and device-local beta data are out of scope; do not export, import or retire Firebase as part of Phase 2. Keep the legacy implementation intact until a separate retirement approval. See the authoritative status record for current work-package state.
 
 ## Progress log — 2026-11-13
 
@@ -164,7 +149,7 @@ Build routes and screen shells in this order:
 
 ## 6. Phase 4 — Lucia ID integration
 
-**Historical plan section; current execution is governed by P2.6 below.** Lucia Core's actual OIDC implementation has been inspected. The adapter, callback, ID-token validation, local session and workspace authorization code now exist. Core nonce propagation and a reachable deployed Core environment remain blockers. Firebase retirement remains a separate acceptance gate.
+**Historical product roadmap only.** Current Lucia ID implementation and provider release gate are recorded in [ARIOVELLE_PHASE_2_STATUS.md](ARIOVELLE_PHASE_2_STATUS.md). Lucia Core is owned by its separate agent; do not modify its repository.
 
 ## 7. Phase 5 — core financial functionality
 
@@ -261,112 +246,6 @@ No live auth, payments, market quotes or financial persistence should be implied
 - No production deployment or merge without explicit approval.
 
 
-## 14. Backend Foundation progress — 2026-11-13
+## Phase 2 status authority
 
-### P2.0 — source dependency inventory
-- [x] Enumerate the complete feature-branch Git tree.
-- [x] Inventory Firebase initialization, auth, profile writes, Firestore sync and manual backup/restore call sites.
-- [x] Inventory Firestore paths, collections, rules and profile fields.
-- [x] Inventory Zustand persistence, local storage keys, JSON export/import and legacy record shapes.
-- [x] Document data-loss risk in legacy full-snapshot sync.
-- [x] Owner decision: no Firebase or local beta-tester data migration; remote exports and device reconciliation are not required for the clean-start build.
-- [ ] Run local `npm ci`, `npm test` and `npm run build` (not available in the current repository inspection environment).
-
-### P2.1 — health-only API scaffold
-- [x] Add shared API response helpers, request IDs and no-store/security headers.
-- [x] Add GET-only `/api/health/live` and `/api/health/ready`.
-- [x] Add endpoint tests.
-- [x] Include API source in TypeScript project typechecking.
-- [ ] Verify Vercel function routing through CI/preview acceptance.
-- [ ] Add API client and domain routes only when a concrete caller/use case is approved.
-
-**Current boundary:** no live auth, session, database, financial read/write endpoint, Firebase removal, user data migration or deployment has been implemented. Readiness describes the health-only API scaffold and explicitly reports identity/database dependencies as not configured. See `docs/REPOSITORY_AUDIT.md` and `docs/ARIOVELLE_BACKEND_ARCHITECTURE_AND_MIGRATION.md`.
-
-
-### P2.2 — server configuration and persistence boundary
-- [x] Add explicit runtime environment parsing with safe validation.
-- [x] Make the PostgreSQL URL optional until database provisioning is approved.
-- [x] Add a driver-neutral, parameterized SQL executor and transaction contract.
-- [x] Add configuration unit tests; no connection or database driver is created.
-- [ ] Add an approved PostgreSQL adapter only after a disposable development database is authorized and available.
-- [ ] Validate `db/migrations/0001_foundation.sql` against a disposable PostgreSQL 15+ instance before any shared environment use.
-
-**Current boundary:** P2.2 is contract-only. There is no database connection, credential, driver, migration execution, auth provider, or financial route.
-
-### P2.3 — disposable PostgreSQL provision and schema validation
-- [x] Owner authorized a disposable development database.
-- [x] Provision Neon project `ariovelle-dev` in `aws-eu-central-1`, PostgreSQL 17.
-- [x] Create `ariovelle_dev` database and dedicated owner role.
-- [x] Execute the nine-table foundation schema on the development database.
-- [x] Verify PostgreSQL 17.12, nine public tables and 90 constraints.
-- [x] Create database-scoped least-privilege runtime role after RLS policies are in place.
-- [ ] Add automated migration smoke test against disposable database in CI without committing credentials.
-
-**Boundary:** this database is development-only, has no customer or beta data, is not connected to Vercel or API runtime, and has no authentication or financial routes. No connection string or password was committed.
-
-
-### P2.4 — PostgreSQL adapter and workspace authorization primitives
-- [x] Add node-postgres-compatible query/transaction adapter with parameterized calls and rollback safety.
-- [x] Add unit tests for commit, rollback, error propagation and client release.
-- [x] Add active membership/workspace authorization query using bound user/workspace IDs.
-- [x] Add role permission tests for owner, admin, member and viewer.
-- [x] Add transaction-local verified identity/workspace context and unit tests.
-- [x] Add PostgreSQL RLS policies for all nine foundation tables.
-- [x] Create a database-scoped runtime role with BYPASSRLS and admin capabilities disabled.
-- [x] Add concrete node-postgres Pool factory with bounded serverless settings and TLS verification.
-- [x] Run actual tenant-isolation tests against Neon as the runtime role.
-- [ ] Configure a runtime connection secret only after application integration is separately approved.
-
-**Boundary:** adapter and authorization primitives are implemented as isolated server modules; no HTTP route, Lucia ID integration, application runtime connection, database credentials, RLS policy or financial write path has been enabled.
-
-
-### P2.5 — Transaction context, RLS and runtime pool
-- [x] Implement `withVerifiedRequestContext` with UUID validation, transaction-local identity/workspace settings and active-membership verification.
-- [x] Add context unit tests and opt-in real-PostgreSQL integration tests using separate owner/runtime credentials.
-- [x] Add migration 0002 for helper functions and RLS across all nine foundation tables.
-- [x] Add migration 0003 for runtime grants, role timeouts and safe default privileges.
-- [x] Provision `ariovelle_runtime` on the disposable Neon development database as read-only baseline, then grant narrowly scoped DML.
-- [x] Verify runtime role is not superuser, cannot create roles/databases and does not bypass RLS.
-- [x] Verify tenant A/B isolation directly against the actual development database; temporary fixtures were removed.
-- [x] Add concrete `pg` Pool factory; leave it unreferenced by HTTP routes and app composition.
-- [ ] Wait for latest GitHub Actions build and test workflow to finish.
-- [ ] Do not set Vercel `DATABASE_URL` or connect the application until Lucia ID integration and API security review are approved.
-
-**Security boundary:** the database role and RLS are live only in the disposable development project. No production DB, runtime secret, auth provider, financial endpoint, deployment or Firebase retirement has been enabled.
-
-
-### P2.6 — typed health API client and current verification
-- [x] Add a same-origin, no-store typed frontend client for the liveness and readiness endpoints.
-- [x] Add safe network/invalid-response error handling and structured API error mapping.
-- [x] Add client tests for request options, readiness DTO, structured API errors and network failures.
-- [x] GitHub Actions run [43491824253](https://github.com/trendorafindsinc-jpg/trendoratools/actions/runs/43491824253) passed on commit `27bec666`: exact npm install, production build and automated tests.
-- [x] GitHub Actions run [43492105152](https://github.com/trendorafindsinc-jpg/trendoratools/actions/runs/43492105152) passed on the subsequent backend-spec documentation update commit `98c85b0`.
-- [ ] Add shared API route composition/error middleware and request/response validation contracts without inventing identity assumptions.
-- [x] Inspect Lucia Core source and commit the Ariovelle OIDC integration contract; see P2.6 for current implementation and blockers.
-- **Boundary:** API client exposes health probes only. No live authentication, user/workspace endpoint, finance endpoint, database connection or write route was introduced.
-
-
----
-
-## 20. P2.6 Lucia Core OAuth adapter and local application session — 2026-11-13
-
-Implemented on `feat/ariovelle-phase-1-design-system`:
-- `api/_lib/lucia-oauth.ts`: server-side discovery, PKCE, encrypted OAuth transaction payload, confidential token exchange, RS256/JWKS validation through `jose@6.2.17`, exact issuer/audience/expiry/nonce checks and UserInfo subject match.
-- `api/_lib/lucia-oauth-store.ts`: hashes OAuth state and browser binding, stores encrypted nonce/verifier payload in PostgreSQL, and atomically consumes the transaction once.
-- `api/auth/lucia/start.ts` and `api/auth/lucia/callback.ts`: authorization redirect and callback. Both fail closed unless `LUCIA_AUTH_ENABLED=true`.
-- `api/_lib/lucia-session.ts` and migration 0004: stable issuer+subject mapping, local personal workspace bootstrap, hashed opaque sessions, lookup and revocation.
-- Migration 0005: one-time server-side OAuth transaction storage; runtime receives function EXECUTE only, not direct table access.
-- `api/_lib/authenticated-workspace.ts`: session resolution, transaction-local RLS context, membership and role checks, and protected queries run in one transaction.
-- `api/auth/logout.ts`: local session revocation.
-- Unit tests cover PKCE/config/cookie/JWKS/ID-token/OAuth transaction and workspace boundaries. Opt-in PostgreSQL integration tests cover OAuth one-time consumption, identity creation, hash-at-rest, session revocation and workspace isolation.
-
-**Verification completed:**
-- Neon migrations 0004 and 0005 applied to disposable development database `ariovelle_dev` only.
-- Actual database checks using `ariovelle_runtime` passed for identity mapping, session hash resolution/revocation, transaction-local RLS, cross-workspace denial, OAuth browser binding and one-time state consumption.
-- Verified the runtime role has no direct SELECT/INSERT privileges on `app_sessions` or `oauth_transactions`, but has EXECUTE on the narrow identity/session/OAuth functions.
-- GitHub Actions run [43500787261](https://github.com/trendorafindsinc-jpg/trendoratools/actions/runs/43500787261) passed production build and automated tests: 13 test files passed, 64 tests passed; two opt-in PostgreSQL suites were skipped because CI does not receive development database credentials. The workflow reconciled and committed the lockfile for `jose@6.2.17`.
-- Synthetic manual verification fixtures remain in the disposable database pending owner authorization for cleanup.
-
-**Verification blockers:** the Core source currently fails to pass the authorization-code nonce into ID-token issuance, so its ID token omits `nonce`; Ariovelle correctly rejects it. The linked Core Vercel project reports `live: false`, its latest inspected deployments are canceled, and no custom identity domain is attached. No live discovery/JWKS/token/UserInfo verification is possible yet. See `ARIOVELLE_LUCIA_CORE_RUNTIME_VERIFICATION.md`.
-
-**Not done:** no Ariovelle client registered; no Vercel secrets added; no login enabled; no Core changes; no production database migration; no production deployment.
+All previous Phase 2 implementation checklists in this document are retired as status sources. Use [ARIOVELLE_PHASE_2_STATUS.md](ARIOVELLE_PHASE_2_STATUS.md) for the reconciled P2.0–P2.6 ledger, live Neon catalog verification, actual fixture counts, blockers and next acceptance task. Do not copy old checkbox states forward.
