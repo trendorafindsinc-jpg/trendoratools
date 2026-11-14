@@ -1,11 +1,13 @@
 # Lucia Core runtime verification — Ariovelle integration
 
+**Evidence snapshot date:** 2026-11-13. This is a historical read-only report, not a statement of Lucia Core's current state. Lucia Core has since been handed to its own agent; Ariovelle work must wait for that agent's verified provider handover. Do not modify Core. The current Ariovelle implementation/database status is in [ARIOVELLE_PHASE_2_STATUS.md](ARIOVELLE_PHASE_2_STATUS.md).
+
 Date: 2026-11-13  
 Scope: read-only inspection of Lucia Core source and Vercel configuration, plus additive schema and integration verification on the disposable Ariovelle development database. No Lucia Core source, settings, secrets or deployments were changed.
 
 ## Result
 
-**Ariovelle's local authentication foundation is implemented and exercised against the disposable development database. Production login remains disabled because the deployed Lucia Core environment is not currently verifiable and Core's current source drops the OIDC nonce.**
+**Ariovelle's local authentication foundation is implemented and exercised against the disposable development database. Production login remains disabled. The Core deployment and nonce findings below are the last read-only snapshot from 2026-11-13 and must be reconfirmed by Core's agent before integration.**
 
 ## 1. Lucia Core deployment verification
 
