@@ -91,8 +91,8 @@ jobs:
           ARIOVELLE_MIGRATION_DATABASE_URL: postgres://ariovelle_owner:owner-test-password@127.0.0.1:5432/ariovelle_baseline_test
         run: |
           npm run db:migrate:baseline-existing
-          npm run db:migrate:verify
           npm run db:migrate:apply
+          npm run db:migrate:verify
       - name: Production build
         run: npm run build
       - name: Automated tests
