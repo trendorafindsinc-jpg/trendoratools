@@ -1,4 +1,4 @@
-import type { DatabaseAdapter, QueryResult, SqlExecutor } from './database';
+import type { DatabaseAdapter, QueryResult, SqlExecutor } from './database.js';
 
 export type PgQueryResult<Row extends Record<string, unknown>> = {
   rows: Row[];
