@@ -185,3 +185,10 @@ The Production identity setup does not activate cloud financial synchronization 
 ### Production deployment status update
 
 Manual Production deployment `dpl_3djYUPrhdGw8qn1mXcPxNRJeHZ6q` is now **READY** from commit `114f655b32e6870e1e5475a76137de05edc91958`. The deployment uses the new Production identity database and sensitive Production-only session secret. Lucia auth remains deliberately disabled because the registered custom callback domain is still assigned to the Preview feature branch. Do not enable it until Vercel assigns `ariovelle.lucia.name.ng` to Production. Full record: [ARIOVELLE_PRODUCTION_LUCIA_READINESS.md](./ARIOVELLE_PRODUCTION_LUCIA_READINESS.md).
+
+
+### Production Lucia activation update — 2026-11-14
+
+The owner removed the Preview Git Branch binding from `ariovelle.lucia.name.ng`; Vercel reports the domain verified with `gitBranch=null`. Production `LUCIA_AUTH_ENABLED=true` is now configured. A new manual Production deployment `dpl_GUA8wCVPJswWuzVaDdqEa8qZTfeT` is **READY**, and the custom alias `ariovelle.lucia.name.ng` is verified as mapped to that deployment. Production build completed, with no Vercel alias error.
+
+**Remaining:** complete a real browser Lucia authorization and callback, verify ID-token/UserInfo binding, local Ariovelle session, `/api/auth/me`, workspace resolution and logout. The browser extension is not available in this session, so no real sign-in has been claimed or simulated. See [Production Lucia readiness](./ARIOVELLE_PRODUCTION_LUCIA_READINESS.md).
