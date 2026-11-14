@@ -69,7 +69,13 @@ export default async function startLuciaAuth(request: ApiRequest, response: ApiR
         secure: config.environment === 'production',
       }),
     );
-    response.redirect(302, url.toString());
+    if (typeof response.redirect === 'function') {
+      response.redirect(302, url.toString());
+    } else {
+      // Keep compatibility with lightweight response adapters and test doubles.
+      response.setHeader('Location', url.toString());
+      response.status(302).json({ redirecting: true });
+    }
   } catch (error) {
     // Log only a stable error code/type; never log credentials, tokens, URLs or user data.
     const sqlState = typeof error === 'object' && error !== null && 'code' in error &&
