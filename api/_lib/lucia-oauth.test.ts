@@ -27,7 +27,7 @@ describe('Lucia OIDC adapter',()=>{
   expect(pair.challenge).not.toBe(pair.verifier);
  });
  it('encrypts and authenticates the OAuth transaction cookie',()=>{
-  const tx={state:'state-value',verifier:'v'.repeat(43),createdAt:Date.now()};
+  const tx={state:'state-value',nonce:'nonce-value',verifier:'v'.repeat(43),createdAt:Date.now()};
   const sealed=sealOAuthTransaction(tx,config.sessionSecret);
   expect(openOAuthTransaction(sealed,config.sessionSecret)).toEqual(tx);
   expect(()=>openOAuthTransaction(sealed.slice(0,-2)+'xx',config.sessionSecret)).toThrow();
