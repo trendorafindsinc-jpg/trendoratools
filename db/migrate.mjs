@@ -13,6 +13,19 @@ const EXPECTED_BASELINE_TABLES = [
   'workspaces', 'workspace_memberships', 'audit_events',
   'migration_batches', 'migration_records', 'app_sessions', 'oauth_transactions',
 ];
+const EXPECTED_BASELINE_COLUMNS = {
+  users: ['id', 'status', 'display_name', 'primary_email', 'created_at', 'updated_at'],
+  external_identities: ['id', 'user_id', 'provider', 'issuer', 'subject', 'email_snapshot', 'email_verified', 'linked_at', 'last_authenticated_at'],
+  user_profiles: ['user_id', 'first_name', 'last_name', 'avatar_url', 'locale', 'timezone', 'created_at', 'updated_at'],
+  user_preferences: ['user_id', 'theme', 'base_currency', 'timezone', 'locale', 'created_at', 'updated_at'],
+  workspaces: ['id', 'type', 'name', 'owner_user_id', 'status', 'created_at', 'updated_at'],
+  workspace_memberships: ['id', 'workspace_id', 'user_id', 'role', 'status', 'created_at', 'updated_at'],
+  audit_events: ['id', 'actor_user_id', 'workspace_id', 'action', 'entity_type', 'entity_id', 'request_id', 'metadata', 'created_at'],
+  migration_batches: ['id', 'source_system', 'source_version', 'status', 'started_at', 'completed_at', 'source_record_count', 'imported_record_count', 'rejected_record_count', 'source_checksum', 'created_at'],
+  migration_records: ['id', 'batch_id', 'source_system', 'source_owner_key', 'source_collection', 'source_record_id', 'target_table', 'target_record_id', 'source_checksum', 'status', 'error_code', 'created_at'],
+  app_sessions: ['token_hash', 'user_id', 'expires_at', 'revoked_at', 'created_at'],
+  oauth_transactions: ['state_hash', 'browser_binding_hash', 'transaction_data', 'expires_at', 'consumed_at', 'created_at'],
+};
 const EXPECTED_BASELINE_FUNCTIONS = [
   'current_user_id', 'current_workspace_id', 'is_active_workspace_member',
   'is_workspace_owner', 'is_workspace_admin', 'establish_lucia_identity',
@@ -99,6 +112,24 @@ async function assertBaseline(client) {
     throw new Error(`Existing-schema baseline rejected. Missing tables: ${missingTables.join(', ') || 'none'}; RLS missing: ${missingRls.join(', ') || 'none'}.`);
   }
 
+  const columns = await client.query(
+    "SELECT table_name, column_name FROM information_schema.columns WHERE table_schema='public'",
+  );
+  const columnsByTable = new Map();
+  for (const row of columns.rows) {
+    if (!columnsByTable.has(row.table_name)) columnsByTable.set(row.table_name, new Set());
+    columnsByTable.get(row.table_name).add(row.column_name);
+  }
+  const missingColumns = Object.entries(EXPECTED_BASELINE_COLUMNS).flatMap(([table, expected]) =>
+    expected.filter((column) => !columnsByTable.get(table)?.has(column)).map((column) => `${table}.${column}`),
+  );
+  if (missingColumns.length) {
+    throw new Error(`Existing-schema baseline rejected. Missing columns: ${missingColumns.join(', ')}.`);
+  }
+
+  const privateSchema = await client.query("SELECT to_regnamespace('app_private') AS schema");
+  if (!privateSchema.rows[0]?.schema) throw new Error('Existing-schema baseline rejected: app_private schema is missing.');
+
   const policies = await client.query(
     "SELECT count(*)::int AS count FROM pg_policies WHERE schemaname='public'",
   );
@@ -121,12 +152,22 @@ async function assertBaseline(client) {
   const runtime = roles.rows.find((row) => row.rolname === 'ariovelle_runtime');
   const owner = roles.rows.find((row) => row.rolname === 'ariovelle_owner');
   if (!runtime || !owner) throw new Error('Existing-schema baseline rejected: expected owner and runtime roles.');
+  if (owner.rolsuper || !owner.rolcreaterole || !owner.rolcreatedb || !owner.rolbypassrls) {
+    throw new Error('Existing-schema baseline rejected: migration owner role does not match the approved administrative boundary.');
+  }
   if (runtime.rolsuper || runtime.rolcreaterole || runtime.rolcreatedb || runtime.rolbypassrls) {
     throw new Error('Existing-schema baseline rejected: runtime role is not least-privilege.');
   }
   const settings = new Set(runtime.rolconfig ?? []);
   for (const setting of ['statement_timeout=10s', 'lock_timeout=2s', 'idle_in_transaction_session_timeout=15s']) {
     if (!settings.has(setting)) throw new Error(`Existing-schema baseline rejected: runtime timeout missing (${setting}).`);
+  }
+
+  const functionGrants = await client.query(
+    "SELECT p.proname, has_function_privilege('ariovelle_runtime', p.oid, 'EXECUTE') AS allowed FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='app_private'",
+  );
+  if (functionGrants.rows.some((row) => row.allowed !== true)) {
+    throw new Error('Existing-schema baseline rejected: runtime is missing reviewed app_private function execution rights.');
   }
 
   const grants = await client.query(`
