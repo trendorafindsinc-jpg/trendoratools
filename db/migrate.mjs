@@ -71,7 +71,7 @@ export async function discoverMigrations(directory = MIGRATIONS_DIR) {
       throw new Error(`Migration sequence gap: expected ${expected}, found ${migrations[index].version}.`);
     }
   }
-  if (migrations.length < 6 || migrations[0]?.version !== '0000') {
+  if (migrations.length < 7 || migrations[0]?.version !== '0000') {
     throw new Error('Expected bootstrap migration 0000 and existing migrations 0001–0006.');
   }
   return migrations;
@@ -228,6 +228,10 @@ async function applyOne(client, migration) {
 }
 
 async function baselineExisting(client, migrations, existingLedger) {
+  const baselineMigrations = migrations.filter((migration) => migration.version <= '0005');
+  if (baselineMigrations.length !== 6 || baselineMigrations[0]?.version !== '0000' || baselineMigrations.at(-1)?.version !== '0005') {
+    throw new Error('Existing-schema baseline requires the exact checked-in migration prefix 0000–0005.');
+  }
   const existing = await client.query("SELECT to_regclass('public.users') AS users");
   if (!existing.rows[0]?.users) throw new Error('Baseline mode requires the existing Ariovelle schema.');
   if (existingLedger.some((row) => row.version !== '0000')) {
@@ -236,16 +240,17 @@ async function baselineExisting(client, migrations, existingLedger) {
   pendingMigrations(migrations, existingLedger);
   await client.query('BEGIN');
   try {
-    const bootstrap = migrations.find((migration) => migration.version === '0000');
+    const bootstrap = baselineMigrations.find((migration) => migration.version === '0000');
     if (!existingLedger.some((row) => row.version === '0000')) {
       await client.query(stripTransactionWrapper(bootstrap.content));
       await recordMigration(client, bootstrap, 0);
     }
     await assertBaseline(client);
-    for (const migration of migrations.filter((item) => item.version !== '0000')) {
+    for (const migration of baselineMigrations.filter((item) => item.version !== '0000')) {
       await recordMigration(client, migration, 0);
     }
     await client.query('COMMIT');
+    return baselineMigrations.length - existingLedger.length;
   } catch (error) {
     try { await client.query('ROLLBACK'); } catch { /* preserve the original baseline failure */ }
     throw error;
@@ -296,8 +301,8 @@ export async function runMigrationCommand({ mode, connectionString, migrations }
     const ledger = await readLedger(client);
 
     if (mode === '--baseline-existing') {
-      await baselineExisting(client, migrations, ledger);
-      return { mode, applied: migrations.length - ledger.length, pending: 0 };
+      const applied = await baselineExisting(client, migrations, ledger);
+      return { mode, applied, pending: migrations.length - ledger.length - applied, baselineThrough: '0005' };
     }
 
     const schema = await client.query("SELECT to_regclass('public.users') AS users");
