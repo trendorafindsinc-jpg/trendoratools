@@ -12,8 +12,8 @@ describe('schema migration controls', () => {
     const migrations = await discoverMigrations();
     for (const migration of migrations) {
       const normalized = stripTransactionWrapper(migration.content);
-      expect(normalized).not.toMatch(/^\\s*BEGIN\\s*;/m);
-      expect(normalized).not.toMatch(/\\bCOMMIT\\s*;\\s*$/m);
+      expect(normalized).not.toMatch(/^\s*BEGIN\s*;/m);
+      expect(normalized).not.toMatch(/\bCOMMIT\s*;\s*$/m);
     }
   });
 
