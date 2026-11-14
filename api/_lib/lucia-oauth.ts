@@ -105,14 +105,36 @@ export async function fetchOidcDiscovery(config:LuciaConfig,fetcher:typeof fetch
   if(!doc.response_types_supported.includes('code')||!doc.id_token_signing_alg_values_supported.includes('RS256')||!doc.code_challenge_methods_supported.includes('S256')) throw new LuciaAuthError('OIDC_CAPABILITY_MISMATCH','Lucia Core does not advertise the required authorization-code, RS256 and S256 capabilities.');
   return doc;
 }
-export async function exchangeLuciaCode(input:{config:LuciaConfig;discovery:OidcDiscovery;code:string;verifier:string;fetcher?:typeof fetch}) {
+export async function exchangeLuciaCode(input:{config:LuciaConfig;discovery:OidcDiscovery;code:string;verifier:string;fetcher?:typeof fetch}):Promise<{access_token:string;id_token:string;token_type:'Bearer';expires_in?:number;scope?:string}> {
   const form=new URLSearchParams({grant_type:'authorization_code',code:input.code,redirect_uri:input.config.redirectUri,audience:input.config.audience,code_verifier:input.verifier});
   const basic=Buffer.from(input.config.clientId+':'+input.config.clientSecret).toString('base64');
-  const response=await (input.fetcher??fetch)(input.discovery.token_endpoint,{method:'POST',headers:{Accept:'application/json','Content-Type':'application/x-www-form-urlencoded',Authorization:'Basic '+basic},body:form,cache:'no-store',redirect:'error'});
+  let response:Response;
+  try {
+    response=await (input.fetcher??fetch)(input.discovery.token_endpoint,{method:'POST',headers:{Accept:'application/json','Content-Type':'application/x-www-form-urlencoded',Authorization:'Basic '+basic},body:form,cache:'no-store',redirect:'error'});
+  } catch {
+    throw new LuciaAuthError('TOKEN_ENDPOINT_UNAVAILABLE','Lucia Core token endpoint is unavailable.');
+  }
   if(!response.ok) throw new LuciaAuthError('TOKEN_EXCHANGE_FAILED','Lucia Core rejected the authorization-code exchange.');
-  const body=await response.json() as {access_token?:string;id_token?:string;token_type?:string;expires_in?:number;scope?:string};
-  if(!body.access_token||!body.id_token||body.token_type?.toLowerCase()!=='bearer') throw new LuciaAuthError('TOKEN_RESPONSE_INVALID','Lucia Core did not return the required OIDC ID token and bearer access token.');
-  return body;
+  let body:unknown;
+  try { body=await response.json(); } catch {
+    throw new LuciaAuthError('TOKEN_RESPONSE_INVALID','Lucia Core returned an invalid token response.');
+  }
+  if(typeof body!=='object'||body===null) throw new LuciaAuthError('TOKEN_RESPONSE_INVALID','Lucia Core returned an invalid token response.');
+  const token=body as Record<string,unknown>;
+  if(
+    typeof token.access_token!=='string'||token.access_token.length<20||token.access_token.length>16_384||
+    typeof token.id_token!=='string'||token.id_token.length<40||token.id_token.length>32_768||
+    typeof token.token_type!=='string'||token.token_type.toLowerCase()!=='bearer'||
+    (token.expires_in!==undefined&&(typeof token.expires_in!=='number'||!Number.isInteger(token.expires_in)||token.expires_in<1||token.expires_in>300))||
+    (token.scope!==undefined&&typeof token.scope!=='string')
+  ) throw new LuciaAuthError('TOKEN_RESPONSE_INVALID','Lucia Core did not return valid OIDC and bearer credentials.');
+  return {
+    access_token:token.access_token,
+    id_token:token.id_token,
+    token_type:'Bearer',
+    ...(typeof token.expires_in==='number'?{expires_in:token.expires_in}:{}),
+    ...(typeof token.scope==='string'?{scope:token.scope}:{}),
+  };
 }
 export async function validateLuciaIdToken(input: {
   token: string;
