@@ -30,7 +30,7 @@ The owner approved a clean Ariovelle dataset. Legacy Firebase beta-tester record
 - [x] Responsive screenshot captures of the current preview were generated successfully at 1440px, 768px and 390px widths (capture service status `ready`, `capture_shows=site`).
 - [ ] Pixel-level inspection of desktop/tablet/mobile screenshots and interactive authenticated workspace flows.
 - [x] Added a reusable UI primitive layer in `src/components/ui/index.tsx`: Button, Input, Select, Card, Dialog, Drawer, Tabs, DataTable, Badge, Tooltip, Toast, Skeleton, EmptyState and ErrorState; Card sections now expose accessible heading associations. The library is ready for adoption by feature pages; existing legacy screens have not all been migrated to it.
-- [ ] Confirm remaining legacy dependencies and finalize the Lucia ID migration plan before moving to Phase 2.
+- [x] Complete the source dependency inventory and document the Lucia ID integration contract; remaining provider runtime verification is tracked as a Phase 2 external gate in `ARIOVELLE_PHASE_2_STATUS.md`.
 
 ### Phase 1 conditional sign-off record — 2026-11-13
 
@@ -84,7 +84,7 @@ The owner approved a clean Ariovelle dataset. Legacy Firebase beta-tester record
 
 ## 2. Phase 0 — repository and product audit
 
-<badge>Complete</badge>
+**Complete**
 
 - [x] Complete recursive repository and route/component/service inspection.
 - [x] Record features, persistence paths, auth paths, integrations, analytics, native and PWA behavior.
