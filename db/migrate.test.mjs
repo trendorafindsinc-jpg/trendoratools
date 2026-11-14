@@ -8,6 +8,15 @@ describe('schema migration controls', () => {
     expect(migrations.every((migration) => /^[a-f0-9]{64}$/.test(migration.checksum))).toBe(true);
   });
 
+  it('normalizes every checked-in migration transaction wrapper, including the legacy footer comments', async () => {
+    const migrations = await discoverMigrations();
+    for (const migration of migrations) {
+      const normalized = stripTransactionWrapper(migration.content);
+      expect(normalized).not.toMatch(/^\\s*BEGIN\\s*;/m);
+      expect(normalized).not.toMatch(/\\bCOMMIT\\s*;\\s*$/m);
+    }
+  });
+
   it('computes stable SHA-256 checksums over exact file contents', () => {
     expect(checksum('SELECT 1;')).toBe(checksum('SELECT 1;'));
     expect(checksum('SELECT 1;')).not.toBe(checksum('SELECT 2;'));
