@@ -20,7 +20,10 @@
     "android:open": "npx cap open android",
     "android:sync": "npx cap sync android",
     "android:build": "bash scripts/termux-android-build.sh",
-    "android:apk": "npm run build && npx cap sync android && cd android && ./gradlew assembleDebug --no-daemon"
+    "android:apk": "npm run build && npx cap sync android && cd android && ./gradlew assembleDebug --no-daemon",
+    "db:migrate:plan": "node db/migrate.mjs --plan",
+    "db:migrate:apply": "node db/migrate.mjs --apply",
+    "db:migrate:verify": "node db/migrate.mjs --verify"
   },
   "dependencies": {
     "@capacitor/android": "^6.2.0",
