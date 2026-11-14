@@ -9,6 +9,7 @@ export type ApiResponse = {
   setHeader(name: string, value: string | string[]): void;
   status(code: number): ApiResponse;
   json(body: unknown): void;
+  redirect(statusCode: number, url: string): ApiResponse;
 };
 
 export type ApiErrorBody = {
