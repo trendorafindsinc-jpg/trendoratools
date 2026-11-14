@@ -28,7 +28,7 @@ Verify every checked-in migration against the immutable checksum recorded in the
 npm run db:migrate:verify
 ```
 
-The existing disposable Ariovelle development database already contains the structural results of migrations 0001–0005 but has no DDL ledger. **Do not run `db:migrate:apply` against it**: the runner intentionally refuses to replay those non-idempotent migrations.
+The existing disposable Ariovelle development database already contains the structural results of migrations 0001–0005 but has no DDL ledger. Migration 0006 is a new, additive function update and must be applied only after the existing schema is safely baselined. **Do not run `db:migrate:apply` against it**: the runner intentionally refuses to replay those non-idempotent migrations.
 
 After reviewing the live catalog, the explicit reconciliation command is:
 
@@ -36,7 +36,7 @@ After reviewing the live catalog, the explicit reconciliation command is:
 npm run db:migrate:baseline-existing
 ```
 
-That command creates the ledger and records the exact checksums of 0000–0005 only after verifying the expected existing tables and columns, RLS on all 11 existing tables, 17 public policies, 10 `app_private` functions, owner/runtime role properties, runtime timeouts, protected-table ACLs and function execution grants. It does not rerun migrations 0001–0005 or change application rows. It is an additive schema-history operation, but it still writes to the database and must only be run against the disposable development database with the dedicated migration-owner direct URL.
+That command creates the ledger and records the exact checksums of the existing prefix 0000–0005 only after verifying the expected existing tables and columns, RLS on all 11 existing tables, 17 public policies, 10 `app_private` functions, owner/runtime role properties, runtime timeouts, protected-table ACLs and function execution grants. It does not rerun migrations 0001–0005 or change application rows. It deliberately leaves later migrations (including 0006) pending; run `npm run db:migrate:apply` afterwards to apply those new migrations. It is an additive schema-history operation, but it still writes to the database and must only be run against the disposable development database with the dedicated migration-owner direct URL.
 
 The command does not clean, delete or rewrite the existing synthetic identity/session/OAuth fixtures.
 
@@ -53,6 +53,6 @@ The command does not clean, delete or rewrite the existing synthetic identity/se
 
 ## CI verification
 
-The Ariovelle verification workflow provisions an isolated PostgreSQL 17 service, creates non-production owner/runtime roles, applies migrations 0000–0005 from an empty database, reruns the migration command, verifies the ledger, and runs the PostgreSQL RLS integration tests. It also builds a second ephemeral database by applying 0001–0005 without a ledger, then tests the explicit baseline-reconciliation path and a no-op rerun. The test-only read-only membership is provisioned only inside that ephemeral CI database.
+The Ariovelle verification workflow provisions an isolated PostgreSQL 17 service, creates non-production owner/runtime roles, applies migrations 0000–0006 from an empty database, reruns the migration command, verifies the ledger, and runs the PostgreSQL RLS integration tests. It also builds a second ephemeral database by applying 0001–0005 without a ledger, then tests the explicit baseline-reconciliation path, applies the new pending migration 0006, and verifies a no-op rerun. The test-only read-only membership is provisioned only inside that ephemeral CI database.
 
 The live disposable Neon database is not used as the CI migration target. Its existing schema is reconciled separately using the explicit baseline command above.
