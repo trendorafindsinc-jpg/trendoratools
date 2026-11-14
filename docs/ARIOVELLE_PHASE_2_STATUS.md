@@ -5,17 +5,17 @@
 **Last reconciled:** 2026-11-14 (post issuer handover and preview OIDC activation)  
 **Repository:** `trendorafindsinc-jpg/trendoratools`  
 **Branch:** `feat/ariovelle-phase-1-design-system`  
-**Code/database inspection baseline:** `39ba92cc3d92a5d754233989ef8de4a310567349` (the subsequent commits in this reconciliation changed documentation only).  
-**Previous code baseline verification:** [run 43502170023](https://github.com/trendorafindsinc-jpg/trendoratools/actions/runs/43502170023) — build and tests passed before the current P2.1/P2.2 changes.  
-**Current P2.1/P2.2 verification:** pending confirmation of the feature-branch CI run for the new API composition and PostgreSQL migration suite.  
+**Current documentation head:** `301d03c8dc5b33d6385588a8f0c51a60bbe22b64`; **runtime code snapshot:** `4340226f5753e2a9cd671ab20ff3b3c46491e4e0`.  
+**Latest runtime-code CI:** [run 43635149009](https://github.com/trendorafindsinc-jpg/trendoratools/actions/runs/43635149009) passed the production build and all 82 tests (18 test files).  
+**Latest manual Preview deployment:** `dpl_GRTjJySGXxjW4p32igH8BaoBsBVC` is READY from runtime code commit `4340226` and carries the `ariovelle.lucia.name.ng` alias. Git auto-deploy remains disabled.  
 **Documentation reconciliation verification:** [run 43576548363](https://github.com/trendorafindsinc-jpg/trendoratools/actions/runs/43576548363) — completed successfully on `4f0fa8ae9c54335a7fd43470e930e3756e79d188`.  
-**Scope:** Ariovelle only. Lucia Core is owned by its separate agent; do not modify its repository, branches, database, settings or deployments. Treat its status as externally owned and wait for its agent's verified handover.
+**Scope:** Ariovelle implementation only. Lucia Core remains owned by its separate agent. Read-only inspection of Core's public provider contract, production registration metadata and security evidence is permitted where essential to Ariovelle integration; do not modify Core's repository, branches, database, settings, secrets or deployments.
 
 ## 1. Executive status
 
 **Current phase: Phase 2 — Backend Foundation, in progress.**
 
-The source/data audit, shared API composition, PostgreSQL adapter, workspace/RLS foundation, DDL migration runner, Lucia OIDC callback, local sessions, browser sign-in screen and `/api/auth/me` endpoint are implemented. The shared disposable development database still structurally represents migrations 0001–0005 but has no DDL ledger; migration 0006 is not applied. CI has passed on the immediately preceding branch revision and the latest manual Preview deployment is READY. Preview authentication remains deliberately fail-closed until the owner approves the safe existing-schema baseline and additive migration 0006. A real browser sign-in/session/logout acceptance remains open.
+The source/data audit, shared API composition, PostgreSQL adapter, workspace/RLS foundation, DDL migration runner, Lucia OIDC callback, local sessions, browser sign-in screen and `/api/auth/me` endpoint are implemented. The shared disposable development database still structurally represents migrations 0001–0005 but has no DDL ledger; migration 0006 is not applied. CI passed on runtime code commit 4340226 (82 tests, 18 files), and the latest manual Preview deployment is READY. Preview authentication remains deliberately fail-closed until the owner approves the safe existing-schema baseline and additive migration 0006. A real browser sign-in/session/logout acceptance remains open.
 
 No financial domain schema or financial CRUD API is implemented. No production database, production authentication, production deployment, payment, AI, or market-data integration is enabled.
 
@@ -27,7 +27,7 @@ Phase 1 design-system acceptance remains conditional and is tracked separately i
 |---|---|---|
 | P2.0 Source and data audit | **Complete** | Recursive feature-branch inventory, Firebase/Auth/Firestore/local persistence/export/PWA/analytics/deployment audit recorded in `docs/REPOSITORY_AUDIT.md`. Owner approved clean start; legacy beta-tester Firebase data is out of scope. |
 | P2.1 API scaffold and contracts | **Implemented; CI passed on preceding revision** | Shared route composition, strict DTOs, health routes, PostgreSQL adapter and `api/auth/me.ts` are implemented. The current manual Preview deployment is READY. The latest completed CI run passed the build and 82 tests; CI run `43635149009` passed on the runtime code commit. |
-| P2.2 Database migrations and persistence boundary | **Implemented; CI passed on preceding revision; shared DB baseline not applied** | The runner verifies contiguous migrations, SHA-256 checksums, drift/order, advisory locking and per-migration atomicity. Migration 0006 updates transaction-local RLS helper volatility and identity bootstrap context. CI provisions PostgreSQL 17, applies 0000–0006 from empty, exercises existing-schema baseline of 0000–0005 followed by applying 0006, verifies checksums and runs tenant/identity integration tests. Latest completed CI passed 82 tests; exact-head run pending. The shared Neon dev DB remains unchanged and has no DDL ledger; do not replay 0001–0005. |
+| P2.2 Database migrations and persistence boundary | **Implemented; CI passed on preceding revision; shared DB baseline not applied** | The runner verifies contiguous migrations, SHA-256 checksums, drift/order, advisory locking and per-migration atomicity. Migration 0006 updates transaction-local RLS helper volatility and identity bootstrap context. CI provisions PostgreSQL 17, applies 0000–0006 from empty, exercises existing-schema baseline of 0000–0005 followed by applying 0006, verifies checksums and runs tenant/identity integration tests. CI run 43635149009 passed 82 tests on runtime code commit 4340226. The shared Neon dev DB remains unchanged and has no DDL ledger; do not replay 0001–0005. |
 | P2.3 Lucia ID provider integration | **Ariovelle implementation complete; activation gated** | Confidential authorization-code flow, PKCE S256, state/browser binding, encrypted one-time transaction, RS256/JWKS ID-token validation, exact issuer/client audience/expiry/nonce checks, protected UserInfo subject binding, local opaque sessions, logout and browser session bootstrap are implemented. The existing Core client was read-only verified active with its exact callback, audience and unchanged scope assignments. Production issuer/domain and active JWKS key are confirmed. Preview `LUCIA_AUTH_ENABLED=false` remains fail-closed until migration 0006 is applied to disposable Ariovelle dev and one real browser sign-in/session/workspace/logout acceptance passes. |
 | P2.4 Authenticated user/workspace APIs | **Partially implemented** | `/api/auth/me` resolves the hashed local session, verified user and active workspace under transaction-local RLS context; `/api/auth/logout` revokes the local session. Frontend startup consumes `/api/auth/me`. Remaining: workspace list/read/create, preferences, audit events, complete session-to-workspace API surface and two-user/two-workspace IDOR/privilege tests. |
 | P2.5 Legacy migration dry-run | **Not required for approved clean-start path** | Owner explicitly excluded beta-tester Firebase records and local beta data from migration. Do not build or run Firebase export/import tooling for this path. Keep legacy Firebase implementation intact until separate retirement approval. Reopen only if owner changes the decision. |
@@ -35,11 +35,11 @@ Phase 1 design-system acceptance remains conditional and is tracked separately i
 
 ### Package ordering
 
-1. Confirm green CI for the new P2.1 API contracts and P2.2 PostgreSQL migration/RLS suite; fix failures before advancing.
-2. Read-only preflight and baseline-reconcile migrations 0000–0005 on the existing disposable Neon development database; verify a no-op rerun.
-3. Complete the live preview HTTP route check only if the owner separately approves a manual preview deployment; never re-enable Git auto-deploy.
-4. Obtain Lucia Core agent's provider handover and complete P2.3 live test-environment verification; do not edit Core.
-5. Complete P2.4 authenticated user/workspace endpoints and security tests.
+1. CI run 43635149009 is green: 18 test files, 82 tests and production build passed on runtime code commit 4340226.
+2. Obtain explicit owner approval to baseline the existing disposable Ariovelle development schema. Run the read-only preflight, then db:migrate:baseline-existing (records 0000–0005 only) and db:migrate:apply (applies additive 0006) using the direct migration-owner URL, never the runtime URL.
+3. Re-enable LUCIA_AUTH_ENABLED=true for Preview only and manually deploy the current branch. Verify the real Lucia authorization-code/PKCE/RS256/UserInfo callback and local session flow in a browser. Do not enable Production.
+4. Complete remaining workspace APIs and two-user/two-workspace IDOR and privilege tests.
+5. Review the Core signing-key recovery gap with the Core agent; do not change Core production settings or key material.
 6. Close Phase 2 with a security review, clean build/CI, reproducible database setup, documentation reconciliation and explicit owner acceptance.
 
 P2.5/P2.6 remain excluded unless the clean-start decision changes.
@@ -118,7 +118,7 @@ Implemented on the Ariovelle feature branch:
 4. Readiness reports whether database/complete identity configuration is present separately from connectivity, which remains `not_checked`. Identity configuration checks all six required server-only variables; it never returns secret values or claims a connection was verified.
 5. Tests cover health contracts, malformed/unknown request input, unsupported methods, thrown exceptions, response-schema failures, request-ID/header consistency, no detail leakage and filesystem route conventions.
 
-**Verification status:** the preceding CI run passed build and 82 tests; exact-head run remains pending. The latest manual Preview deployment is READY and the Vercel filesystem routing test passes. A real interactive provider login remains unverified. Vercel Git auto-deploy remains disabled.
+**Verification status:** CI run 43635149009 passed build and 82 tests on runtime code commit 4340226. The latest manual Preview deployment is READY and the Vercel filesystem routing test passes. A real interactive provider login remains unverified. Vercel Git auto-deploy remains disabled.
 
 P2.1 acceptance: shared API composition, `/api/auth/me`, database adapter, and health endpoints are implemented. Latest completed CI verified the build and 82 tests. The app does not expose financial writes or server-side financial persistence.
 
@@ -132,7 +132,7 @@ Implemented:
 - CI creates an ephemeral PostgreSQL 17 service with separate migration-owner/runtime roles, applies 0000–0006 from empty, reruns and verifies checksums, and runs the RLS/identity integration suite. A second ephemeral database exercises the no-ledger baseline path, records 0000–0005 only, then applies 0006 and verifies a no-op rerun. There is no destructive reset command; each CI run starts with a fresh service.
 - Operating instructions are in [db/README.md](../db/README.md).
 
-**Verification/baseline status:** latest completed CI run passed 82 tests and the build; exact-head run is pending. A fresh read-only preflight against the shared Neon development database passed on 2026-11-14: all 11 expected tables and columns are present, RLS is enabled on all 11, there are 17 public policies and 10 `app_private` functions, runtime private-schema/function permissions and timeouts match, owner/runtime role flags match, and protected tables have zero PUBLIC/direct-runtime ACL entries. The database remains unchanged: synthetic fixtures are untouched, `schema_migrations` is still absent, and no financial tables exist. After owner approval, use `npm run db:migrate:baseline-existing` only with a direct, dedicated migration-owner URL. It verifies and records 0000–0005 only. Then run `npm run db:migrate:apply` to apply additive migration 0006. These steps do not rewrite application rows or replay the old schema migrations.
+**Verification/baseline status:** CI run 43635149009 passed 82 tests and the production build. A fresh read-only preflight against the shared Neon development database passed on 2026-11-14: all 11 expected tables and columns are present, RLS is enabled on all 11, there are 17 public policies and 10 `app_private` functions, runtime private-schema/function permissions and timeouts match, owner/runtime role flags match, and protected tables have zero PUBLIC/direct-runtime ACL entries. The database remains unchanged: synthetic fixtures are untouched, `schema_migrations` is still absent, and no financial tables exist. After owner approval, use `npm run db:migrate:baseline-existing` only with a direct, dedicated migration-owner URL. It verifies and records 0000–0005 only. Then run `npm run db:migrate:apply` to apply additive migration 0006. These steps do not rewrite application rows or replay the old schema migrations.
 
 Do not point the migration runner at the preview runtime `DATABASE_URL`, production, or any pooled connection.
 
