@@ -1,3 +1,4 @@
+import { meResponseSchema } from '../_lib/contracts';
 import { hashSessionToken } from '../_lib/lucia-session';
 import { createRuntimePostgres } from '../_lib/postgres-pool';
 import { luciaCookieNames, parseCookies } from '../_lib/lucia-oauth';
@@ -24,8 +25,9 @@ export default async function getCurrentAriovelleSession(request: ApiRequest, re
     return sendError(response, 503, 'SESSION_STORE_UNAVAILABLE', 'Ariovelle session storage is not configured.');
   }
 
-  const runtime = createRuntimePostgres(databaseUrl);
+  let runtime: ReturnType<typeof createRuntimePostgres> | undefined;
   try {
+    runtime = createRuntimePostgres(databaseUrl);
     const session = await runtime.database.transaction(async (transaction) => {
       const resolved = await transaction.query<{ user_id: string | null }>(
         'SELECT app_private.resolve_ariovelle_session($1, now()) AS user_id',
@@ -92,10 +94,11 @@ export default async function getCurrentAriovelleSession(request: ApiRequest, re
     if (!session) {
       return sendError(response, 401, 'AUTHENTICATION_REQUIRED', 'Your Ariovelle session is no longer active. Please sign in again.');
     }
-    return sendJson(response, 200, session);
+    const validated = meResponseSchema.parse(session);
+    return sendJson(response, 200, validated);
   } catch {
     return sendError(response, 503, 'SESSION_LOOKUP_FAILED', 'Ariovelle could not verify your session. Please try again.');
   } finally {
-    await runtime.pool.end();
+    await runtime?.pool.end();
   }
 }
