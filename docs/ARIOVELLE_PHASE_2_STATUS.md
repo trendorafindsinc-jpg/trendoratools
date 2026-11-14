@@ -92,6 +92,8 @@ The two synthetic identity/workspace/session fixtures and one consumed OAuth tra
 
 There is no DDL migration ledger or recorded checksum for migrations 0001–0005. The live catalog confirms the expected tables, columns, RLS state, policy/function signatures and runtime privileges are present, and the newer migration-specific objects match 0004/0005. This is strong structural evidence that the migrations were applied, but it is **not cryptographic proof of exact SQL-file execution, order or checksum**. The next P2.2 task must add a migration ledger and a controlled baseline-reconciliation procedure; do not blindly rerun the existing non-idempotent SQL files against this database.
 
+Follow-up read-only baseline preflight on 2026-11-14 confirmed every expected column, all 11 RLS-enabled tables, exactly 17 public policies and 10 private functions. It also confirmed the owner/runtime role flags, runtime timeouts, private-schema usage and function EXECUTE grants, and zero PUBLIC/direct-runtime ACL entries on the protected provenance/session/OAuth tables. The preflight made no changes.
+
 No financial tables exist. No production or staging database was inspected.
 
 ## 4. Authentication and runtime boundaries
