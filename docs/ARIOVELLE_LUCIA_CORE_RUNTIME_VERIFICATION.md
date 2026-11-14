@@ -129,7 +129,7 @@ Independent metadata/catalog inspection performed for this follow-up:
 
 ### Remaining acceptance
 
-1. Complete the latest Ariovelle CI run, including the new negative signature, unknown-key, issuer, expiry, UserInfo subject-binding, session endpoint and identity-bootstrap RLS tests.
+1. Confirm the exact-head Ariovelle CI run; the preceding completed run passed the build and 82 tests, including negative signature, unknown-key, issuer, expiry, UserInfo subject-binding, session endpoint and identity-bootstrap/RLS coverage.
 2. After the owner approves and migration 0006 is applied to the disposable Ariovelle development database, re-enable Preview login, manually deploy the current branch, then perform one real browser sign-in. This requires an authenticated Lucia account and browser interaction; no user credentials should be shared in chat.
 3. Confirm the callback completes, a local Ariovelle session is established, workspace access resolves correctly, and logout revokes that session.
 4. Separately verify the recovery object and age-identity backup with the designated recovery operator. Do not rotate the production encryption key. Do not change Lucia Core production settings or database.
