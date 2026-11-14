@@ -53,6 +53,6 @@ The command does not clean, delete or rewrite the existing synthetic identity/se
 
 ## CI verification
 
-The Ariovelle verification workflow provisions an isolated PostgreSQL 17 service, creates non-production owner/runtime roles, applies migrations 0000–0005 from an empty database, reruns the migration command, verifies the ledger, and runs the PostgreSQL RLS integration tests. The test-only read-only membership is provisioned only inside that ephemeral CI database.
+The Ariovelle verification workflow provisions an isolated PostgreSQL 17 service, creates non-production owner/runtime roles, applies migrations 0000–0005 from an empty database, reruns the migration command, verifies the ledger, and runs the PostgreSQL RLS integration tests. It also builds a second ephemeral database by applying 0001–0005 without a ledger, then tests the explicit baseline-reconciliation path and a no-op rerun. The test-only read-only membership is provisioned only inside that ephemeral CI database.
 
 The live disposable Neon database is not used as the CI migration target. Its existing schema is reconciled separately using the explicit baseline command above.
