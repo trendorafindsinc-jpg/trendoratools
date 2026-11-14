@@ -1,7 +1,7 @@
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 
-const LAST_UPDATED = '13 November 2026';
+const LAST_UPDATED = '14 November 2026';
 const COMPANY = 'Lucia LLC';
 const PRODUCT = 'Ariovelle';
 const BRAND = 'Lucia';
@@ -12,13 +12,13 @@ const content: Record<string, { title: string; body: string }> = {
     body: `These Terms of Service (“Terms”) govern access to and use of ${PRODUCT}, a software product operated under the ${BRAND} brand by ${COMPANY} (“we”, “us”, or “our”). By accessing or using ${PRODUCT}, you agree to be bound by these Terms. If you do not agree, do not use the product.
 
 1. Description of the service
-${PRODUCT} provides personal productivity and financial-tracking tools, including but not limited to expense and income logging, budgets, bills, savings goals, debts, reports, insights, and an action-oriented planner. The product is designed to operate primarily on your device using local storage. Optional cloud backup (“Lucia Cloud”) may be available when you authenticate with a LUCIA ID, subject to the Privacy Policy.
+${PRODUCT} provides personal productivity and financial-tracking tools, including but not limited to expense and income logging, budgets, bills, savings goals, debts, reports, insights, and an action-oriented planner. The product is designed to operate primarily on your device using local storage. Lucia identity sign-in is available in supported deployments. Server-side financial storage and cloud sync are not yet enabled; signing in does not upload your local financial records.
 
 2. Eligibility
 You must be able to form a binding contract under the laws of your jurisdiction. If you use ${PRODUCT} on behalf of an organization, you represent that you have authority to bind that organization to these Terms.
 
 3. Accounts and guest access
-You may use ${PRODUCT} as a guest (local-only) or with a LUCIA ID. You are responsible for maintaining the confidentiality of your credentials and for activity under your account. Notify us promptly of any unauthorized use of your LUCIA ID in connection with this product.
+You may use ${PRODUCT} as a guest (local-only) or with a LUCIA ID. Your Lucia credentials are entered on Lucia Core and are not received or stored by Ariovelle. Ariovelle maintains its own application session after Lucia verifies your identity. Notify Lucia promptly of unauthorized use of your Lucia ID.
 
 4. Your data and responsibility
 You retain ownership of the financial and personal data you enter. You are solely responsible for the accuracy, legality, and completeness of that data. ${PRODUCT} performs deterministic calculations based on the data you provide; errors in input will produce corresponding errors in output.
@@ -60,7 +60,7 @@ Effective date: ${LAST_UPDATED}.`
   },
   privacy: {
     title: 'Privacy Policy',
-    body: `This Privacy Policy explains how ${COMPANY} (“we”, “us”) handles information in connection with ${PRODUCT}, a ${BRAND} product. We designed ${PRODUCT} to be local-first: your financial records stay on your device unless you choose optional cloud features.
+    body: `This Privacy Policy explains how ${COMPANY} (“we”, “us”) handles information in connection with ${PRODUCT}, a ${BRAND} product. We designed ${PRODUCT} to be local-first: your financial records stay on your device in the current release. Lucia identity sign-in does not itself upload those records.
 
 1. Who we are
 ${PRODUCT} is offered under the ${BRAND} brand by ${COMPANY}. This policy applies to the web and installable (PWA / native shell) experiences of ${PRODUCT}.
@@ -71,10 +71,10 @@ ${PRODUCT} is offered under the ${BRAND} brand by ${COMPANY}. This policy applie
 By default, expenses, income, budgets, bills, savings goals, debts, categories, and similar records are stored in your browser’s local storage (or equivalent on-device storage in a native shell). This data does not leave your device unless you export it, enable cloud backup, or your device/browser syncs storage through mechanisms outside our control.
 
 2.2 Account information (when you sign in)
-If you sign in with a LUCIA ID (email/password or supported identity providers such as Google, where enabled), we process identifiers needed for authentication (for example email address, display name, user ID, and verification status). Authentication is provided through infrastructure configured at deployment time (for example Firebase Authentication). API keys and project identifiers are supplied via environment variables and are not hard-coded in the public application source repository.
+If you sign in with a LUCIA ID, Lucia Core authenticates you and returns a verified identity to Ariovelle through its protected identity endpoints. Ariovelle processes the stable Lucia subject, email address (when granted), display name (when granted), and email-verification status. Ariovelle maps the stable subject to its own internal user UUID and creates a separate, revocable application session. Ariovelle does not receive your Lucia password.
 
 2.3 Optional Lucia Cloud backup
-If you use Lucia Cloud backup or sync while signed in, copies of your Ariovelle records may be stored in cloud databases associated with your authenticated user ID so you can restore them on another device. Access is scoped to your account.
+Lucia Cloud backup and cross-device financial sync are not enabled in the current release. Signing in does not copy local financial records to Lucia Core or Ariovelle servers. If cloud storage is introduced later, this policy will be updated before that feature is enabled.
 
 2.4 Technical and preference data
 We may store on-device preferences such as theme (light/dark), welcome/onboarding flags, and guest-mode flags. Hosting platforms and CDNs may automatically process standard technical logs (IP address, user agent, timestamps) as part of delivering the website; such processing is governed by those providers’ policies and our configuration of them.
@@ -83,19 +83,19 @@ We may store on-device preferences such as theme (light/dark), welcome/onboardin
 We do not sell your personal financial records. We do not use your ledger data for third-party advertising. ${PRODUCT} does not include a third-party AI chatbot that transmits your financial history for model training as part of core tracking features.
 
 3. Purposes of processing
-We process information to: (a) provide and secure the product; (b) authenticate LUCIA ID users; (c) perform optional cloud backup/restore at your request; (d) remember preferences; (e) maintain, debug, and improve reliability; and (f) comply with law.
+We process information to: (a) provide and secure the product; (b) verify Lucia identity and maintain Ariovelle application sessions; (c) remember on-device preferences; (d) maintain, debug, and improve reliability; and (e) comply with law. Local financial records remain on your device in the current release.
 
 4. Legal bases (where applicable)
 Depending on your jurisdiction, processing may rely on: performance of a contract (providing the service you request); consent (for optional cloud features or certain cookies where required); legitimate interests (security, fraud prevention, product improvement that does not override your rights); and legal obligation.
 
 5. Sharing
-We share data only as needed with: infrastructure providers that host authentication, storage, or the website under our instruction; professional advisors under confidentiality; and authorities when required by law. We do not sell personal data.
+We share identity-verification requests and the minimum claims needed to establish your Ariovelle account with Lucia Core. Hosting and database providers process application data under our instructions. We may also share information with professional advisors under confidentiality or authorities when required by law. Ariovelle does not transmit local financial records as part of Lucia sign-in. We do not sell personal data.
 
 6. International transfers
 Cloud providers may process data in multiple regions. Where required, we rely on appropriate transfer mechanisms offered by those providers or applicable law.
 
 7. Retention
-Local data remains until you clear site data, uninstall the app, or overwrite it via import. Cloud backups, when enabled, are retained until you delete them or close your account according to LUCIA account procedures, subject to legal retention requirements and backup systems.
+Local data remains until you clear site data, uninstall the app, or overwrite it via import. An Ariovelle application account and session metadata are retained as needed to provide the service and are subject to account deletion and legal retention procedures. Cloud financial backups are not enabled in the current release.
 
 8. Security
 We implement reasonable technical and organizational measures appropriate to the nature of the service. No method of transmission or storage is completely secure. You are responsible for device security and for exporting backups before clearing storage.
@@ -151,7 +151,7 @@ Last updated: ${LAST_UPDATED}.`
 ${PRODUCT} uses browser local storage (and similar on-device storage in native shells) to keep your financial records, preferences (including light/dark theme), and session-related flags (such as welcome completion and guest mode). These technologies are necessary for the core offline-capable experience.
 
 2. Authentication
-When you sign in with a LUCIA ID, authentication providers may set cookies or tokens required to maintain a secure session. Those technologies are essential to signed-in features and optional Lucia Cloud backup.
+Ariovelle uses a server-managed, HttpOnly, Secure (on HTTPS), SameSite session cookie after Lucia verifies your identity. The Lucia Core sign-in domain may set its own authentication cookies. Ariovelle does not store access tokens or Lucia passwords in browser local storage.
 
 3. Analytics and advertising cookies
 ${PRODUCT}’s core experience is not built around third-party advertising cookies. If a specific deployment enables optional analytics, that deployment should disclose it; default product design does not require marketing trackers to use local tools.
@@ -201,7 +201,6 @@ Last updated: ${LAST_UPDATED}.`
 • Vite — MIT License
 • Tailwind CSS — MIT License
 • TypeScript — Apache License 2.0
-• Firebase JavaScript SDK (when enabled) — Apache License 2.0
 • Capacitor (when used for native shells) — MIT License
 
 Full license texts are available in the dependency packages and at the upstream project repositories. Nothing in this notice grants rights to ${COMPANY} trademarks or the ${PRODUCT} source beyond applicable open-source licenses for third-party components.
