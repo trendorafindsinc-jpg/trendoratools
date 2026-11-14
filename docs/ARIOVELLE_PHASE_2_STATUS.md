@@ -17,7 +17,7 @@
 
 The source/data audit, shared API composition, PostgreSQL adapter, workspace/RLS foundation, DDL migration runner, Lucia OIDC callback, local sessions, browser sign-in screen and `/api/auth/me` endpoint are implemented. The shared disposable development database still structurally represents migrations 0001–0005 but has no DDL ledger; migration 0006 is not applied. CI passed on runtime code commit 4340226 (82 tests, 18 files), and the latest manual Preview deployment is READY. Preview authentication remains deliberately fail-closed until the owner approves the safe existing-schema baseline and additive migration 0006. A real browser sign-in/session/logout acceptance remains open.
 
-No financial domain schema or financial CRUD API is implemented. No production database, production authentication, production deployment, payment, AI, or market-data integration is enabled.
+No financial domain schema or financial CRUD API is implemented. A separate Ariovelle Production identity database and its security foundation have now been provisioned; Production Lucia authentication and deployment remain disabled pending the production-domain reassignment and final browser acceptance. Payment, AI, market-data integration and financial synchronization are not enabled.
 
 Phase 1 design-system acceptance remains conditional and is tracked separately in `docs/ARIOVELLE_IMPLEMENTATION_PLAN.md`; it does not change the current Phase 2 execution sequence.
 
@@ -167,3 +167,16 @@ P2.5/P2.6 remain excluded unless the clean-start decision changes.
 - [Vercel and identity configuration](ARIOVELLE_VERCEL_AND_LUCIA_CORE_CONFIGURATION.md)
 
 **Update rule:** update this file first whenever a Phase 2 work package, database migration state, provider gate or acceptance result changes. Then update linked specifications only to remove stale statements or explain technical requirements; do not duplicate competing progress checklists.
+
+
+## 8. Production Lucia identity infrastructure — 2026-11-14
+
+A separate Neon Production project `ariovelle-production` (project ID `cold-river-90224713`) now hosts PostgreSQL 17 database `ariovelle_prod` on branch `production`. It is separate from `ariovelle-dev`; Preview continues to use only the disposable development database.
+
+Migrations 0000–0007 are recorded in the Production `schema_migrations` ledger with SHA-256 checksums matching the exact checked-in SQL files. The Production catalog has 12 public tables, RLS enabled on all 12, 17 tenant policies, and 10 `app_private` functions. The least-privilege runtime role is non-superuser, cannot create roles/databases, has no BYPASSRLS, and has bounded statement/lock/idle-transaction timeouts. Migration 0007 revokes the runtime role's unnecessary read access to the DDL ledger. No financial tables or user financial records exist.
+
+Vercel Production now has the separate runtime-role `DATABASE_URL`, a new sensitive Production-only `ARIOVELLE_SESSION_SECRET`, canonical Lucia issuer, existing client ID, audience, and exact registered callback. The pre-existing Production `LUCIA_CLIENT_SECRET` remains sensitive and was not read or changed. `LUCIA_AUTH_ENABLED=false` remains fail-closed.
+
+**Outstanding Production activation gate:** `ariovelle.lucia.name.ng` is currently assigned to the Preview feature branch in Vercel. It must be reassigned to the Production deployment before the existing exact OIDC callback can safely establish a Production session. The available Vercel project connector does not expose a domain-branch reassignment/removal action. Do not change DNS or parent nameservers. After the domain is assigned to Production, create a manual Production deployment, enable Production Lucia auth, and perform real browser acceptance. Git auto-deploy remains disabled.
+
+The Production identity setup does not activate cloud financial synchronization or change the offline-first local persistence design. See [Production Lucia readiness](./ARIOVELLE_PRODUCTION_LUCIA_READINESS.md) for the full configuration and activation record.
