@@ -39,6 +39,9 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,woff,ttf}'],
         navigateFallback: 'index.html',
+        // Authentication and every other API navigation must reach Vercel Functions,
+        // never the cached SPA shell.
+        navigateFallbackDenylist: [/^\/api(?:\/|$)/],
         mode: 'development',
         runtimeCaching: [
           { urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i, handler: 'CacheFirst', options: { cacheName: 'google-fonts-cache', expiration: { maxEntries: 10, maxAgeSeconds: 31536000 } } },
