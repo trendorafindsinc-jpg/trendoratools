@@ -76,6 +76,23 @@ jobs:
         run: |
           npm run db:migrate:apply
           npm run db:migrate:verify
+      - name: Create a second empty database for baseline-reconciliation testing
+        run: |
+          PGPASSWORD=postgres psql -h 127.0.0.1 -U postgres -d postgres -v ON_ERROR_STOP=1 \
+            -c "CREATE DATABASE ariovelle_baseline_test OWNER ariovelle_owner"
+          PGPASSWORD=owner-test-password psql -h 127.0.0.1 -U ariovelle_owner -d ariovelle_baseline_test -v ON_ERROR_STOP=1 \
+            -f db/migrations/0001_foundation.sql \
+            -f db/migrations/0002_request_context_and_rls.sql \
+            -f db/migrations/0003_runtime_role_grants.sql \
+            -f db/migrations/0004_lucia_identity_sessions.sql \
+            -f db/migrations/0005_lucia_oauth_transactions.sql
+      - name: Test safe baseline reconciliation without replaying schema DDL
+        env:
+          ARIOVELLE_MIGRATION_DATABASE_URL: postgres://ariovelle_owner:owner-test-password@127.0.0.1:5432/ariovelle_baseline_test
+        run: |
+          npm run db:migrate:baseline-existing
+          npm run db:migrate:verify
+          npm run db:migrate:apply
       - name: Production build
         run: npm run build
       - name: Automated tests
