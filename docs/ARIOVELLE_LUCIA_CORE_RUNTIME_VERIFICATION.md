@@ -1,6 +1,6 @@
 # Lucia Core runtime verification — Ariovelle integration
 
-**Evidence snapshot date:** 2026-11-13. This is a historical read-only report, not a statement of Lucia Core's current state. Lucia Core has since been handed to its own agent; Ariovelle work must wait for that agent's verified provider handover. Do not modify Core. The current Ariovelle implementation/database status is in [ARIOVELLE_PHASE_2_STATUS.md](ARIOVELLE_PHASE_2_STATUS.md).
+**Original evidence snapshot:** 2026-11-13. **Current follow-up:** 2026-11-14. The original deployment and nonce findings below are historical and are superseded by the dated follow-up in Section 6. Lucia Core remains owned by its separate agent; this report is read-only. Do not modify Core. Current Ariovelle implementation/database status is in [ARIOVELLE_PHASE_2_STATUS.md](ARIOVELLE_PHASE_2_STATUS.md).
 
 Date: 2026-11-13  
 Scope: read-only inspection of Lucia Core source and Vercel configuration, plus additive schema and integration verification on the disposable Ariovelle development database. No Lucia Core source, settings, secrets or deployments were changed.
@@ -102,3 +102,33 @@ Do not enable login until all are true:
 7. An end-to-end test completes sign-in, local session resolution, workspace authorization and logout against the deployed Core test environment.
 
 No production login, deployment, Core configuration change or production database migration is authorized by this report.
+
+
+## 6. 2026-11-14 follow-up — production issuer, OIDC and signing-key audit (read-only)
+
+The owner reported that Lucia Core Production is now configured with `OIDC_ISSUER=https://auth.lucia.name.ng`, the existing production deployment was redeployed without source changes or branch merge and reached READY, the custom domain is assigned to that Production deployment, excluded from deployment SSO protection, and not pinned to Preview. The owner also supplied successful live discovery and JWKS results. This replaces the deployment/domain findings in Sections 1 and 5; do not repeat or change the completed domain work.
+
+Independent metadata/catalog inspection performed for this follow-up:
+
+- Vercel Core project `lucia-secure` has a READY Production deployment `dpl_3shBd4FTe5Yrm68aY8VjQKScAhkS` from `main` commit `35a4e3d010803d99cd200084a653c1aee048c374`.
+- Vercel Production environment metadata contains `OIDC_ISSUER` with the canonical issuer and a Production-scoped Sensitive `OIDC_SIGNING_KEY_ENCRYPTION_KEY`. The secret value was not requested or read.
+- The Production Neon project `lucia-core-v2-production` (branch `main`) contains exactly one active OIDC signing-key row. Its `kid` is `0c05947a954f4edd`, matching the owner's published JWKS key ID. The private PEM column is stored as `enc:v1:`; there are zero plaintext key rows. No key was created, changed, decrypted or rotated during this inspection.
+- The Production deployment's checked-in `src/modules/oidc/keys.ts` uses AES-256-GCM, a fresh 12-byte IV, a key-ID-bound AAD value, a versioned `enc:v1:` storage format, and strict canonical-Base64/32-byte key validation. Its JWKS path calls `ensureActiveSigningKey()`, which materializes (and therefore decrypts) the active key before returning the public JWKS. The owner's successful live JWKS response, combined with the matching encrypted active row and Production secret metadata, is consistent with the production runtime being able to decrypt the active key. No private PEM or secret value was retrieved.
+- Current Core `main` source now propagates nonce through the authorization flow: `consent.ts` stores nonce on the consent transaction and copies it to the authorization-code row; `service.ts` returns `existing.nonce`; the token route passes it to `maybeIssueIdToken()`; and `id-token.ts` includes it in the RS256 ID token. The 2026-11-13 nonce finding above is therefore superseded in the current inspected source. A real token exchange is still needed to verify deployed behavior.
+- Read-only Neon Object Storage inspection of the known Core production project and its main branch returned no buckets; the named `lucia-core-key-recovery` bucket was not found there. The runbook requires a private recovery object plus a separately protected age identity backup. This is a recovery-evidence gap, not proof that no copy exists elsewhere. Do not create, delete or upload anything as part of this audit.
+
+### Current Ariovelle preview state
+
+- Ariovelle's preview-only `LUCIA_ISSUER` is now set to `https://auth.lucia.name.ng`.
+- The existing client ID, confidential client secret, audience `ariovelle`, exact callback `https://ariovelle.lucia.name.ng/api/auth/lucia/callback`, and `openid profile email` request scopes are preserved. No Core client registration, redirect URI, scopes, secrets or deployment were changed.
+- `LUCIA_AUTH_ENABLED=true` is configured for Ariovelle Preview only on `feat/ariovelle-phase-1-design-system`; production authentication remains disabled.
+- Ariovelle's manual Preview deployment `dpl_AmxKawKeeA6FHjHnkpEPVTMq28QY` is READY and has the `ariovelle.lucia.name.ng` alias. Git auto-deploy remains disabled.
+- The current callback validates the RS256 ID token against Core JWKS, checks issuer/client audience/time/nonce, then verifies UserInfo and requires its subject to match before creating a local Ariovelle session.
+
+### Remaining acceptance
+
+1. Complete the latest Ariovelle CI run, including the new negative signature, unknown-key, issuer, expiry and UserInfo subject-binding tests.
+2. Perform one real browser sign-in against the Preview deployment. This requires an authenticated Lucia account and browser interaction; no user credentials should be shared in chat.
+3. Confirm the callback completes, a local Ariovelle session is established, workspace access resolves correctly, and logout revokes that session.
+4. Separately verify the recovery object and age-identity backup with the designated recovery operator. Do not rotate the production encryption key. Do not change Lucia Core production settings or database.
+5. Keep production Ariovelle login disabled until Preview acceptance and the recovery evidence gap are reviewed.
