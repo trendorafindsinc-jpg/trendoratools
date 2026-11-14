@@ -85,6 +85,7 @@ export default function App() {
     return (
       <LuciaAuth
         authError={authError}
+        signInDisabled={Boolean(authError)}
         onGuest={() => {
           localStorage.setItem(GUEST_KEY, 'true');
           setGuest(true);
