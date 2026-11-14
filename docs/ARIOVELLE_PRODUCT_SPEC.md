@@ -1,6 +1,6 @@
 # Ariovelle Product Requirements and UI Specification
 
-**Status:** Approved product direction; implementation not yet verified.  
+**Status:** Approved product requirements and UI specification. Implementation progress and verified completion are tracked in [ARIOVELLE_PHASE_2_STATUS.md](ARIOVELLE_PHASE_2_STATUS.md); this document is not an implementation-status ledger.  
 **Owner/operator:** Lucia LLC.  
 **Product:** Ariovelle.  
 **Brand line:** “A product of Lucia.”  
