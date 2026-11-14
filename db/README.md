@@ -28,7 +28,24 @@ Verify every checked-in migration against the immutable checksum recorded in the
 npm run db:migrate:verify
 ```
 
-The existing disposable Ariovelle development database already contains the structural results of migrations 0001–0005 but has no DDL ledger. Migration 0006 is a new, additive function update and must be applied only after the existing schema is safely baselined. **Do not run `db:migrate:apply` against it**: the runner intentionally refuses to replay those non-idempotent migrations.
+The existing disposable Ariovelle development database already contains the structural results of migrations 0001–0005 but has no DDL ledger. Its baseline reconciliation remains a separate, explicitly approved operation. Do not replay 0001–0005 against it. Once approved, baseline 0000–0005, then apply pending 0006 and 0007.
+
+## Production provisioning record
+
+A separate Neon project, `ariovelle-production`, hosts database `ariovelle_prod` on the protected production branch. It was provisioned with PostgreSQL 17, a dedicated `ariovelle_owner` migration role, and a separate `ariovelle_runtime` role. The production database was empty before setup; migrations 0000–0007 were applied in order, and the DDL ledger records the SHA-256 checksum of each exact checked-in file.
+
+Production database controls:
+- RLS is enabled on all 12 public tables.
+- The foundation has 17 tenant policies.
+- The runtime role is not superuser, cannot create roles or databases, and has no BYPASSRLS.
+- Runtime timeouts are 10 seconds for statements, 2 seconds for locks and 15 seconds for idle transactions.
+- The runtime role has no direct access to session, OAuth transaction, import-provenance or schema-migration tables; it uses narrowly scoped SECURITY DEFINER functions for those operations.
+- The migration owner is never used by application routes.
+- No financial tables, financial records or imported user data exist in this production database.
+
+The production app receives only the pooled runtime-role connection string through Vercel's sensitive `DATABASE_URL` variable. The direct migration-owner connection string is not stored in Vercel.
+
+## Existing development database baseline
 
 After reviewing the live catalog, the explicit reconciliation command is:
 
@@ -36,7 +53,7 @@ After reviewing the live catalog, the explicit reconciliation command is:
 npm run db:migrate:baseline-existing
 ```
 
-That command creates the ledger and records the exact checksums of the existing prefix 0000–0005 only after verifying the expected existing tables and columns, RLS on all 11 existing tables, 17 public policies, 10 `app_private` functions, owner/runtime role properties, runtime timeouts, protected-table ACLs and function execution grants. It does not rerun migrations 0001–0005 or change application rows. It deliberately leaves later migrations (including 0006) pending; run `npm run db:migrate:apply` afterwards to apply those new migrations. It is an additive schema-history operation, but it still writes to the database and must only be run against the disposable development database with the dedicated migration-owner direct URL.
+That command creates the ledger and records the exact checksums of the existing prefix 0000–0005 only after verifying the expected existing tables and columns, RLS on all 11 existing tables, 17 public policies, 10 `app_private` functions, owner/runtime role properties, runtime timeouts, protected-table ACLs and function execution grants. It does not rerun migrations 0001–0005 or change application rows. It deliberately leaves later migrations pending; run `npm run db:migrate:apply` afterwards to apply pending migrations. It is an additive schema-history operation, but it still writes to the database and must only be run against the disposable development database with the dedicated migration-owner direct URL.
 
 The command does not clean, delete or rewrite the existing synthetic identity/session/OAuth fixtures.
 
@@ -53,6 +70,6 @@ The command does not clean, delete or rewrite the existing synthetic identity/se
 
 ## CI verification
 
-The Ariovelle verification workflow provisions an isolated PostgreSQL 17 service, creates non-production owner/runtime roles, applies migrations 0000–0006 from an empty database, reruns the migration command, verifies the ledger, and runs the PostgreSQL RLS integration tests. It also builds a second ephemeral database by applying 0001–0005 without a ledger, then tests the explicit baseline-reconciliation path, applies the new pending migration 0006, and verifies a no-op rerun. The test-only read-only membership is provisioned only inside that ephemeral CI database.
+The Ariovelle verification workflow provisions an isolated PostgreSQL 17 service, creates non-production owner/runtime roles, applies all checked-in migrations from an empty database, reruns the migration command, verifies the ledger, and runs the PostgreSQL RLS integration tests. It also builds a second ephemeral database by applying 0001–0005 without a ledger, then tests the explicit baseline-reconciliation path, applies the pending migrations and verifies a no-op rerun. The test-only read-only membership is provisioned only inside that ephemeral CI database.
 
 The live disposable Neon database is not used as the CI migration target. Its existing schema is reconciled separately using the explicit baseline command above.
