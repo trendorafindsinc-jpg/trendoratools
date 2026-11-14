@@ -103,18 +103,21 @@ This file is the repository-level instruction contract for Codex and other codin
 - Provide loading, empty, error, offline, permission-denied and upgrade states for every data-backed screen.
 - Never use fabricated production-looking financial values. Fixtures must be labelled as sample/demo data.
 
-## 10. Engineering workflow
+## 10. Engineering workflow and implementation-first order
 
-1. Read this file and all four linked Ariovelle specification/audit documents.
-2. Inspect the relevant existing code before editing; do not assume the audit is exhaustive.
-3. State the scope and identify data/security implications.
-4. Make small, reviewable changes on a feature branch.
-5. Add/update tests and run the relevant checks (at minimum `npm test` and `npm run build` when available).
-6. Report actual command results. Do not claim tests passed if they were not run.
-7. Update documentation when a decision or implementation status changes.
-8. Do not commit secrets, generated build artifacts, local databases or user data.
-9. Do not merge or deploy without explicit approval.
-10. Keep Vercel Git auto-deploy disabled; no deployment is implied by a repository change.
+**Owner's standing instruction (2026-11-14): implementation comes before routine testing.** The purpose of the work is to deliver the Ariovelle product, not to spend the project repeatedly testing small increments. Follow this order:
+
+1. Read this file and the relevant product, architecture, implementation-plan, audit and status documents. Resolve conflicts using the newest explicitly approved decision and the authoritative status ledger.
+2. Inspect the relevant existing code and dependencies before editing; do not assume the audit is exhaustive.
+3. Turn the approved scope into a concrete implementation checklist, identify genuine blockers and data/security implications, then implement the complete agreed scope across the required frontend, backend, database, integrations, documentation and configuration layers.
+4. **Do not interrupt implementation with routine test runs after every small change or file.** Do not repeatedly rerun CI, builds, visual checks or test suites while substantial agreed implementation remains unwritten. Keep a concise list of checks to run later and continue building.
+5. Prefer completing coherent end-to-end feature slices and the full approved implementation scope before starting the consolidated verification phase. If an implementation dependency genuinely blocks progress, explain the specific blocker and continue with independent work rather than waiting idly.
+6. Once the agreed implementation scope is complete, run the consolidated test, build, type, migration, security, accessibility, responsive-visual and integration verification appropriate to the product. Use available CLI and specialist testing tools; report actual results and fix findings in a focused remediation pass.
+7. **Immediate safety exception:** do not knowingly continue through a discovered critical security, privacy, financial-integrity or destructive-data risk. Address or isolate that risk immediately. This exception is not permission for routine repetitive testing.
+8. Update the authoritative status ledger and relevant documentation with what was actually implemented, what remains, and the consolidated verification results. Never claim unrun checks passed or present placeholders as finished features.
+9. Do not commit secrets, generated build artifacts, local databases or user data.
+10. Do not merge, deploy production, change domains, alter protected infrastructure or perform destructive migrations without the required explicit approval.
+11. Keep Vercel Git auto-deploy disabled; no deployment is implied by a repository change.
 
 ## 11. Current known repository baseline
 
