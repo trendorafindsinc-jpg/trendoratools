@@ -6,7 +6,8 @@
 **Repository:** `trendorafindsinc-jpg/trendoratools`  
 **Branch:** `feat/ariovelle-phase-1-design-system`  
 **Code/database inspection baseline:** `39ba92cc3d92a5d754233989ef8de4a310567349` (the subsequent commits in this reconciliation changed documentation only).  
-**Latest code verification:** [run 43502170023](https://github.com/trendorafindsinc-jpg/trendoratools/actions/runs/43502170023) — build and tests passed.  
+**Previous code baseline verification:** [run 43502170023](https://github.com/trendorafindsinc-jpg/trendoratools/actions/runs/43502170023) — build and tests passed before the current P2.1/P2.2 changes.  
+**Current P2.1/P2.2 verification:** pending confirmation of the feature-branch CI run for the new API composition and PostgreSQL migration suite.  
 **Documentation reconciliation verification:** [run 43576548363](https://github.com/trendorafindsinc-jpg/trendoratools/actions/runs/43576548363) — completed successfully on `4f0fa8ae9c54335a7fd43470e930e3756e79d188`.  
 **Scope:** Ariovelle only. Lucia Core is owned by its separate agent; do not modify its repository, branches, database, settings or deployments. Treat its status as externally owned and wait for its agent's verified handover.
 
@@ -140,7 +141,7 @@ Do not point the migration runner at the preview runtime `DATABASE_URL`, product
 
 P2.5/P2.6 remain excluded unless the clean-start decision changes.
 
-## 7. Explicitly out of scope / release gates
+## 8. Explicitly out of scope / release gates
 
 - Firebase beta-tester data export/import: not required under the owner's clean-start decision.
 - Lucia Core implementation: owned by its agent; read-only inspection only if essential to Ariovelle integration.
@@ -150,7 +151,7 @@ P2.5/P2.6 remain excluded unless the clean-start decision changes.
 - Financial data tables or financial CRUD before the backend foundation and financial schema design are accepted.
 - Payment, AI and market-data integrations until their separate product, security, licensing and commercial gates are satisfied.
 
-## 8. Evidence and related documents
+## 9. Evidence and related documents
 
 - [Implementation plan](ARIOVELLE_IMPLEMENTATION_PLAN.md)
 - [Backend architecture and migration specification](ARIOVELLE_BACKEND_ARCHITECTURE_AND_MIGRATION.md)
