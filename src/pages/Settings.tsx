@@ -97,9 +97,6 @@ export default function Settings({ session, onSignOut }: { session: AriovelleSes
     flash('');
     try {
       await onSignOut();
-      localStorage.removeItem(GUEST_KEY);
-      flash('Signed out. Redirecting…');
-      setTimeout(() => window.location.reload(), 600);
     } catch (err) {
       flash(err instanceof Error ? err.message : 'Sign out failed.', true);
     } finally {
@@ -223,16 +220,15 @@ export default function Settings({ session, onSignOut }: { session: AriovelleSes
 
       <section className="space-y-3">
         <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-faint)] px-1">Data &amp; backup</h2>
-        <Card title="Lucia Cloud">
+        <Card title="Cloud sync — coming soon">
           <div className="flex items-start gap-3 mb-5">
             <div className="w-10 h-10 rounded-xl bg-[var(--nav-active-bg)] flex items-center justify-center text-[var(--accent-gold)]">
               <Cloud size={19} />
             </div>
             <div>
-              <h3 className="font-semibold text-[var(--text-primary)]">Optional cloud backup</h3>
+              <h3 className="font-semibold text-[var(--text-primary)]">Your records stay under your control</h3>
               <p className="text-sm text-[var(--text-muted)] mt-1">
-                Save a full snapshot to your LUCIA account, then restore on another phone or browser. Live sync also runs
-                while you are signed in.
+                Lucia identity sign-in is active in this preview. Secure server-side financial storage and cross-device sync are still being built; signing in does not upload your local records.
               </p>
             </div>
           </div>
