@@ -42,6 +42,12 @@ export const meResponseSchema = z.object({
     displayName: z.string().max(160).nullable(),
     createdAt: z.string().datetime({ offset: true }),
   }).strict(),
+  workspace: z.object({
+    id: z.string().uuid(),
+    name: z.string().min(1).max(120),
+    type: z.enum(['personal', 'business']),
+    role: z.enum(['owner', 'admin', 'member', 'viewer']),
+  }).strict(),
 }).strict();
 
 export const workspaceDtoSchema = z.object({
