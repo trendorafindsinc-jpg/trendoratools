@@ -74,3 +74,21 @@ No Lucia Core source, database, environment variables, signing keys, client regi
 - The production deployment was created with `LUCIA_AUTH_ENABLED=false`; no login traffic is accepted until the domain assignment is corrected.
 
 The Vercel default deployment aliases are live, but the registered custom callback domain remains branch-bound to Preview. Do not mistake the READY deployment for completed Production Lucia login.
+
+
+## Domain reassignment and Production activation update
+
+The owner removed the Preview Git Branch binding from `ariovelle.lucia.name.ng`. Vercel now reports the custom domain as verified with `gitBranch=null`, and the alias resolves to the Production deployment.
+
+Production `LUCIA_AUTH_ENABLED` has been set to `true`. A fresh manual Production deployment was created to consume the updated environment:
+
+- Deployment ID: `dpl_GUA8wCVPJswWuzVaDdqEa8qZTfeT`
+- State: **READY**
+- Production custom alias: `https://ariovelle.lucia.name.ng`
+- Deployment URL: `https://trendoratools-asv7s5g9f-trendoraplc-5738.vercel.app`
+- Commit: `114f655b32e6870e1e5475a76137de05edc91958`
+- Alias mapping: verified to the new READY Production deployment.
+
+The TypeScript/Vite production build completed and generated PWA assets. Vercel reports no deployment alias error. The deployment is now ready to accept the first Production Lucia sign-in.
+
+**Live browser acceptance is still outstanding.** The connected browser context is not available in this session, and no real user authorization, callback, ID-token validation, `/api/auth/me`, or logout has yet been observed. Do not describe Lucia login as fully verified until that end-to-end sign-in is completed. The owner should open the Production site, choose **Continue with Lucia**, complete the Lucia consent/sign-in flow, and confirm that Ariovelle returns to an authenticated workspace. Then verify session persistence and logout. Do not share credentials or authorization codes in chat.
