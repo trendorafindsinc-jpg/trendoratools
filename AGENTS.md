@@ -1,6 +1,6 @@
 # Codex instructions for Ariovelle
 
-This file is the repository-level instruction contract for Codex and other coding agents. Read it before changing code. The product and architecture decisions are in [docs/ARIOVELLE_PRODUCT_SPEC.md](docs/ARIOVELLE_PRODUCT_SPEC.md), the backend architecture and data migration specification is in [docs/ARIOVELLE_BACKEND_ARCHITECTURE_AND_MIGRATION.md](docs/ARIOVELLE_BACKEND_ARCHITECTURE_AND_MIGRATION.md), the phased implementation plan is in [docs/ARIOVELLE_IMPLEMENTATION_PLAN.md](docs/ARIOVELLE_IMPLEMENTATION_PLAN.md), and the observed baseline is in [docs/REPOSITORY_AUDIT.md](docs/REPOSITORY_AUDIT.md).
+This file is the repository-level instruction contract for Codex and other coding agents. Read it before changing code. The product and architecture decisions are in [docs/ARIOVELLE_PRODUCT_SPEC.md](docs/ARIOVELLE_PRODUCT_SPEC.md), the backend architecture specification is in [docs/ARIOVELLE_BACKEND_ARCHITECTURE_AND_MIGRATION.md](docs/ARIOVELLE_BACKEND_ARCHITECTURE_AND_MIGRATION.md), the phased plan is in [docs/ARIOVELLE_IMPLEMENTATION_PLAN.md](docs/ARIOVELLE_IMPLEMENTATION_PLAN.md), the observed baseline is in [docs/REPOSITORY_AUDIT.md](docs/REPOSITORY_AUDIT.md), and the **single authoritative Phase 2 status ledger** is [docs/ARIOVELLE_PHASE_2_STATUS.md](docs/ARIOVELLE_PHASE_2_STATUS.md). Read and update that ledger before and after any Phase 2 work.
 
 ## 1. Product identity and ownership
 
@@ -49,16 +49,16 @@ This file is the repository-level instruction contract for Codex and other codin
 - Existing Firebase-based auth code is legacy and must be inventoried and retired in a controlled sequence.
 - Lucia Core's implementation has been inspected read-only in `trendorafindsinc-jpg/lucia-core` main. Follow `docs/ARIOVELLE_LUCIA_ID_INTEGRATION_CONTRACT.md` and `docs/ARIOVELLE_LUCIA_CORE_RUNTIME_VERIFICATION.md`; do not substitute guessed protocol details.
 - The legacy `LUCIA-...` string generated from Firebase UID is not proof of a real Lucia ID.
-- The server-side adapter and local session boundary exist on the Ariovelle feature branch. Login remains disabled until the Core nonce-propagation defect is fixed and a deployed HTTPS Core environment is available for end-to-end verification. Never weaken nonce validation to make the current Core token pass.
+- The server-side adapter and local session boundary exist on the Ariovelle feature branch; migrations 0004 and 0005 are structurally present in the disposable development database. Login remains disabled pending a verified provider handover from the separate Lucia Core agent, including nonce propagation and a reachable canonical HTTPS issuer. Do not modify Lucia Core; never weaken nonce validation.
 
 ## 5. Authentication implementation rules
 
 - Keep `LUCIA_AUTH_ENABLED` false unless the explicit release gates in `docs/ARIOVELLE_LUCIA_CORE_RUNTIME_VERIFICATION.md` have passed.
 - Keep `LUCIA_CLIENT_SECRET`, `ARIOVELLE_SESSION_SECRET`, and `DATABASE_URL` server-only; never use a `VITE_` prefix.
 - Validate the OIDC ID token using the discovered allowlisted issuer and RS256 JWKS. Do not validate the Core HS256 access assertion locally; use it only as a bearer credential to Core UserInfo.
-- Require exact nonce and UserInfo subject equality. The current Core source omits the nonce in its ID-token issuance path; reject those tokens until Core is fixed.
+- Require exact nonce and UserInfo subject equality. Treat the last Core nonce/deployment findings as a historical read-only snapshot until the Core agent supplies an updated verified handover; reject tokens that fail strict validation.
 - Store only a SHA-256 hash of opaque Ariovelle session tokens. Resolve session identity through the narrow database function, then perform workspace permission checks and tenant queries inside the same transaction-local RLS context.
-- The new migration 0004 is source-only until reviewed and applied to the disposable development database. Never apply it to production as part of this task.
+- Migrations 0001–0005 are represented in the disposable development database catalog; see the Phase 2 status ledger for live structural evidence and the no-ledger limitation. Never apply them to production as part of this task.
 
 ## 6. Financial correctness
 
@@ -117,6 +117,8 @@ This file is the repository-level instruction contract for Codex and other codin
 10. Keep Vercel Git auto-deploy disabled; no deployment is implied by a repository change.
 
 ## 11. Current known repository baseline
+
+**Phase execution rule:** `docs/ARIOVELLE_PHASE_2_STATUS.md` is the single source of truth for Phase 2 progress, database reconciliation, remaining work and acceptance tests. Do not rely on historical checkboxes or status paragraphs in older documents.
 
 The inspected feature branch is a React 18 + TypeScript + Vite app with React Router, Zustand/localStorage persistence, Tailwind, PWA tooling and Capacitor Android configuration. It contains Firebase SDK/Auth/Firestore code and a legacy Firebase rules file. Existing pages cover expenses, income, budgets, bills, savings, debts, reports, planner, insights, settings and legal content.
 
