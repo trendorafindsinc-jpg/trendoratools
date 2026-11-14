@@ -1,98 +1,87 @@
-# Ariovelle Vercel and Lucia Core configuration
+# Ariovelle Vercel and Lucia ID configuration
 
-Status: read-only audit and configuration specification. No variables, secrets, OAuth clients, database records, schemas or deployments were changed.
+**Last reconciled:** 2026-11-14  
+**Status authority:** [ARIOVELLE_PHASE_2_STATUS.md](ARIOVELLE_PHASE_2_STATUS.md). This document records configuration boundaries; it is not the Phase 2 progress ledger.
 
-## Verified Core database
+## 1. Database ownership
 
-- Neon project: `lucia-core-production` (`snowy-grass-03771692`)
-- Region: `aws-us-east-2`; branch: `production` (`br-calm-pine-b5gp67s1`)
-- Database: `neondb`; PostgreSQL 18
-- OAuth registry tables exist: `consumer_clients`, `consumer_client_redirect_uris`, `consumer_client_origins`, `consumer_client_scopes`.
-- One active RS256 OIDC signing key is registered. Private key material was not queried.
-- Ariovelle has no client registration. Existing first-party applications use confidential clients with exact redirect URIs, audiences and explicit scopes.
+Ariovelle uses its own disposable Neon development database. Do not connect Ariovelle to Lucia Core's database.
 
-Do not connect Ariovelle to Lucia Core's database. Ariovelle must use its own Neon database and its own runtime role.
+- Neon project: `ariovelle-dev` (`super-base-35733977`)
+- Region: `aws-eu-central-1`
+- Branch: `main` (`br-young-sound-ba8m1n50`)
+- Database: `ariovelle_dev`, PostgreSQL 17.12
+- Runtime role: `ariovelle_runtime`; least privilege and RLS enforced.
+- Administrative role: `ariovelle_owner`; has BYPASSRLS and administrative capabilities. Never use it for application requests.
 
-## Core Vercel project findings
+## 2. Ariovelle Vercel configuration snapshot
 
-The `lucia-secure` Vercel project reports `live: false`; its latest inspected deployment was `CANCELED`. No custom identity domain is attached. The inspected production `APPLICATION_URL` is `https://lucia-secure.vercel.app`, which was not in the project's attached domain list. `OIDC_ISSUER` is absent, and `TRUSTED_ORIGINS` does not include `https://ariovelle.lucia.name.ng`.
+The following configuration was set on the Vercel project `trendoratools` for the feature branch preview. Secret values were not retrieved or disclosed.
 
-Core production variables already include `DATABASE_URL`, `CONSUMER_ASSERTION_SECRET`, and `OIDC_SIGNING_KEY_ENCRYPTION_KEY`; values were not decrypted. The encrypted database URL was not compared to the Neon endpoint, so its project mapping remains unverified.
-
-## Required Core Vercel configuration
-
-Only after an operator attaches and deploys the canonical HTTPS issuer:
-
-- `OIDC_ISSUER`: exact canonical HTTPS origin, no path/query/trailing slash.
-- `APPLICATION_URL`: same canonical HTTPS origin.
-- `TRUSTED_ORIGINS`: preserve existing origins and add exactly `https://ariovelle.lucia.name.ng`; no wildcards.
-- `DATABASE_URL`: remain pointed at Core's own `lucia-core-production` production database and Core runtime role. Never replace with Ariovelle's URL.
-- Keep `CONSUMER_ASSERTION_SECRET` and `OIDC_SIGNING_KEY_ENCRYPTION_KEY` server-only and unchanged unless Core's operator separately manages rotation.
-
-Do not assume `lucia-secure.vercel.app` or `auth.lucia.name.ng` is the canonical issuer. The latter was not attached when checked.
-
-## Core OAuth client registration
-
-After Core is live and its nonce bug is fixed, register a new first-party confidential client through Core's supported registration flow:
-
-- Name: `Ariovelle`
-- Product key: `ariovelle`
-- Dedicated audience: `ariovelle`
-- Exact production callback: `https://ariovelle.lucia.name.ng/api/auth/lucia/callback`
-- Minimum scopes: `openid email profile`, only if granted/approved.
-- PKCE S256 required.
-- Store the generated client secret only in an approved secret manager.
-
-Do not manually insert a client row, reuse another product's client, or register wildcard redirect URIs.
-
-## Ariovelle Vercel variables
-
-These are server-only. Never use a `VITE_` prefix:
-
-| Variable | Configuration | Status |
+| Variable | Preview state | Production state / note |
 |---|---|---|
-| `DATABASE_URL` | Ariovelle-owned PostgreSQL database and least-privilege runtime role; never Core's database URL. | No production DB configured |
-| `LUCIA_ISSUER` | Exact canonical issuer verified from deployed Core discovery. | Blocked |
-| `LUCIA_CLIENT_ID` | Client ID issued for Ariovelle. | Not registered |
-| `LUCIA_CLIENT_SECRET` | Confidential-client secret, minimum 32 characters. | Not issued |
-| `LUCIA_AUDIENCE` | Dedicated registered audience; planned value `ariovelle`. | Pending registration |
-| `LUCIA_REDIRECT_URI` | `https://ariovelle.lucia.name.ng/api/auth/lucia/callback` | Callback implemented; registration pending |
-| `ARIOVELLE_SESSION_SECRET` | Cryptographically random secret, minimum 32 characters, unique per environment. | Not provisioned |
-| `LUCIA_AUTH_ENABLED` | Unset or exactly `false` until all release gates pass. | Must remain disabled |
+| `DATABASE_URL` | Configured to disposable `ariovelle_dev` using `ariovelle_runtime` | Not configured; no production database |
+| `LUCIA_CLIENT_ID` | Configured with the owner-supplied Ariovelle client ID | Not confirmed configured |
+| `LUCIA_CLIENT_SECRET` | Present; owner added it | Present; owner added it |
+| `LUCIA_AUDIENCE` | `ariovelle` | Not confirmed configured |
+| `LUCIA_REDIRECT_URI` | `https://ariovelle.lucia.name.ng/api/auth/lucia/callback` | Not confirmed configured |
+| `ARIOVELLE_SESSION_SECRET` | Generated and configured as encrypted server-only value | Not configured by this work |
+| `LUCIA_AUTH_ENABLED` | `false` | Must remain disabled |
 
-Vercel supplies `NODE_ENV`. The disposable `ariovelle-dev` Neon project is development-only and must not be used as a production database URL.
+**Important distinction:** the preview database URL is configured, but the PostgreSQL pool is not yet wired into HTTP route composition. This does not mean database-backed application APIs or financial writes are enabled. A configured variable alone is not a verified connection.
 
-## Never copy from Core to Ariovelle
+`LUCIA_ISSUER` is not configured because the canonical deployed Lucia ID issuer has not been handed over and verified. Do not guess it.
 
-- Core `CONSUMER_ASSERTION_SECRET`
-- Core `OIDC_SIGNING_KEY_ENCRYPTION_KEY`
-- Core `DATABASE_URL`, database credentials or private signing keys
+Vercel Git automatic deployments remain disabled by owner instruction. Do not change that setting or trigger a deployment without explicit approval. No production deployment is authorized.
 
-Ariovelle validates ID tokens with the public JWKS. It does not need Core's HS256 signing secret.
+## 3. Lucia Core handover boundary
 
-## Critical Core source blocker
+Lucia Core is owned by its separate agent. Ariovelle work must not modify the Core repository, branches, database, Vercel settings, secrets, DNS or deployments. Read-only inspection is allowed only when essential to verify the integration after the Core agent supplies a handover.
 
-Inspected Lucia Core `main` drops the authorization-request nonce when consuming an authorization code. Core must return the stored nonce from `exchangeAuthorizationCode()`, pass it to ID-token issuance, and add regression tests. Do not weaken Ariovelle's nonce validation.
+The last read-only snapshot (2026-11-13) recorded:
+- No confirmed canonical HTTPS issuer was reachable.
+- The inspected Core Vercel project reported `live: false`; the deployment/issuer findings are historical and must be reconfirmed by Core's agent.
+- A nonce-propagation defect was identified in the inspected source. Ariovelle's strict nonce validation must not be weakened.
+- Ariovelle's owner-supplied client ID and secret have since been configured on the Ariovelle Vercel project as described above. This does not establish that the Core-side registration or deployed provider flow is currently ready.
 
-## Release gates
+Wait for the Core agent's explicit confirmation of:
+1. Canonical issuer URL and reachable HTTPS deployment.
+2. Discovery document and JWKS endpoint.
+3. Authorization-code nonce propagation and regression test.
+4. Registered first-party confidential Ariovelle client with exact callback, audience and approved scopes.
+5. Successful provider-side token exchange and UserInfo behavior.
 
-1. Canonical Core HTTPS domain attached and successful deployment reachable.
-2. Core `OIDC_ISSUER`, `APPLICATION_URL` and `TRUSTED_ORIGINS` correct.
-3. Core nonce propagation fixed and tested.
-4. Deployed discovery and JWKS verified.
-5. Ariovelle confidential client registered with exact callback, audience and approved scopes.
-6. Ariovelle environment-specific database and runtime role verified.
-7. PostgreSQL integration tests pass against the target database.
-8. Vercel server-only variables configured for the correct target environment.
-9. End-to-end login, nonce, UserInfo subject, local session, workspace authorization and logout verified.
-10. Explicit operator approval to set `LUCIA_AUTH_ENABLED=true`.
+Do not change `LUCIA_ISSUER` or set `LUCIA_AUTH_ENABLED=true` until these details are verified and Ariovelle end-to-end tests pass.
 
-## Safe-state confirmation
+## 4. OIDC and session security contract
 
-- Core Neon was inspected read-only.
-- No OAuth client was registered.
-- No database rows/schema changed.
-- No Vercel environment variable or secret was added, changed, decrypted or deleted.
-- No deployment was triggered.
+- First-party confidential client; Authorization Code flow with PKCE S256.
+- Exact callback only: `https://ariovelle.lucia.name.ng/api/auth/lucia/callback`.
+- Minimum approved scopes: `openid profile email`.
+- Client secret, session secret and database URL remain server-only; never use a `VITE_` prefix.
+- Validate signature, exact issuer, audience, expiry, issued-at and exact nonce using the discovered issuer's RS256 JWKS.
+- UserInfo subject must equal the validated ID-token subject.
+- Do not validate Core's HS256 consumer assertion locally; it is only a bearer credential for Core UserInfo.
+- Map stable issuer + subject to an internal Ariovelle user UUID. Never use email or Core's internal database UUID as the durable identity key.
+- Keep local opaque sessions hash-only at rest, HttpOnly, Secure and revocable.
+- Resolve session, establish transaction-local RLS identity/workspace context, authorize membership and execute tenant queries in the same database transaction.
+
+## 5. Release gates
+
+1. Core agent supplies verified canonical issuer and deployed provider handover.
+2. Live discovery/JWKS/token/UserInfo behavior matches the integration contract.
+3. Nonce propagation and replay/PKCE behavior pass provider regression tests.
+4. Ariovelle's confidential client registration, audience and exact redirect are confirmed by Core's agent.
+5. Apply/verify development migrations and run real PostgreSQL identity/session/OAuth/RLS tests.
+6. Complete Ariovelle sign-in, session resolution, workspace authorization and logout end-to-end against the provider test environment.
+7. Complete security review and obtain explicit owner approval before enabling login.
+8. Keep production database, production deployment and Vercel auto-deploy disabled unless separately authorized.
+
+## 6. Safe-state confirmation
+
+- Ariovelle preview has a development-only database URL; no production database URL was configured.
 - Ariovelle login remains disabled.
-- Do not remove Firebase until the separate dependency-removal and regression work is completed.
+- The preview OAuth client ID, audience, callback, session secret and owner-supplied client secret are server-side configuration; secret values have not been read or exposed.
+- No production login or production deployment was enabled.
+- No Lucia Core code, database, Vercel settings, secrets, DNS or deployments were modified by this Ariovelle work.
+- Firebase remains intact. The owner's clean-start decision excludes legacy beta-tester data migration; it does not authorize Firebase retirement.
