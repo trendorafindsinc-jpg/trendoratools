@@ -64,6 +64,7 @@ jobs:
             -c "CREATE ROLE ariovelle_runtime LOGIN PASSWORD 'runtime-test-password' NOBYPASSRLS" \
             -c "CREATE ROLE ariovelle_read_only NOLOGIN" \
             -c "GRANT ariovelle_read_only TO ariovelle_runtime" \
+            -c "GRANT ariovelle_runtime TO ariovelle_owner WITH ADMIN OPTION" \
             -c "ALTER DATABASE ariovelle_test OWNER TO ariovelle_owner"
       - name: Apply all schema migrations to an empty PostgreSQL 17 database
         run: npm run db:migrate:apply
