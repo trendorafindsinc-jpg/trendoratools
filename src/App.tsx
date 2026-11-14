@@ -1,13 +1,11 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import type { User } from 'firebase/auth';
 import { Layout } from './components/Layout';
 import { AnalyticsTracker } from './components/AnalyticsTracker';
 import { WelcomeExperience } from './components/WelcomeExperience';
 import { LuciaAuth } from './components/LuciaAuth';
-import { completeGoogleRedirectIfAny, subscribeToLuciaAuth } from './lib/lucia-auth';
-import { startLuciaCloudSync, stopLuciaCloudSync, subscribeToLuciaCloudSync } from './lib/lucia-cloud-sync';
-import { analytics } from './lib/analytics';
+import { getCurrentAriovelleSession, signOutAriovelle, type AriovelleSession } from './lib/ariovelle-session';
+
 const Home = lazy(() => import('./pages/Home'));
 const Planner = lazy(() => import('./pages/Planner'));
 const Expenses = lazy(() => import('./pages/Expenses'));
@@ -26,56 +24,47 @@ const WELCOME_KEY = 'trendora_tools_welcome_seen';
 const GUEST_KEY = 'trendora_tools_guest_mode';
 
 export default function App() {
-  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<AriovelleSession | null>(null);
   const [authReady, setAuthReady] = useState(false);
-  const [cloudReady, setCloudReady] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
   const [welcomeDone, setWelcomeDone] = useState(() => localStorage.getItem(WELCOME_KEY) === 'true');
   const [guest, setGuest] = useState(() => localStorage.getItem(GUEST_KEY) === 'true');
-  const previousUser = useRef<User | null>(null);
 
   useEffect(() => {
-    // Finish Google redirect flow before relying solely on auth listener
-    void completeGoogleRedirectIfAny().catch(() => undefined);
-
-    const unsubscribeCloud = subscribeToLuciaCloudSync();
-    const unsubscribeAuth = subscribeToLuciaAuth((nextUser) => {
-      if (nextUser && !previousUser.current) {
-        void analytics.event('lucia_id_sign_in', { result: 'success' });
-        if (nextUser.metadata.creationTime && nextUser.metadata.creationTime === nextUser.metadata.lastSignInTime) {
-          void analytics.event('lucia_id_create_account', { result: 'success' });
+    const controller = new AbortController();
+    void getCurrentAriovelleSession(controller.signal)
+      .then((current) => {
+        setSession(current);
+        setAuthError(null);
+        if (current) {
+          localStorage.removeItem(GUEST_KEY);
+          setGuest(false);
+          localStorage.setItem(WELCOME_KEY, 'true');
+          setWelcomeDone(true);
         }
-      } else if (!nextUser && previousUser.current) {
-        void analytics.event('lucia_id_sign_out', { result: 'success' });
-      }
-      previousUser.current = nextUser;
-
-      setUser(nextUser);
-      if (nextUser) {
-        localStorage.removeItem(GUEST_KEY);
-        setGuest(false);
-        setCloudReady(false);
-        void startLuciaCloudSync(nextUser.uid)
-          .catch(() => undefined)
-          .finally(() => setCloudReady(true));
-      } else {
-        stopLuciaCloudSync();
-        setCloudReady(true);
-      }
-      setAuthReady(true);
-    });
-
-    return () => {
-      unsubscribeAuth();
-      unsubscribeCloud();
-      stopLuciaCloudSync();
-    };
+      })
+      .catch((error: unknown) => {
+        if (error instanceof DOMException && error.name === 'AbortError') return;
+        setAuthError(error instanceof Error ? error.message : 'Ariovelle could not verify your session.');
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setAuthReady(true);
+      });
+    return () => controller.abort();
   }, []);
 
-  if (!authReady || (user && !cloudReady)) {
-    return <div className="min-h-dvh bg-[var(--bg-deep)]" />;
+  const handleSignOut = async () => {
+    await signOutAriovelle();
+    setSession(null);
+    setGuest(false);
+    localStorage.removeItem(GUEST_KEY);
+  };
+
+  if (!authReady) {
+    return <div className="min-h-dvh bg-[var(--bg-deep)]" aria-label="Checking your Ariovelle session" />;
   }
 
-  if (!welcomeDone) {
+  if (!session && !guest && !welcomeDone) {
     return (
       <WelcomeExperience
         onGetStarted={() => {
@@ -92,9 +81,10 @@ export default function App() {
     );
   }
 
-  if (!user && !guest) {
+  if (!session && !guest) {
     return (
       <LuciaAuth
+        authError={authError}
         onGuest={() => {
           localStorage.setItem(GUEST_KEY, 'true');
           setGuest(true);
@@ -107,27 +97,27 @@ export default function App() {
     <BrowserRouter>
       <AnalyticsTracker />
       <Suspense fallback={<div className="ari-route-loading" role="status" aria-live="polite">Loading workspace…</div>}>
-      <Routes>
-        <Route element={<Layout />}>
-          <Route path="/" element={<Home />} />
-          <Route path="/planner" element={<Planner />} />
-          <Route path="/dashboard" element={<Navigate to="/planner" replace />} />
-          <Route path="/expenses" element={<Expenses />} />
-          <Route path="/income" element={<Income />} />
-          <Route path="/budget" element={<Budget />} />
-          <Route path="/bills" element={<Bills />} />
-          <Route path="/savings" element={<Savings />} />
-          <Route path="/debts" element={<Debts />} />
-          <Route path="/reports" element={<Reports />} />
-          <Route path="/insights" element={<Insights />} />
-          <Route path="/business" element={<ProductArea area="business" />} />
-          <Route path="/ai" element={<ProductArea area="ai" />} />
-          <Route path="/markets" element={<ProductArea area="markets" />} />
-          <Route path="/planning" element={<ProductArea area="planning" />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/legal/:page" element={<Legal />} />
-        </Route>
-      </Routes>
+        <Routes>
+          <Route element={<Layout />}>
+            <Route path="/" element={<Home />} />
+            <Route path="/planner" element={<Planner />} />
+            <Route path="/dashboard" element={<Navigate to="/planner" replace />} />
+            <Route path="/expenses" element={<Expenses />} />
+            <Route path="/income" element={<Income />} />
+            <Route path="/budget" element={<Budget />} />
+            <Route path="/bills" element={<Bills />} />
+            <Route path="/savings" element={<Savings />} />
+            <Route path="/debts" element={<Debts />} />
+            <Route path="/reports" element={<Reports />} />
+            <Route path="/insights" element={<Insights />} />
+            <Route path="/business" element={<ProductArea area="business" />} />
+            <Route path="/ai" element={<ProductArea area="ai" />} />
+            <Route path="/markets" element={<ProductArea area="markets" />} />
+            <Route path="/planning" element={<ProductArea area="planning" />} />
+            <Route path="/settings" element={<Settings session={session} onSignOut={handleSignOut} />} />
+            <Route path="/legal/:page" element={<Legal />} />
+          </Route>
+        </Routes>
       </Suspense>
     </BrowserRouter>
   );
