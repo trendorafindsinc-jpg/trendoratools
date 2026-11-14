@@ -1,8 +1,8 @@
 import { createHash } from 'node:crypto';
-import { luciaCookieNames, parseCookies } from './lucia-oauth';
-import { authorizeWorkspacePermission, type WorkspacePermission, type VerifiedInternalUserId } from './workspace-access';
-import { setVerifiedRequestContext } from './request-context';
-import type { DatabaseAdapter, SqlExecutor } from './database';
+import { luciaCookieNames, parseCookies } from './lucia-oauth.js';
+import { authorizeWorkspacePermission, type WorkspacePermission, type VerifiedInternalUserId } from './workspace-access.js';
+import { setVerifiedRequestContext } from './request-context.js';
+import type { DatabaseAdapter, SqlExecutor } from './database.js';
 
 export class AuthenticationRequiredError extends Error {
   constructor() {
