@@ -14,7 +14,7 @@
 
 **Current phase: Phase 2 — Backend Foundation, in progress.**
 
-The source/data audit, health-only API baseline, PostgreSQL adapter, workspace/RLS foundation, and Ariovelle-side OIDC/session implementation exist. The disposable development database has the five checked-in schema/security migrations represented in its live catalog. Phase 2 is **not complete**: API routing/contract work, reproducible DDL migration tracking, automated database migration verification, provider end-to-end verification, and authenticated user/workspace APIs remain open.
+The source/data audit, shared health API composition/contracts, PostgreSQL adapter, workspace/RLS foundation, SQL DDL migration runner and Ariovelle-side OIDC/session implementation exist in the feature branch. The disposable development database still has the five checked-in schema/security migrations represented in its live catalog but does not yet have the new DDL ledger recorded. P2.1/P2.2 code is implemented with CI verification pending; the live preview route check and existing-database baseline reconciliation remain gated. Provider end-to-end verification and authenticated user/workspace APIs remain open.
 
 No financial domain schema or financial CRUD API is implemented. No production database, production authentication, production deployment, payment, AI, or market-data integration is enabled.
 
@@ -25,8 +25,8 @@ Phase 1 design-system acceptance remains conditional and is tracked separately i
 | Package | Status | Evidence / remaining work |
 |---|---|---|
 | P2.0 Source and data audit | **Complete** | Recursive feature-branch inventory, Firebase/Auth/Firestore/local persistence/export/PWA/analytics/deployment audit recorded in `docs/REPOSITORY_AUDIT.md`. Owner approved clean start; legacy beta-tester Firebase data is out of scope. |
-| P2.1 API scaffold and contracts | **Partially complete** | Health endpoints, shared HTTP helpers, typed health client and tests exist. Still required: shared route composition/error middleware, Zod request/response contracts for the first authenticated domain, Vercel function routing/preview acceptance. |
-| P2.2 Database migrations and persistence boundary | **Partially complete** | SQL migrations 0001–0005 are in source and their structural objects are present in the disposable DB. PostgreSQL adapter/pool and safe config exist. Still required: DDL migration ledger/runner with checksums and advisory locking; reconcile/bootstrap migration history without blindly replaying DDL; automated migration smoke test from an empty disposable branch; repeatable test reset/rollback strategy. |
+| P2.1 API scaffold and contracts | **Implemented; verification pending** | `api/_lib/route.ts` provides shared method/request-ID/error/header handling; `api/_lib/contracts.ts` defines strict Zod health/readiness and future `/me`/workspace DTOs; both health routes use the composition layer. Unit tests cover malformed input, 405, exception/schema failure, header/request-ID consistency and Vercel filesystem route conventions. CI result and live preview HTTP acceptance are not yet confirmed; preview requires separate manual-deployment approval. |
+| P2.2 Database migrations and persistence boundary | **Implemented; verification/baseline pending** | Added `db/migrations/0000_schema_migrations.sql`, `db/migrate.mjs`, checksum/drift/order tests and `db/README.md`. Runner uses a direct migration-owner URL, advisory lock, per-migration transaction+ledger atomicity, explicit existing-schema baseline mode and no destructive reset. CI now provisions ephemeral PostgreSQL 17, applies 0000–0005, reruns/verifies and enables the tenant RLS integration suite. CI result is not yet confirmed. The shared Neon dev DB remains unchanged and still has no DDL ledger; do not replay 0001–0005 there. |
 | P2.3 Lucia ID provider integration | **Ariovelle implementation complete; external provider gate blocked** | OAuth start/callback, PKCE, strict ID-token/JWKS/nonce/UserInfo validation, one-time transaction storage and local sessions are implemented. Live discovery/JWKS/token/UserInfo and end-to-end login cannot be accepted until Lucia Core's agent confirms a reachable canonical issuer and nonce propagation. Keep login disabled. |
 | P2.4 Authenticated user/workspace APIs | **Not complete; gated** | Session/workspace authorization primitives exist. Still required: server route composition, `/me`, workspace list/read/create and preference APIs, audit events, two-user/two-workspace IDOR and privilege tests. Must first resolve provider test gate and review the narrowly scoped onboarding/bootstrap database function. |
 | P2.5 Legacy migration dry-run | **Not required for approved clean-start path** | Owner explicitly excluded beta-tester Firebase records and local beta data from migration. Do not build or run Firebase export/import tooling for this path. Keep legacy Firebase implementation intact until separate retirement approval. Reopen only if owner changes the decision. |
@@ -102,35 +102,43 @@ No financial tables exist. No production or staging database was inspected.
 - Never expose database credentials to the browser or use `ariovelle_owner` for runtime queries.
 - No changes to Lucia Core are part of this work.
 
-## 5. Immediate next implementation task — P2.1 completion
+## 5. P2.1 implementation delivered — verification gates
 
-**Task:** implement a minimal serverless API composition layer and contract validation for the existing health endpoints, then verify Vercel function routing on an owner-approved manual preview deployment (only if the owner separately authorizes that deployment).
+Implemented on the Ariovelle feature branch:
+1. Shared Vercel Node-function composition in `api/_lib/route.ts`: server-generated request ID, method/Allow handling, request Zod validation, response Zod validation, generic safe errors, and no-store/security headers on every response.
+2. Strict health/readiness response schemas and future `/me`/workspace DTO schemas in `api/_lib/contracts.ts`.
+3. Existing `/api/health/live` and `/api/health/ready` route modules now use the shared composition boundary.
+4. Readiness reports whether database/identity configuration is present separately from connectivity, which remains `not_checked`. It never returns secret values or claims a connection was verified.
+5. Tests cover health contracts, malformed/unknown request input, unsupported methods, thrown exceptions, response-schema failures, request-ID/header consistency, no detail leakage and filesystem route conventions.
 
-Scope:
-1. Define a single route-handler composition contract for method handling, request ID propagation, safe error mapping and no-store/security headers.
-2. Add Zod schemas for health/readiness response DTOs and the first future `/me` and workspace DTO shapes only; do not add authenticated routes yet.
-3. Route the existing `/api/health/live` and `/api/health/ready` handlers through the shared composition layer.
-4. Keep readiness honest: report configured dependencies separately from connected/verified dependencies. A present environment variable is not proof of a successful database connection.
-5. Add unit tests for valid/invalid DTOs, malformed input, unsupported methods, thrown exceptions, request ID consistency, cache/security headers and no secret/detail leakage.
-6. Add an API routing acceptance check that can be run against a local Vercel-compatible runtime and, after explicit preview-deployment approval, the manual preview URL.
-7. Do not wire the database pool, enable Lucia auth, create user/workspace routes, add financial writes, change Vercel auto-deploy, or deploy production.
+**Verification status:** implementation is committed, but the current CI result has not yet been confirmed. The routing test validates Vercel's filesystem function convention; a real preview HTTP request remains unverified because no deployment was authorized or triggered. Vercel Git auto-deploy remains disabled.
 
-### Acceptance tests
+P2.1 acceptance still requires a confirmed green `npm ci`, `npm test`, and `npm run build` CI run. No auth, DB pool, user/workspace endpoint or financial operation was added.
 
-- Existing health endpoints return the documented JSON contract and correct status codes.
-- Unsupported methods return the standard 405 response and `Allow` header.
-- Every response includes a request ID and the established no-store/security headers.
-- Internal exceptions produce a generic 500 response with request ID; no stack trace, SQL, credentials or provider response is exposed.
-- Zod rejects malformed/unknown response shapes and validates the typed DTOs used by the frontend client.
-- Unit tests prove the shared handler preserves method, request ID and error semantics.
-- Local Vercel-compatible routing resolves both health endpoints at their expected paths.
-- Manual preview routing is verified only after owner approval; no automatic deployment is triggered.
-- `npm ci`, `npm test` and `npm run build` pass in CI.
-- No auth/session, database connection, financial read/write, production secret or deployment behavior is introduced.
+## 6. P2.2 migration tooling implemented — verification and baseline gates
 
-## 6. Following task — P2.2 DDL migration control
+Implemented:
+- `db/migrations/0000_schema_migrations.sql` adds the DDL ledger, distinct from data-import provenance.
+- `db/migrate.mjs` discovers contiguous migration files, hashes exact UTF-8 contents with SHA-256, rejects unknown/out-of-order/drifted ledger entries, serializes runners with a PostgreSQL advisory lock, and commits each migration plus its ledger row atomically.
+- `--plan`, `--apply`, `--verify` and explicit `--baseline-existing --apply` modes are available through the npm scripts. Only `ARIOVELLE_MIGRATION_DATABASE_URL` is read; pooled Neon URLs are rejected.
+- Existing-schema baseline mode checks the 11 expected tables and columns, RLS, 17 policies, 10 private functions, role flags/timeouts, protected-table ACLs and runtime function execution before recording 0000–0005. It never replays 0001–0005.
+- CI now creates an ephemeral PostgreSQL 17 service with separate migration-owner/runtime roles, applies all six migrations from empty, reruns and verifies the ledger, and runs the RLS integration suite. There is no destructive reset command; each CI run starts with a fresh service.
+- Operating instructions are in [db/README.md](../db/README.md).
 
-After P2.1 acceptance, add a dedicated schema-migration ledger (separate from data-import provenance), migration runner, immutable checksums, transaction/advisory locking, drift detection and empty-database smoke tests. First establish a reviewed baseline for already-applied 0001–0005 on the disposable development branch; do not silently stamp or replay migrations. Prove a clean database can be built from the checked-in SQL in order and that a rerun refuses checksum drift.
+**Verification/baseline status:** the latest CI run for these changes has not yet been confirmed. The shared Neon development database has not been changed: its synthetic fixtures remain untouched and it still has no DDL ledger. After green CI, run a read-only preflight against that database and then use `npm run db:migrate:baseline-existing` only with a direct, dedicated migration-owner URL. The baseline command writes only the DDL ledger; it does not rewrite application rows or replay the old schema migrations.
+
+Do not point the migration runner at the preview runtime `DATABASE_URL`, production, or any pooled connection.
+
+## 7. Next sequence after P2.1/P2.2 verification
+
+1. Confirm the latest feature-branch CI run is green; fix any API, migration, TypeScript or PostgreSQL test failures before proceeding.
+2. Run the read-only catalog preflight against the disposable Neon development database. If it matches the baseline assertions, execute the explicit `db:migrate:baseline-existing` command using a direct migration-owner URL. Do not use the runtime URL.
+3. Confirm the DDL ledger contains checksums for 0000–0005 and verify a no-op rerun.
+4. Obtain Lucia Core agent's verified provider handover and complete P2.3 live test-environment verification; do not edit Core.
+5. Complete P2.4 authenticated user/workspace APIs and security tests.
+6. Close Phase 2 with a security review, clean build/CI, reproducible database setup, documentation reconciliation and explicit owner acceptance.
+
+P2.5/P2.6 remain excluded unless the clean-start decision changes.
 
 ## 7. Explicitly out of scope / release gates
 
