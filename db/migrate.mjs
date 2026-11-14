@@ -257,7 +257,7 @@ function parseMode(args) {
   const unknown = args.filter((argument) => !supported.includes(argument));
   if (unknown.length) throw new Error(`Unsupported migration option(s): ${unknown.join(', ')}.`);
   if (args.includes('--baseline-existing')) {
-    if (!args.includes('--apply') || args.some((argument) => !['--baseline-existing', '--apply'].includes(argument))) {
+    if (!args.includes('--apply') || args.length !== 2 || args.some((argument) => !['--baseline-existing', '--apply'].includes(argument))) {
       throw new Error('Existing-schema reconciliation requires exactly --baseline-existing --apply.');
     }
     return '--baseline-existing';
