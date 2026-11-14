@@ -29,17 +29,18 @@ Phase 1 design-system acceptance remains conditional and is tracked separately i
 | P2.1 API scaffold and contracts | **Implemented; verification pending** | `api/_lib/route.ts` provides shared method/request-ID/error/header handling; `api/_lib/contracts.ts` defines strict Zod health/readiness and future `/me`/workspace DTOs; both health routes use the composition layer. Unit tests cover malformed input, 405, exception/schema failure, header/request-ID consistency and Vercel filesystem route conventions. CI result and live preview HTTP acceptance are not yet confirmed; preview requires separate manual-deployment approval. |
 | P2.2 Database migrations and persistence boundary | **Implemented; verification/baseline pending** | Added `db/migrations/0000_schema_migrations.sql`, `db/migrate.mjs`, checksum/drift/order tests and `db/README.md`. Runner uses a direct migration-owner URL, advisory lock, per-migration transaction+ledger atomicity, explicit existing-schema baseline mode and no destructive reset. CI now provisions ephemeral PostgreSQL 17, applies 0000–0005, reruns/verifies and enables the tenant RLS integration suite. CI result is not yet confirmed. The shared Neon dev DB remains unchanged and still has no DDL ledger; do not replay 0001–0005 there. |
 | P2.3 Lucia ID provider integration | **Ariovelle implementation complete; external provider gate blocked** | OAuth start/callback, PKCE, strict ID-token/JWKS/nonce/UserInfo validation, one-time transaction storage and local sessions are implemented. Live discovery/JWKS/token/UserInfo and end-to-end login cannot be accepted until Lucia Core's agent confirms a reachable canonical issuer and nonce propagation. Keep login disabled. |
-| P2.4 Authenticated user/workspace APIs | **Not complete; gated** | Session/workspace authorization primitives exist. Still required: server route composition, `/me`, workspace list/read/create and preference APIs, audit events, two-user/two-workspace IDOR and privilege tests. Must first resolve provider test gate and review the narrowly scoped onboarding/bootstrap database function. |
+| P2.4 Authenticated user/workspace APIs | **Not complete; gated** | Session/workspace authorization primitives and shared route composition exist. Still required: authenticated `/me`, workspace list/read/create and preference endpoints, audit events, session-to-workspace binding, two-user/two-workspace IDOR and privilege tests. Must first resolve provider test gate and review the narrowly scoped onboarding/bootstrap database function. |
 | P2.5 Legacy migration dry-run | **Not required for approved clean-start path** | Owner explicitly excluded beta-tester Firebase records and local beta data from migration. Do not build or run Firebase export/import tooling for this path. Keep legacy Firebase implementation intact until separate retirement approval. Reopen only if owner changes the decision. |
 | P2.6 Controlled legacy import | **Not required for approved clean-start path** | No Firebase/user-data import is authorized or required. This is not a completed import; it is out of scope by owner decision. Future user-initiated imports/exports are separate product requirements. |
 
 ### Package ordering
 
-1. Finish P2.1 API composition, validation contracts and Vercel route acceptance without live auth or financial writes.
-2. Finish P2.2 DDL migration ledger/runner and reproducible migration smoke/reset tests on disposable branches only.
-3. Obtain Lucia Core agent's provider handover and complete P2.3 live test-environment verification; do not edit Core.
-4. Complete P2.4 authenticated user/workspace endpoints and security tests.
-5. Close Phase 2 with a security review, clean build/CI, reproducible database setup, documentation reconciliation and explicit owner acceptance.
+1. Confirm green CI for the new P2.1 API contracts and P2.2 PostgreSQL migration/RLS suite; fix failures before advancing.
+2. Read-only preflight and baseline-reconcile migrations 0000–0005 on the existing disposable Neon development database; verify a no-op rerun.
+3. Complete the live preview HTTP route check only if the owner separately approves a manual preview deployment; never re-enable Git auto-deploy.
+4. Obtain Lucia Core agent's provider handover and complete P2.3 live test-environment verification; do not edit Core.
+5. Complete P2.4 authenticated user/workspace endpoints and security tests.
+6. Close Phase 2 with a security review, clean build/CI, reproducible database setup, documentation reconciliation and explicit owner acceptance.
 
 P2.5/P2.6 remain excluded unless the clean-start decision changes.
 
