@@ -1,6 +1,6 @@
 # Ariovelle ↔ Lucia Core Identity Integration Contract
 
-Status: Ariovelle API adapter implemented; live provider verification and login activation remain gated. See [runtime verification findings](ARIOVELLE_LUCIA_CORE_RUNTIME_VERIFICATION.md) for deployment and registration checks.
+Status: Ariovelle OIDC adapter restored to the registered `openid profile email` flow. Owner has confirmed production issuer/domain routing and public RS256 JWKS availability. Preview end-to-end sign-in, active client/scope confirmation and user callback acceptance remain pending.
 
 Source of truth inspected read-only:
 - Repository: https://github.com/trendorafindsinc-jpg/lucia-core
@@ -10,7 +10,7 @@ Source of truth inspected read-only:
 
 ## 1. Responsibility boundary
 
-Lucia Core is the identity provider. Ariovelle uses Core's confidential OAuth authorization-code flow to obtain a short-lived bearer credential, then calls Core's protected identity verification (UserInfo) API. Ariovelle owns its own application users, sessions, workspaces, memberships, roles, entitlements, financial records, audit trail and database. Ariovelle does not require an OIDC ID token or local JWKS signature validation for this selected integration path.
+Lucia Core is the identity provider. Ariovelle uses Core's confidential OAuth authorization-code flow with PKCE, validates the RS256-signed OIDC ID token against Core's published JWKS, enforces issuer, client audience, expiry, issued-at and transaction nonce, then calls Core's protected UserInfo identity-verification API and requires its `sub` to match the validated ID token. Ariovelle owns its own application users, sessions, workspaces, memberships, roles, entitlements, financial records, audit trail and database.
 
 Ariovelle must not connect to Lucia Core's database, import Lucia Core's internal user UUID as its durable identity key, or treat client-supplied identity fields as proof of authentication.
 
@@ -32,7 +32,7 @@ At runtime, Ariovelle must fetch and validate the discovery document from the op
 - JWKS: `{issuer}/.well-known/jwks.json`
 - UserInfo: `{issuer}/api/v1/oidc/userinfo`
 
-Never hardcode a guessed production Lucia hostname. Configure the issuer as a server-side environment variable only after confirming the deployed Core value. Require HTTPS outside local development. Discovery is a public document; cache briefly. The selected identity-API path does not fetch JWKS.
+Never hardcode a guessed production Lucia hostname. Configure the issuer as a server-side environment variable only after confirming the deployed Core value. Require HTTPS outside local development. Discovery and JWKS are public documents; validate exact issuer and endpoint origins, and refresh JWKS at most once when a key ID is unknown. Never follow token-supplied key URLs.
 
 ## 3. Client registration
 
@@ -77,7 +77,7 @@ The owner supplied client ID `lucia_4d08f98c2e1fe8335403d916`; Ariovelle has the
 
 ## 5. Token response and identity verification credential
 
-The inspected Core token route returns a short-lived consumer bearer assertion. It may also issue an OIDC ID token if the granted scope contains `openid`; Ariovelle deliberately requests only `profile email` and does not require or consume an ID token.
+The inspected Core token route returns a short-lived consumer bearer assertion and, when `openid` is granted, an OIDC ID token. Ariovelle requires both credentials: the access assertion for Core UserInfo and the ID token for local RS256 signature and claim validation.
 
 ### Consumer access assertion
 
@@ -96,7 +96,7 @@ Call the discovered UserInfo endpoint from the Ariovelle server using:
 
 Core's handler calls `authenticateConsumerRequest()`, which verifies the HMAC signature using Core's private assertion secret and checks that the consumer client is active, the audience matches, and the Core user is active. It then returns claims from the Core user record.
 
-The response's `sub` is `users.oidcSubject`, Lucia's stable cross-product subject. This is the only external identity key Ariovelle accepts. Optional `email`, `email_verified` and `name` claims are profile attributes and are validated before use. Core's internal user UUID is not used.
+The response's `sub` is `users.oidcSubject`, Lucia's stable cross-product subject. It must exactly match the locally validated ID token `sub`. This is the only external identity key Ariovelle accepts. Optional `email`, `email_verified` and `name` claims are profile attributes and are validated before use. Core's internal user UUID is not used.
 
 The UserInfo implementation always includes `sub` and only returns optional claims for explicitly granted scopes. Date of birth and phone are deliberately excluded from the general profile scope. Treat a missing/empty subject, malformed response, non-success HTTP response, or network error as an authentication failure. Never cache the bearer credential or identity response in the browser.
 
@@ -164,4 +164,4 @@ OAuth state is stored server-side in PostgreSQL. Only state and browser-binding 
 
 Migration 0004 (local identity/session functions) and migration 0005 (one-time OAuth transaction store) are applied only to the disposable Ariovelle development database. Neither migration has been applied to production. The runtime role receives EXECUTE on narrowly scoped SECURITY DEFINER functions and no direct session/OAuth transaction table access.
 
-Login remains disabled. Current Lucia Core main drops the authorization request nonce before ID-token issuance, and the linked Core Vercel project is not live with canceled deployments. No successful live discovery/JWKS/token/UserInfo verification is available. Do not weaken nonce validation or enable login until Core is corrected, deployed and verified end-to-end.
+Login remains disabled. Owner confirmed on 2026-11-14 that Core production now uses `OIDC_ISSUER=https://auth.lucia.name.ng`, its production deployment is READY, the custom domain is assigned to production and excluded from deployment SSO, and discovery advertises the same issuer plus the canonical JWKS URL with an RS256 signing key (`kid=0c05947a954f4edd`). Ariovelle preview must use this canonical issuer. Do not change Core issuer or rotate the signing key as part of Ariovelle integration. Complete a live preview token exchange and a real user login before enabling production authentication.
