@@ -16,6 +16,22 @@ concurrency:
 jobs:
   lockfile-and-verify:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ariovelle_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d ariovelle_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      ARIOVELLE_MIGRATION_DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/ariovelle_test
     steps:
       - name: Check out branch
         uses: actions/checkout@v4
@@ -39,6 +55,17 @@ jobs:
           fi
       - name: Install exact locked dependencies
         run: npm ci --no-audit --no-fund
+      - name: Prepare isolated migration roles
+        run: |
+          PGPASSWORD=postgres psql -h 127.0.0.1 -U postgres -d ariovelle_test -v ON_ERROR_STOP=1 \
+            -c "CREATE ROLE ariovelle_owner NOLOGIN" \
+            -c "CREATE ROLE ariovelle_runtime LOGIN PASSWORD 'runtime-test-password'"
+      - name: Apply all schema migrations to an empty PostgreSQL 17 database
+        run: npm run db:migrate:apply
+      - name: Verify checksums and idempotent migration rerun
+        run: |
+          npm run db:migrate:apply
+          npm run db:migrate:verify
       - name: Production build
         run: npm run build
       - name: Automated tests
