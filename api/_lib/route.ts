@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { apiErrorSchema } from './contracts';
-import type { ApiRequest, ApiResponse } from './http';
+import { apiErrorSchema } from './contracts.js';
+import type { ApiRequest, ApiResponse } from './http.js';
 
 type RouteResult = { status: number; body: unknown };
 type RouteHandler<TBody> = (request: ApiRequest, body: TBody | undefined) => RouteResult | Promise<RouteResult>;
