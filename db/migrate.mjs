@@ -171,11 +171,17 @@ async function assertBaseline(client) {
     if (!settings.has(setting)) throw new Error(`Existing-schema baseline rejected: runtime timeout missing (${setting}).`);
   }
 
+  const schemaAccess = await client.query(
+    "SELECT has_schema_privilege('ariovelle_runtime', 'app_private', 'USAGE') AS allowed",
+  );
+  if (schemaAccess.rows[0]?.allowed !== true) {
+    throw new Error('Existing-schema baseline rejected: runtime is missing app_private schema usage.');
+  }
   const functionGrants = await client.query(
     "SELECT p.proname, has_function_privilege('ariovelle_runtime', p.oid, 'EXECUTE') AS allowed FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='app_private'",
   );
-  if (functionGrants.rows.some((row) => row.allowed !== true)) {
-    throw new Error('Existing-schema baseline rejected: runtime is missing reviewed app_private function execution rights.');
+  if (functionGrants.rows.length !== EXPECTED_BASELINE_FUNCTIONS.length || functionGrants.rows.some((row) => row.allowed !== true)) {
+    throw new Error('Existing-schema baseline rejected: app_private function set or runtime execution grants do not match the approved boundary.');
   }
 
   const grants = await client.query(`
