@@ -69,6 +69,34 @@ describe.skipIf(!ownerPool || !runtimePool || !runtimeDb)('Lucia identity, OAuth
       expect(openOAuthTransaction(consumed!, transactionSecret)).toEqual(oauthPayload);
       await expect(consumeOAuthTransaction(runtimeDb, oauthState, browserBinding)).resolves.toBeNull();
 
+      const bootstrapMetadata = await runtime.query<{
+        security_definer: boolean;
+        function_owner: string;
+        owner_bypasses_rls: boolean;
+      }>(
+        `SELECT p.prosecdef AS security_definer,
+                pg_get_userbyid(p.proowner) AS function_owner,
+                r.rolbypassrls AS owner_bypasses_rls
+           FROM pg_proc p
+           JOIN pg_namespace n ON n.oid=p.pronamespace
+           JOIN pg_roles r ON r.rolname=pg_get_userbyid(p.proowner)
+          WHERE n.nspname='app_private' AND p.proname='establish_lucia_identity'`,
+      );
+      expect(bootstrapMetadata.rows[0]).toEqual({
+        security_definer: true,
+        function_owner: 'ariovelle_owner',
+        owner_bypasses_rls: true,
+      });
+
+      const contextProbe = randomUUID();
+      await runtime.query('BEGIN');
+      const contextResult = await runtime.query<{ current_user_id: string }>(
+        "SELECT set_config('app.user_id', $1, true), app_private.current_user_id() AS current_user_id",
+        [contextProbe],
+      );
+      expect(contextResult.rows[0]?.current_user_id).toBe(contextProbe);
+      await runtime.query('ROLLBACK');
+
       const a = await runtime.query(
         'SELECT * FROM app_private.establish_lucia_identity($1,$2,$3,$4,$5,$6,$7)',
         ['https://identity.integration.test', subjectA, 'a@example.test', true, 'Integration A', hashA, expires],
