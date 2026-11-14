@@ -171,17 +171,18 @@ async function assertBaseline(client) {
   }
 
   const grants = await client.query(`
-    SELECT
-      has_table_privilege('ariovelle_runtime', 'public.app_sessions', 'SELECT,INSERT,UPDATE,DELETE') AS sessions,
-      has_table_privilege('ariovelle_runtime', 'public.oauth_transactions', 'SELECT,INSERT,UPDATE,DELETE') AS oauth,
-      has_table_privilege('ariovelle_runtime', 'public.migration_batches', 'SELECT,INSERT,UPDATE,DELETE') AS batches,
-      has_table_privilege('ariovelle_runtime', 'public.migration_records', 'SELECT,INSERT,UPDATE,DELETE') AS records,
-      has_function_privilege('ariovelle_runtime', 'app_private.establish_lucia_identity(text,text,text,boolean,text,character,timestamp with time zone)', 'EXECUTE') AS identity_exec,
-      has_function_privilege('ariovelle_runtime', 'app_private.create_lucia_oauth_transaction(character,character,text,timestamp with time zone)', 'EXECUTE') AS oauth_exec
+    SELECT c.relname,
+      EXISTS (
+        SELECT 1 FROM aclexplode(COALESCE(c.relacl, acldefault('r', c.relowner))) acl
+        WHERE acl.grantee IN (0, (SELECT oid FROM pg_roles WHERE rolname='ariovelle_runtime'))
+      ) AS public_or_runtime_direct_grant
+    FROM pg_class c
+    JOIN pg_namespace n ON n.oid=c.relnamespace
+    WHERE n.nspname='public'
+      AND c.relname IN ('app_sessions', 'oauth_transactions', 'migration_batches', 'migration_records')
   `);
-  const grant = grants.rows[0];
-  if (grant.sessions || grant.oauth || grant.batches || grant.records || !grant.identity_exec || !grant.oauth_exec) {
-    throw new Error('Existing-schema baseline rejected: runtime table/function grants do not match the approved boundary.');
+  if (grants.rows.length !== 4 || grants.rows.some((row) => row.public_or_runtime_direct_grant)) {
+    throw new Error('Existing-schema baseline rejected: protected tables have PUBLIC or direct runtime ACL grants.');
   }
 }
 
