@@ -102,6 +102,17 @@ describe('Ariovelle API health endpoints', () => {
     expect(JSON.stringify(result.body)).not.toContain('password');
     expect(JSON.stringify(result.body)).not.toContain('SQL');
     expectSecurityHeaders(headers, result.body);
+
+    const invalidResponse = createApiHandler({
+      methods: ['GET'],
+      responseSchema: z.object({ ok: z.literal(true), requestId: z.string().uuid() }).strict(),
+      handler: () => ({ status: 200, body: { ok: false } }),
+    });
+    const invalid = createResponse();
+    await invalidResponse({ method: 'GET' }, invalid.response);
+    expect(invalid.result.statusCode).toBe(500);
+    expect(invalid.result.body).toMatchObject({ error: { code: 'INTERNAL_ERROR' } });
+    expectSecurityHeaders(invalid.headers, invalid.result.body);
   });
 
   it('validates future /me and workspace DTOs strictly', () => {
