@@ -1,5 +1,7 @@
 import { meResponseSchema } from '../_lib/contracts';
 import { hashSessionToken } from '../_lib/lucia-session';
+import { setVerifiedRequestContext, WorkspaceContextError } from '../_lib/request-context';
+import type { VerifiedInternalUserId } from '../_lib/workspace-access';
 import { createRuntimePostgres } from '../_lib/postgres-pool';
 import { luciaCookieNames, parseCookies } from '../_lib/lucia-oauth';
 import { sendError, sendJson, sendMethodNotAllowed, type ApiRequest, type ApiResponse } from '../_lib/http';
@@ -60,7 +62,12 @@ export default async function getCurrentAriovelleSession(request: ApiRequest, re
       );
 
       for (const membership of memberships.rows) {
-        await transaction.query("SELECT set_config('app.workspace_id', $1, true)", [membership.workspace_id]);
+        try {
+          await setVerifiedRequestContext(transaction, userId as VerifiedInternalUserId, membership.workspace_id);
+        } catch (error) {
+          if (error instanceof WorkspaceContextError) continue;
+          throw error;
+        }
         const workspaces = await transaction.query<{
           id: string;
           name: string;
