@@ -59,7 +59,7 @@ jobs:
         run: npm ci --no-audit --no-fund
       - name: Prepare isolated migration roles
         run: |
-          PGPASSWORD=postgres psql -h 127.0.0.1 -U postgres -d ariovelle_test -v ON_ERROR_STOP=1 \
+          PGPASSWORD=postgres psql -h 127.0.0.1 -U postgres -d postgres -v ON_ERROR_STOP=1 \
             -c "CREATE ROLE ariovelle_owner LOGIN PASSWORD 'owner-test-password' CREATEROLE CREATEDB BYPASSRLS" \
             -c "CREATE ROLE ariovelle_runtime LOGIN PASSWORD 'runtime-test-password' NOBYPASSRLS" \
             -c "CREATE ROLE ariovelle_read_only NOLOGIN" \
