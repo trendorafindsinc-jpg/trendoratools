@@ -37,9 +37,9 @@ export function buildPostgresPoolConfig(databaseUrl: string): PoolConfig {
 
 /**
  * Creates a concrete node-postgres pool and the driver-neutral adapter.
- * This factory is deliberately not imported by any HTTP route or app entry
- * point yet. Call it only from a future server composition root after the
- * verified identity and RLS gates are approved.
+ * Lucia auth routes use this factory with the server-only, least-privilege
+ * DATABASE_URL. Each route owns and closes its pool after the request; never
+ * pass a migration-owner URL or expose this connection to browser code.
  */
 export function createRuntimePostgres(databaseUrl: string) {
   const pool = new Pool(buildPostgresPoolConfig(databaseUrl));
