@@ -4,7 +4,7 @@ import { checksum, discoverMigrations, pendingMigrations, stripTransactionWrappe
 describe('schema migration controls', () => {
   it('discovers a contiguous, deterministically ordered migration set', async () => {
     const migrations = await discoverMigrations();
-    expect(migrations.map((migration) => migration.version)).toEqual(['0000', '0001', '0002', '0003', '0004', '0005']);
+    expect(migrations.map((migration) => migration.version)).toEqual(['0000', '0001', '0002', '0003', '0004', '0005', '0006']);
     expect(migrations.every((migration) => /^[a-f0-9]{64}$/.test(migration.checksum))).toBe(true);
   });
 
