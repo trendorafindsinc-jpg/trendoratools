@@ -137,6 +137,12 @@ async function assertBaseline(client) {
 
   const privateSchema = await client.query("SELECT to_regnamespace('app_private') AS schema");
   if (!privateSchema.rows[0]?.schema) throw new Error('Existing-schema baseline rejected: app_private schema is missing.');
+  const ledgerRls = await client.query(
+    "SELECT relrowsecurity FROM pg_class WHERE oid='public.schema_migrations'::regclass",
+  );
+  if (ledgerRls.rows[0]?.relrowsecurity !== true) {
+    throw new Error('Existing-schema baseline rejected: DDL ledger RLS is not enabled.');
+  }
 
   const policies = await client.query(
     "SELECT count(*)::int AS count FROM pg_policies WHERE schemaname='public'",
@@ -193,9 +199,9 @@ async function assertBaseline(client) {
     FROM pg_class c
     JOIN pg_namespace n ON n.oid=c.relnamespace
     WHERE n.nspname='public'
-      AND c.relname IN ('app_sessions', 'oauth_transactions', 'migration_batches', 'migration_records')
+      AND c.relname IN ('schema_migrations', 'app_sessions', 'oauth_transactions', 'migration_batches', 'migration_records')
   `);
-  if (grants.rows.length !== 4 || grants.rows.some((row) => row.public_or_runtime_direct_grant)) {
+  if (grants.rows.length !== 5 || grants.rows.some((row) => row.public_or_runtime_direct_grant)) {
     throw new Error('Existing-schema baseline rejected: protected tables have PUBLIC or direct runtime ACL grants.');
   }
 }
