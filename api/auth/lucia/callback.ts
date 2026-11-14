@@ -92,6 +92,9 @@ export default async function luciaCallback(request: ApiRequest, response: ApiRe
       expectedSubject: idClaims.sub,
     });
 
+    if (typeof profile.email !== 'string' || !profile.email.trim()) {
+      throw new Error('Verified profile email is missing from the granted identity scopes.');
+    }
     const established = await establishLuciaSession(runtime.database, {
       issuer: config.issuer,
       subject: idClaims.sub,
