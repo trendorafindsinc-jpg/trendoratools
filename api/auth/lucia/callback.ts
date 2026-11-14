@@ -10,11 +10,11 @@ import {
   buildCookie,
   clearCookie,
   luciaCookieNames,
-} from '../../_lib/lucia-oauth';
-import { consumeOAuthTransaction } from '../../_lib/lucia-oauth-store';
-import { establishLuciaSession } from '../../_lib/lucia-session';
-import { createRuntimePostgres } from '../../_lib/postgres-pool';
-import { sendError, sendMethodNotAllowed, type ApiRequest, type ApiResponse } from '../../_lib/http';
+} from '../../_lib/lucia-oauth.js';
+import { consumeOAuthTransaction } from '../../_lib/lucia-oauth-store.js';
+import { establishLuciaSession } from '../../_lib/lucia-session.js';
+import { createRuntimePostgres } from '../../_lib/postgres-pool.js';
+import { sendError, sendMethodNotAllowed, type ApiRequest, type ApiResponse } from '../../_lib/http.js';
 
 function header(request: ApiRequest, name: string): string | undefined {
   const value = request.headers?.[name] ?? request.headers?.[name.toLowerCase()];
