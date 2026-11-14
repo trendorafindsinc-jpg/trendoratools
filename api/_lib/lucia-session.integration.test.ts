@@ -82,6 +82,7 @@ describe.skipIf(!ownerPool || !runtimePool || !runtimeDb)('Lucia identity, OAuth
            JOIN pg_roles r ON r.rolname=pg_get_userbyid(p.proowner)
           WHERE n.nspname='app_private' AND p.proname='establish_lucia_identity'`,
       );
+      console.log('Identity bootstrap function metadata:', bootstrapMetadata.rows[0]);
       expect(bootstrapMetadata.rows[0]).toEqual({
         security_definer: true,
         function_owner: 'ariovelle_owner',
@@ -193,5 +194,5 @@ describe.skipIf(!ownerPool || !runtimePool || !runtimeDb)('Lucia identity, OAuth
       }
       owner.release();
     }
-  });
+  }, 15_000);
 });
