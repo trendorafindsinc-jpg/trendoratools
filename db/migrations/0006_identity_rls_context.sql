@@ -31,6 +31,9 @@ BEGIN
     -- This ID was generated inside the trusted database function, not supplied
     -- by the browser. Scope self-row policies to this verified new identity.
     PERFORM set_config('app.user_id', v_user::text, true);
+    IF app_private.current_user_id() IS DISTINCT FROM v_user THEN
+      RAISE EXCEPTION 'verified user context could not be established during identity bootstrap' USING ERRCODE='42501';
+    END IF;
 
     INSERT INTO public.users(id,status,display_name,primary_email)
       VALUES(v_user,'active',NULLIF(trim(p_display_name),''),NULLIF(lower(trim(p_email)),''));
@@ -48,6 +51,9 @@ BEGIN
   ELSE
     -- Existing identity was resolved from the provider+issuer+subject tuple.
     PERFORM set_config('app.user_id', v_user::text, true);
+    IF app_private.current_user_id() IS DISTINCT FROM v_user THEN
+      RAISE EXCEPTION 'verified user context could not be established during identity refresh' USING ERRCODE='42501';
+    END IF;
 
     SELECT w.id INTO v_workspace FROM public.workspaces w
       WHERE w.owner_user_id=v_user AND w.type='personal' AND w.status='active' LIMIT 1;
