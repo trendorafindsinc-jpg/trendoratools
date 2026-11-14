@@ -1,6 +1,6 @@
 # Ariovelle ↔ Lucia Core Identity Integration Contract
 
-Status: Ariovelle OIDC adapter restored to the registered `openid profile email` flow. Owner has confirmed production issuer/domain routing and public RS256 JWKS availability. Preview end-to-end sign-in, active client/scope confirmation and user callback acceptance remain pending.
+Status: Ariovelle OIDC adapter and frontend session bootstrap implemented. Owner-confirmed issuer/domain and read-only Production DB inspection verify the active client, exact redirect and existing scopes. Preview sign-in is fail-closed pending the additive Ariovelle development migration, fresh deployment and real browser acceptance.
 
 Source of truth inspected read-only:
 - Repository: https://github.com/trendorafindsinc-jpg/lucia-core
@@ -48,7 +48,7 @@ Provisioning inputs supported by Core include:
 
 Use a dedicated audience for Ariovelle, agreed during provisioning. Register only the exact callback URI(s), including scheme, host, path and any required port. Production callback must use HTTPS. Keep client secret in server-side secret storage; never expose it in Vite variables, browser bundles, source control, logs or client responses.
 
-The owner supplied client ID `lucia_4d08f98c2e1fe8335403d916`; Ariovelle has the ID and secret configured server-side on its preview environment. The Core-side database registration and exact granted-scope rows have not yet been independently confirmed. Do not treat the presence of an Ariovelle environment variable as proof that Core has an active registered client.
+The existing Production client `lucia_4d08f98c2e1fe8335403d916` was independently read-only verified as active, first-party, confidential, audience `ariovelle`, exact redirect `https://ariovelle.lucia.name.ng/api/auth/lucia/callback`, with scope assignments `email`, `lucia.identity`, `openid`, and `profile`. The confidential secret hash was not read. Ariovelle keeps requesting `openid profile email`; the Core registration and all existing scope assignments remain unchanged.
 
 ## 4. Authorization-code flow
 
