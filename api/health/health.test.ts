@@ -38,8 +38,9 @@ function expectSecurityHeaders(headers: Map<string, string | string[]>, body: an
 describe('Ariovelle API health endpoints', () => {
   it('returns a validated liveness response with request and security headers', async () => {
     const { response, result, headers } = createResponse();
-    await liveHandler({ method: 'GET' }, response);
+    await liveHandler({ method: 'GET', headers: { 'x-request-id': 'attacker-controlled' } }, response);
     expect(result.statusCode).toBe(200);
+    expect(headers.get('x-request-id')).not.toBe('attacker-controlled');
     expect(liveHealthResponseSchema.parse(result.body)).toMatchObject({
       status: 'ok', service: 'ariovelle-api', probe: 'live',
     });
