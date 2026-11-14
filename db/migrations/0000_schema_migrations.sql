@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS public.schema_migrations (
   applied_by TEXT NOT NULL DEFAULT current_user
 );
 
+ALTER TABLE public.schema_migrations ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON TABLE public.schema_migrations FROM PUBLIC;
 
 COMMIT;
