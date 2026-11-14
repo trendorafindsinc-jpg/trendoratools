@@ -1,6 +1,6 @@
 import { createHash, randomBytes } from 'node:crypto';
-import type { DatabaseAdapter, SqlExecutor } from './database';
-import type { VerifiedInternalUserId } from './workspace-access';
+import type { DatabaseAdapter, SqlExecutor } from './database.js';
+import type { VerifiedInternalUserId } from './workspace-access.js';
 
 export type LocalIdentity = { id: VerifiedInternalUserId; subject: string; email: string|null; emailVerified: boolean; displayName: string|null; personalWorkspaceId: string };
 export type SessionRecord = { token:string; expiresAt:Date };
