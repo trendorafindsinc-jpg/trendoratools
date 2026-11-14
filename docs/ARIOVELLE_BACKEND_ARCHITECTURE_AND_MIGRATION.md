@@ -138,7 +138,7 @@ Use a modular monolith initially. Do not split into microservices.
 3. **Validation/contracts:** Zod schemas shared where safe between client and server; server always validates independently.
 4. **Application/domain layer:** framework-independent TypeScript services for identity mapping, workspace authorization, financial domain operations, imports and entitlements.
 5. **Persistence:** PostgreSQL, with Neon as the preferred hosting candidate, subject to owner authorization before provisioning.
-6. **Database access/migrations:** Drizzle ORM + checked-in SQL/Drizzle migrations. Use parameterized queries only. Review generated SQL.
+6. **Database access/migrations:** node-postgres adapter + checked-in SQL migrations managed by `db/migrate.mjs`. SQL files are canonical; use parameterized queries only. Drizzle is not selected for this implementation.
 7. **Observability:** structured, redacted logs and request correlation IDs. Never log passwords, bearer tokens, cookies, full financial payloads or raw identity-provider responses.
 8. **External providers:** Lucia ID for identity only after official specification is obtained. Payment, AI and market providers are separate adapters and are out of scope for the first backend foundation.
 
@@ -465,26 +465,26 @@ Do these in order. Each package must be separately reviewable.
 
 ### P2.1 — backend scaffold, no live identity
 
-- Add server-only runtime/config validation and a health endpoint.
-- Add API router and standard error/request-ID middleware.
-- Add Zod contracts for health, user/workspace DTOs.
-- Add typed frontend API client.
-- Add test harness and fake adapters only for unit/integration tests.
+- Use one shared Vercel Node-function composition boundary for method handling, request IDs, safe errors and security/no-store headers.
+- Validate health/readiness and future `/me`/workspace DTOs with Zod; validate all server responses at the route boundary.
+- Keep readiness configuration separate from dependency connectivity verification.
+- Keep the typed frontend API client and health-only endpoints; do not add authenticated user/workspace routes yet.
+- Verify the `/api/health/*` filesystem function convention with tests. A live preview HTTP check requires separate owner approval for a manual deployment.
 - Do not add live auth, finance CRUD, payment, AI or market endpoints.
-- Confirm Vercel function routing and local dev proxy behavior before selecting final file layout.
 
-**Exit:** health endpoint and API contract tests pass; frontend build remains green; no secrets required for static UI build.
+**Exit:** health contract and handler tests pass; Vercel route module paths are verified; live preview acceptance remains a separately approved release check.
 
 ### P2.2 — database schema and migration tooling (development only)
 
-- Only after owner authorizes a development database and credentials.
-- Add Drizzle configuration and first migrations for users, external identities, profiles/preferences, workspaces, memberships, audit events and migration tracking.
-- Add schema constraints, indexes, foreign keys and transaction-safe tenant context.
-- Add seed fixtures with synthetic users/workspaces only.
-- Add database integration tests against an isolated development database.
+- Keep the existing checked-in SQL migrations 0001–0005 as the canonical schema history; do not add a competing ORM migration history.
+- Add 0000 as a dedicated DDL migration ledger, separate from data-import provenance tables.
+- Use `db/migrate.mjs` for contiguous ordering, SHA-256 checksums, advisory locking, transactionally applied DDL+ledger rows, drift refusal and read-only planning/verification.
+- Refuse to replay 0001–0005 against the already-provisioned development database. Use the explicit `db:migrate:baseline-existing` path only after the structural catalog checks pass.
+- Prove clean-database application and idempotent reruns against an ephemeral PostgreSQL 17 CI service; run tenant-isolation integration tests with separate owner/runtime roles.
+- Never run a destructive reset against the shared disposable development branch. Use a fresh ephemeral CI database or a separately created disposable Neon branch.
 - No production database and no user data import.
 
-**Exit:** migrations apply from empty database, migrate forward, and test reset in development; tenant isolation tests pass.
+**Exit:** a clean database builds from 0000–0005, the ledger verifies checksums and refuses drift, existing development schema is baseline-reconciled without replaying DDL, and tenant-isolation tests pass.
 
 ### P2.3 — Lucia ID adapter (blocked on official documentation)
 
