@@ -23,7 +23,8 @@
     "android:apk": "npm run build && npx cap sync android && cd android && ./gradlew assembleDebug --no-daemon",
     "db:migrate:plan": "node db/migrate.mjs --plan",
     "db:migrate:apply": "node db/migrate.mjs --apply",
-    "db:migrate:verify": "node db/migrate.mjs --verify"
+    "db:migrate:verify": "node db/migrate.mjs --verify",
+    "db:migrate:baseline-existing": "node db/migrate.mjs --baseline-existing --apply"
   },
   "dependencies": {
     "@capacitor/android": "^6.2.0",
