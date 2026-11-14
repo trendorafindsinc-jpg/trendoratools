@@ -53,7 +53,6 @@ describe.skipIf(!ownerPool || !runtimePool || !runtimeDb)('Lucia identity, OAuth
     let userB: string | undefined;
     let workspaceA: string | undefined;
     let workspaceB: string | undefined;
-    const runtime = await runtimePool.connect();
     const owner = await ownerPool.connect();
 
     try {
@@ -82,7 +81,6 @@ describe.skipIf(!ownerPool || !runtimePool || !runtimeDb)('Lucia identity, OAuth
            JOIN pg_roles r ON r.rolname=pg_get_userbyid(p.proowner)
           WHERE n.nspname='app_private' AND p.proname='establish_lucia_identity'`,
       );
-      console.log('Identity bootstrap function metadata:', bootstrapMetadata.rows[0]);
       expect(bootstrapMetadata.rows[0]).toEqual({
         security_definer: true,
         function_owner: 'ariovelle_owner',
@@ -90,19 +88,19 @@ describe.skipIf(!ownerPool || !runtimePool || !runtimeDb)('Lucia identity, OAuth
       });
 
       const contextProbe = randomUUID();
-      await runtime.query('BEGIN');
-      await runtime.query("SELECT set_config('app.user_id', $1, true)", [contextProbe]);
-      const contextResult = await runtime.query<{ current_user_id: string }>(
-        'SELECT app_private.current_user_id() AS current_user_id',
-      );
-      expect(contextResult.rows[0]?.current_user_id).toBe(contextProbe);
-      await runtime.query('ROLLBACK');
+      await runtimeDb.transaction(async (tx) => {
+        await tx.query("SELECT set_config('app.user_id', $1, true)", [contextProbe]);
+        const contextResult = await tx.query<{ current_user_id: string }>(
+          'SELECT app_private.current_user_id() AS current_user_id',
+        );
+        expect(contextResult.rows[0]?.current_user_id).toBe(contextProbe);
+      });
 
-      const a = await runtime.query(
+      const a = await runtimeDb.query(
         'SELECT * FROM app_private.establish_lucia_identity($1,$2,$3,$4,$5,$6,$7)',
         ['https://identity.integration.test', subjectA, 'a@example.test', true, 'Integration A', hashA, expires],
       );
-      const b = await runtime.query(
+      const b = await runtimeDb.query(
         'SELECT * FROM app_private.establish_lucia_identity($1,$2,$3,$4,$5,$6,$7)',
         ['https://identity.integration.test', subjectB, 'b@example.test', true, 'Integration B', hashB, expires],
       );
@@ -172,7 +170,6 @@ describe.skipIf(!ownerPool || !runtimePool || !runtimeDb)('Lucia identity, OAuth
         work: async () => true,
       })).rejects.toThrow('valid Ariovelle session');
     } finally {
-      runtime.release();
       await owner.query(
         'DELETE FROM public.oauth_transactions WHERE state_hash=$1',
         [hashSessionToken(oauthState)],
@@ -194,5 +191,5 @@ describe.skipIf(!ownerPool || !runtimePool || !runtimeDb)('Lucia identity, OAuth
       }
       owner.release();
     }
-  }, 15_000);
+  });
 });
