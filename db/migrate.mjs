@@ -78,6 +78,9 @@ export async function discoverMigrations(directory = MIGRATIONS_DIR) {
 }
 
 export function pendingMigrations(migrations, ledgerRows) {
+  const knownVersions = new Set(migrations.map((migration) => migration.version));
+  const unknown = ledgerRows.find((row) => !knownVersions.has(row.version));
+  if (unknown) throw new Error(`Unknown migration version ${unknown.version} is recorded in the DDL ledger.`);
   const applied = new Map(ledgerRows.map((row) => [row.version, row]));
   for (const migration of migrations) {
     const row = applied.get(migration.version);
@@ -207,17 +210,22 @@ async function applyOne(client, migration) {
   }
 }
 
-async function baselineExisting(client, migrations) {
+async function baselineExisting(client, migrations, existingLedger) {
   const existing = await client.query("SELECT to_regclass('public.users') AS users");
   if (!existing.rows[0]?.users) throw new Error('Baseline mode requires the existing Ariovelle schema.');
+  if (existingLedger.some((row) => row.version !== '0000')) {
+    throw new Error('Baseline mode refused: one or more application migrations are already recorded.');
+  }
+  pendingMigrations(migrations, existingLedger);
   await client.query('BEGIN');
   try {
     const bootstrap = migrations.find((migration) => migration.version === '0000');
-    await client.query(stripTransactionWrapper(bootstrap.content));
-    const current = await client.query('SELECT version FROM public.schema_migrations');
-    if (current.rowCount !== 0) throw new Error('Baseline mode requires an empty DDL ledger.');
+    if (!existingLedger.some((row) => row.version === '0000')) {
+      await client.query(stripTransactionWrapper(bootstrap.content));
+      await recordMigration(client, bootstrap, 0);
+    }
     await assertBaseline(client);
-    for (const migration of migrations) {
+    for (const migration of migrations.filter((item) => item.version !== '0000')) {
       await recordMigration(client, migration, 0);
     }
     await client.query('COMMIT');
@@ -255,17 +263,16 @@ export async function runMigrationCommand({ mode, connectionString, migrations }
     const ledger = await readLedger(client);
 
     if (mode === '--baseline-existing') {
-      if (ledger.length) throw new Error('Existing-schema baseline refused: DDL ledger already contains records.');
-      await baselineExisting(client, migrations);
-      return { mode, applied: migrations.length, pending: 0 };
+      await baselineExisting(client, migrations, ledger);
+      return { mode, applied: migrations.length - ledger.length, pending: 0 };
     }
 
-    if (!hasLedger) {
-      const schema = await client.query("SELECT to_regclass('public.users') AS users");
-      if (schema.rows[0]?.users) {
-        if (mode === '--plan') return { mode, baselineRequired: true, pending: migrations.map(({ version, name }) => ({ version, name })) };
-        throw new Error('Existing Ariovelle schema has no DDL ledger. Review the catalog, then use --baseline-existing --apply; do not replay migrations.');
-      }
+    const schema = await client.query("SELECT to_regclass('public.users') AS users");
+    const hasApplicationSchema = Boolean(schema.rows[0]?.users);
+    const bootstrapOnly = ledger.length === 1 && ledger[0].version === '0000';
+    if (hasApplicationSchema && (!hasLedger || bootstrapOnly)) {
+      if (mode === '--plan') return { mode, baselineRequired: true, pending: migrations.map(({ version, name }) => ({ version, name })) };
+      throw new Error('Existing Ariovelle schema has no complete DDL ledger. Review the catalog, then use --baseline-existing --apply; do not replay migrations.');
     }
 
     const pending = pendingMigrations(migrations, ledger);
