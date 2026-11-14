@@ -102,7 +102,7 @@ export async function fetchOidcDiscovery(config:LuciaConfig,fetcher:typeof fetch
     const u=new URL(doc[key]);
     if(u.origin!==config.issuer || u.pathname!==path || u.search || u.hash) throw new LuciaAuthError('OIDC_ENDPOINT_MISMATCH','Lucia Core advertised an unexpected OIDC endpoint.');
   }
-  if(!doc.response_types_supported.includes('code')||!doc.id_token_signing_alg_values_supported.includes('RS256')||!doc.code_challenge_methods_supported.includes('S256')) throw new LuciaAuthError('OIDC_CAPABILITY_MISMATCH','Lucia Core does not advertise the required authorization-code, RS256 and S256 capabilities.');
+  if(!doc.response_types_supported.includes('code')||!doc.code_challenge_methods_supported.includes('S256')) throw new LuciaAuthError('IDENTITY_API_CAPABILITY_MISMATCH','Lucia Core does not advertise the required authorization-code and S256 PKCE capabilities.');
   return doc;
 }
 export async function exchangeLuciaCode(input:{config:LuciaConfig;discovery:OidcDiscovery;code:string;verifier:string;fetcher?:typeof fetch}) {
