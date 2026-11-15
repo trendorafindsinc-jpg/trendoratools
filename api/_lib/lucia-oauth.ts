@@ -121,15 +121,19 @@ export async function exchangeLuciaCode(input:{config:LuciaConfig;discovery:Oidc
   }
   if(typeof body!=='object'||body===null) throw new LuciaAuthError('TOKEN_RESPONSE_INVALID','Lucia Core returned an invalid token response.');
   const token=body as Record<string,unknown>;
+  // Lucia Core's consumer token endpoint names its bearer assertion `token`
+  // (not the OAuth-standard `access_token`). Normalize that documented
+  // response here so downstream UserInfo validation receives the bearer value.
+  const accessToken = typeof token.access_token === 'string' ? token.access_token : token.token;
   if(
-    typeof token.access_token!=='string'||token.access_token.length<20||token.access_token.length>16_384||
+    typeof accessToken!=='string'||accessToken.length<20||accessToken.length>16_384||
     typeof token.id_token!=='string'||token.id_token.length<40||token.id_token.length>32_768||
     typeof token.token_type!=='string'||token.token_type.toLowerCase()!=='bearer'||
     (token.expires_in!==undefined&&(typeof token.expires_in!=='number'||!Number.isInteger(token.expires_in)||token.expires_in<1||token.expires_in>300))||
     (token.scope!==undefined&&typeof token.scope!=='string')
   ) throw new LuciaAuthError('TOKEN_RESPONSE_INVALID','Lucia Core did not return valid OIDC and bearer credentials.');
   return {
-    access_token:token.access_token,
+    access_token:accessToken,
     id_token:token.id_token,
     token_type:'Bearer',
     ...(typeof token.expires_in==='number'?{expires_in:token.expires_in}:{}),
