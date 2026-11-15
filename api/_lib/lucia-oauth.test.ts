@@ -1,6 +1,6 @@
 import { describe,expect,it,vi } from 'vitest';
 import { generateKeyPairSync,sign } from 'node:crypto';
-import { buildCookie,constantTimeEqual,createPkcePair,fetchOidcDiscovery,fetchLuciaUserInfo,openOAuthTransaction,readLuciaConfig,sealOAuthTransaction,validateLuciaIdToken,type OidcDiscovery } from './lucia-oauth';
+import { buildCookie,constantTimeEqual,createPkcePair,exchangeLuciaCode,fetchOidcDiscovery,fetchLuciaUserInfo,openOAuthTransaction,readLuciaConfig,sealOAuthTransaction,validateLuciaIdToken,type OidcDiscovery } from './lucia-oauth';
 
 const env={NODE_ENV:'test',LUCIA_AUTH_ENABLED:'true',LUCIA_ISSUER:'https://identity.example.test',LUCIA_CLIENT_ID:'ariovelle-client',LUCIA_CLIENT_SECRET:'x'.repeat(40),LUCIA_AUDIENCE:'ariovelle',LUCIA_REDIRECT_URI:'https://ariovelle.example.test/api/auth/lucia/callback',ARIOVELLE_SESSION_SECRET:'s'.repeat(48)};
 const config=readLuciaConfig(env);
@@ -39,6 +39,30 @@ describe('Lucia OIDC adapter',()=>{
   const wrong={...discovery,issuer:'https://attacker.example'};
   const bad=vi.fn(async()=>new Response(JSON.stringify(wrong),{status:200})) as unknown as typeof fetch;
   await expect(fetchOidcDiscovery(config,bad)).rejects.toMatchObject({code:'OIDC_ISSUER_MISMATCH'});
+ });
+ it('normalizes Lucia Core token responses that use token instead of access_token',async()=>{
+  const fetcher=vi.fn(async(_url:string|URL|Request,init?:RequestInit)=>{
+   expect(init?.method).toBe('POST');
+   expect((init?.headers as Record<string,string>).Authorization).toMatch(/^Basic /);
+   const form=init?.body as URLSearchParams;
+   expect(form.get('grant_type')).toBe('authorization_code');
+   expect(form.get('code_verifier')).toBe('v'.repeat(43));
+   return new Response(JSON.stringify({
+    token:'short-lived-core-assertion-value-1234567890',
+    token_type:'Bearer',
+    expires_in:300,
+    scope:'openid profile email',
+    id_token:'eyJ.'+'a'.repeat(48)+'.signature',
+   }),{status:200,headers:{'Content-Type':'application/json'}});
+  }) as unknown as typeof fetch;
+  await expect(exchangeLuciaCode({
+   config,discovery,code:'authorization-code-value-1234567890',verifier:'v'.repeat(43),fetcher,
+  })).resolves.toMatchObject({
+   access_token:'short-lived-core-assertion-value-1234567890',
+   token_type:'Bearer',
+   scope:'openid profile email',
+   expires_in:300,
+  });
  });
  it('validates RS256 signature, issuer, audience, lifetime and nonce',async()=>{
   const now=Math.floor(Date.now()/1000);
